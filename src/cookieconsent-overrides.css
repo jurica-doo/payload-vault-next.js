@@ -1,0 +1,110 @@
+/* ===== Cookie Consent Theme Overrides ===== */
+/* Matches PayloadVault's dark/light design system */
+
+#cc-main {
+  --cc-font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+
+  /* Dark theme (default) */
+  --cc-bg: #2e2e2e;
+  --cc-primary-color: #ffffff;
+  --cc-secondary-color: #bbbbbb;
+
+  --cc-btn-primary-bg: #00c4b3;
+  --cc-btn-primary-color: #000000;
+  --cc-btn-primary-border-color: #00c4b3;
+  --cc-btn-primary-hover-bg: #009c8f;
+  --cc-btn-primary-hover-color: #000000;
+  --cc-btn-primary-hover-border-color: #009c8f;
+
+  --cc-btn-secondary-bg: transparent;
+  --cc-btn-secondary-color: #bbbbbb;
+  --cc-btn-secondary-border-color: #545454;
+  --cc-btn-secondary-hover-bg: #545454;
+  --cc-btn-secondary-hover-color: #ffffff;
+  --cc-btn-secondary-hover-border-color: #545454;
+
+  --cc-separator-border-color: #545454;
+  --cc-toggle-on-bg: #00c4b3;
+  --cc-toggle-off-bg: #545454;
+  --cc-toggle-readonly-bg: #009c8f;
+  --cc-toggle-readonly-knob-bg: #ffffff;
+
+  --cc-cookie-category-block-bg: #111111;
+  --cc-cookie-category-block-border: #545454;
+  --cc-cookie-category-block-hover-bg: #1a1a1a;
+
+  --cc-cookie-table-border: #545454;
+
+  --cc-overlay-bg: rgba(0, 0, 0, 0.65);
+  --cc-section-border: #545454;
+
+  --cc-footer-bg: #111111;
+  --cc-footer-color: #a1a1a1;
+  --cc-footer-border-color: #545454;
+
+  --cc-pm-bg: #2e2e2e;
+}
+
+/* Light theme */
+:root[data-theme="light"] #cc-main {
+  --cc-bg: #ffffff;
+  --cc-primary-color: #1a1a2e;
+  --cc-secondary-color: #475569;
+
+  --cc-btn-primary-bg: #00a99d;
+  --cc-btn-primary-color: #ffffff;
+  --cc-btn-primary-border-color: #00a99d;
+  --cc-btn-primary-hover-bg: #008578;
+  --cc-btn-primary-hover-color: #ffffff;
+  --cc-btn-primary-hover-border-color: #008578;
+
+  --cc-btn-secondary-bg: transparent;
+  --cc-btn-secondary-color: #475569;
+  --cc-btn-secondary-border-color: #cbd5e1;
+  --cc-btn-secondary-hover-bg: #e2e8f0;
+  --cc-btn-secondary-hover-color: #1a1a2e;
+  --cc-btn-secondary-hover-border-color: #cbd5e1;
+
+  --cc-separator-border-color: #cbd5e1;
+  --cc-toggle-on-bg: #00a99d;
+  --cc-toggle-off-bg: #cbd5e1;
+  --cc-toggle-readonly-bg: #008578;
+  --cc-toggle-readonly-knob-bg: #ffffff;
+
+  --cc-cookie-category-block-bg: #f1f5f9;
+  --cc-cookie-category-block-border: #cbd5e1;
+  --cc-cookie-category-block-hover-bg: #e2e8f0;
+
+  --cc-cookie-table-border: #cbd5e1;
+
+  --cc-overlay-bg: rgba(0, 0, 0, 0.4);
+  --cc-section-border: #cbd5e1;
+
+  --cc-footer-bg: #f1f5f9;
+  --cc-footer-color: #64748b;
+  --cc-footer-border-color: #cbd5e1;
+
+  --cc-pm-bg: #ffffff;
+}
+
+/* Button border radius to match app */
+#cc-main .cm__btn,
+#cc-main .pm__btn {
+  border-radius: 0.5rem;
+}
+
+/* Footer links styling */
+#cc-main .cm__footer a {
+  color: var(--cc-footer-color);
+}
+
+#cc-main .cm__footer a:hover {
+  color: var(--cc-btn-primary-bg);
+}
+
+/* Smooth transitions */
+#cc-main .cm,
+#cc-main .pm {
+  border-radius: 1rem;
+}
