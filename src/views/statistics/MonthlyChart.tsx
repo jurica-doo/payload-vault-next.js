@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import type { MonthlyData } from "./utils";
 import { normalizeProfit } from "../../components/contentCard/ContentCard.utils";
+import { SegmentedToggle } from "../../components/segmentedToggle/SegmentedToggle";
 
 type ChartType = "bar" | "line";
 
@@ -52,30 +53,15 @@ export const MonthlyChart = ({ data, color, label }: MonthlyChartProps) => {
         <h4 className="text-base sm:text-lg font-semibold text-color-text-main">
           {label}
         </h4>
-        <div className="flex gap-1 bg-color-bg-main rounded-radius-md p-0.5">
-          <button
-            type="button"
-            onClick={() => setChartType("bar")}
-            className={`px-3 py-1 text-xs rounded-radius-sm transition-all duration-200 ${
-              chartType === "bar"
-                ? "bg-color-primary text-color-black font-medium"
-                : "text-color-text-subtle hover:text-color-text-main"
-            }`}
-          >
-            Balken
-          </button>
-          <button
-            type="button"
-            onClick={() => setChartType("line")}
-            className={`px-3 py-1 text-xs rounded-radius-sm transition-all duration-200 ${
-              chartType === "line"
-                ? "bg-color-primary text-color-black font-medium"
-                : "text-color-text-subtle hover:text-color-text-main"
-            }`}
-          >
-            Linie
-          </button>
-        </div>
+        <SegmentedToggle
+          ariaLabel={label}
+          value={chartType}
+          onChange={setChartType}
+          options={[
+            { value: "bar", label: "Balken" },
+            { value: "line", label: "Linie" },
+          ]}
+        />
       </div>
 
       {!hasData ? (

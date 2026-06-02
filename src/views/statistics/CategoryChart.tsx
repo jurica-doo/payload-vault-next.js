@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import type { CategoryTotal } from "./utils";
 import { normalizeProfit } from "../../components/contentCard/ContentCard.utils";
+import { SegmentedToggle } from "../../components/segmentedToggle/SegmentedToggle";
 
 type ChartMode = "donut" | "bar";
 
@@ -84,30 +85,15 @@ export const CategoryChart = ({ data, label }: CategoryChartProps) => {
         <h4 className="text-base sm:text-lg font-semibold text-color-text-main">
           {label}
         </h4>
-        <div className="flex gap-1 bg-color-bg-main rounded-radius-md p-0.5">
-          <button
-            type="button"
-            onClick={() => setMode("donut")}
-            className={`px-3 py-1 text-xs rounded-radius-sm transition-all duration-200 ${
-              mode === "donut"
-                ? "bg-color-primary text-color-black font-medium"
-                : "text-color-text-subtle hover:text-color-text-main"
-            }`}
-          >
-            Donut
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("bar")}
-            className={`px-3 py-1 text-xs rounded-radius-sm transition-all duration-200 ${
-              mode === "bar"
-                ? "bg-color-primary text-color-black font-medium"
-                : "text-color-text-subtle hover:text-color-text-main"
-            }`}
-          >
-            Balken
-          </button>
-        </div>
+        <SegmentedToggle
+          ariaLabel={label}
+          value={mode}
+          onChange={setMode}
+          options={[
+            { value: "donut", label: "Donut" },
+            { value: "bar", label: "Balken" },
+          ]}
+        />
       </div>
 
       {mode === "donut" ? (
