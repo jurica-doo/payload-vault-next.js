@@ -5,6 +5,7 @@ import {
   useConfirmAndUploadToDatabase,
   useDeclineExpenseUpload,
   ExtractionExpenseError,
+  checkDuplicateExpenseContent,
 } from "../../hooks/useExpenses/useExpenses";
 import type {
   PendingExpenseUpload,
@@ -17,6 +18,7 @@ import type { UploadProgress } from "../modal/ExpenseImportPdfForm";
 import { useRef } from "react";
 import { useExpenseImportPdfModal } from "../../hooks/modal/UseExpenseImportPdfModal";
 import { useBulkSelectContext } from "../../context/BulkSelectContext";
+import { supabase } from "../../lib/supabase";
 
 const truncateName = (name: string, max = 30) =>
   name.length > max ? name.slice(0, max) + "..." : name;
@@ -162,6 +164,38 @@ export const ExpensePdfImportFooter = () => {
         });
 
         await Promise.all(extractionPromises);
+
+        // Check for content-based duplicates after extraction
+        if (pendingUploads.length > 0 && user?.id) {
+          await Promise.all(
+            pendingUploads.map(async (upload) => {
+              try {
+                const totalAmount = upload.products.reduce(
+                  (sum, p) => sum + p.amount,
+                  0,
+                );
+                const match = await checkDuplicateExpenseContent(user.id, {
+                  expense_date: upload.expense_date,
+                  vendor_name: upload.vendor_name,
+                  amount: totalAmount,
+                });
+                if (match) {
+                  upload.isDuplicate = true;
+                  const { data: signedData } = await supabase.storage
+                    .from("expense_invoices")
+                    .createSignedUrl(match.image_url, 900);
+                  upload.duplicateMatch = {
+                    file_name: match.file_name,
+                    signed_url: signedData?.signedUrl ?? "",
+                  };
+                }
+              } catch {
+                // If check fails, don't block — treat as non-duplicate
+                upload.isDuplicate = false;
+              }
+            }),
+          );
+        }
 
         closeImportModal();
 

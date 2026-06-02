@@ -12,6 +12,15 @@ import type {
 } from "./types";
 import { isExpenseCategory, DEFAULT_EXPENSE_CATEGORY } from "./types";
 
+export class DuplicateExpenseError extends Error {
+  constructor(fileName: string) {
+    super(`File "${fileName}" already exists.`);
+    this.name = "DuplicateExpenseError";
+  }
+}
+
+export { checkDuplicateExpenseContent };
+
 export class ExtractionExpenseError extends Error {
   rejectionReason: string;
   constructor(reason: string) {
@@ -36,6 +45,38 @@ async function deleteImageFromStorage(path: string): Promise<void> {
     .from("expense_invoices")
     .remove([path]);
   if (error) console.error("Error removing storage file:", error.message);
+}
+
+async function checkDuplicateExpenseContent(
+  userId: string,
+  expense: {
+    expense_date: string;
+    vendor_name: string;
+    amount: number;
+  },
+): Promise<{ file_name: string; image_url: string } | null> {
+  const { data, error } = await supabase
+    .from("expenses")
+    .select("id, amount, vendor_name, file_name, image_url")
+    .eq("user_id", userId)
+    .eq("expense_date", expense.expense_date)
+    .limit(100);
+
+  if (error) throw error;
+  if (!data || data.length === 0) return null;
+
+  const normalizedVendor = expense.vendor_name.trim().toLowerCase();
+
+  const match = data.find((existing) => {
+    const existingVendor = (existing.vendor_name ?? "").trim().toLowerCase();
+    const amountMatch = Math.abs(existing.amount - expense.amount) < 0.01;
+    const vendorMatch = existingVendor === normalizedVendor;
+    return amountMatch && vendorMatch;
+  });
+
+  if (!match) return null;
+
+  return { file_name: match.file_name, image_url: match.image_url };
 }
 
 export function isSortType(value: string): value is SortType {
@@ -120,12 +161,7 @@ export function useFetchExpenses(props: FetchExpensesProps) {
 export function useUploadAndExtract(userId: string) {
   return useMutation<PendingExpenseUpload, Error, File>({
     mutationFn: async (file) => {
-      const dot = file.name.lastIndexOf(".");
-      const base = dot > 0 ? file.name.slice(0, dot) : file.name;
-      const ext = dot > 0 ? file.name.slice(dot) : "";
-      const uniqueFileName = `${base}_${crypto.randomUUID().slice(0, 8)}${ext}`;
-
-      const filePath = `${userId}/${crypto.randomUUID()}_${sanitizeFileName(uniqueFileName)}`;
+      const filePath = `${userId}/${crypto.randomUUID()}_${sanitizeFileName(file.name)}`;
 
       const { error: uploadError } = await supabase.storage
         .from("expense_invoices")
@@ -177,13 +213,13 @@ export function useUploadAndExtract(userId: string) {
 
         return {
           id: crypto.randomUUID(),
-          fileName: uniqueFileName,
+          fileName: file.name,
           filePath,
           expense_date:
             data.expense_date || new Date().toISOString().split("T")[0],
           vendor_name: data.vendor_name || "Unbekannt",
           image_url: filePath,
-          file_name: uniqueFileName,
+          file_name: file.name,
           products: (data.products || []).map(
             (p: {
               product_name: string;
@@ -218,22 +254,49 @@ export function useDeclineExpenseUpload() {
 export function useConfirmAndUploadToDatabase() {
   const queryClient = useQueryClient();
 
-  return useMutation<ExpenseRecord, PostgrestError, ConfirmReceiptPayload & { user_id: string }>({
+  return useMutation<
+    ExpenseRecord,
+    PostgrestError,
+    ConfirmReceiptPayload & { user_id: string }
+  >({
     mutationFn: async (payload) => {
-      const { data, error } = await supabase
-        .from("expenses")
-        .insert({
-          user_id: payload.user_id,
-          category: payload.category,
-          amount: payload.amount,
-          expense_date: payload.expense_date,
-          vendor_name: payload.vendor_name,
-          image_url: payload.image_url,
-          file_name: payload.file_name,
-          products: JSON.parse(JSON.stringify(payload.products)),
-        })
-        .select()
-        .single();
+      const insertRow = (fileName: string) =>
+        supabase
+          .from("expenses")
+          .insert({
+            user_id: payload.user_id,
+            category: payload.category,
+            amount: payload.amount,
+            expense_date: payload.expense_date,
+            vendor_name: payload.vendor_name,
+            image_url: payload.image_url,
+            file_name: fileName,
+            products: JSON.parse(JSON.stringify(payload.products)),
+          })
+          .select()
+          .single();
+
+      const isUniqueViolation = (e: PostgrestError) =>
+        e.code === "23505" || e.message?.includes("unique");
+
+      const { data, error } = await insertRow(payload.file_name);
+
+      if (error && isUniqueViolation(error)) {
+        const baseName = payload.file_name;
+        const dotIdx = baseName.lastIndexOf(".");
+        for (let i = 1; i <= 50; i++) {
+          const uniqueName =
+            dotIdx > 0
+              ? `${baseName.slice(0, dotIdx)}_${i}${baseName.slice(dotIdx)}`
+              : `${baseName}_${i}`;
+          const { data: retryData, error: retryError } =
+            await insertRow(uniqueName);
+          if (!retryError) return retryData;
+          if (!isUniqueViolation(retryError)) throw retryError;
+        }
+        throw error;
+      }
+
       if (error) throw error;
       return data;
     },

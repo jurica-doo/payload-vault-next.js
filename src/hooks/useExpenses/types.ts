@@ -55,6 +55,11 @@ type FetchExpensesProps = {
   endMonth?: number;
 };
 
+type DuplicateMatch = {
+  file_name: string;
+  signed_url: string;
+};
+
 type PendingExpenseUpload = {
   id: string;
   fileName: string;
@@ -64,10 +69,13 @@ type PendingExpenseUpload = {
   image_url: string;
   file_name: string;
   products: ExtractedProduct[];
+  isDuplicate?: boolean;
+  duplicateMatch?: DuplicateMatch;
 };
 
 export type {
   ConfirmReceiptPayload,
+  DuplicateMatch,
   ExpenseCategory,
   ExpenseRecord,
   ExtractedProduct,

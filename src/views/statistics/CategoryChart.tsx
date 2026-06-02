@@ -122,6 +122,7 @@ export const CategoryChart = ({ data, label }: CategoryChartProps) => {
                 cy="50%"
                 innerRadius="55%"
                 outerRadius="80%"
+                paddingAngle={2}
                 animationDuration={800}
                 animationEasing="ease-out"
               >
@@ -130,7 +131,7 @@ export const CategoryChart = ({ data, label }: CategoryChartProps) => {
                     key={entry.category}
                     fill={entry.color}
                     stroke="var(--color-bg-card)"
-                    strokeWidth={data.length > 1 ? 2 : 0}
+                    strokeWidth={2}
                   />
                 ))}
               </Pie>

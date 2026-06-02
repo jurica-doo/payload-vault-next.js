@@ -30,10 +30,11 @@ export const useExpenseConfirmUploadModal = ({
       (sum, u) => sum + u.products.length,
       0,
     );
+    const duplicateCount = pendingUploads.filter((u) => u.isDuplicate).length;
     const title =
       pendingUploads.length === 1
-        ? pendingUploads[0].fileName
-        : `${pendingUploads.length} Belege · ${totalProducts} Produkte`;
+        ? `${pendingUploads[0].fileName}${pendingUploads[0].isDuplicate ? " (mögliches Duplikat)" : ""}`
+        : `${pendingUploads.length} Belege · ${totalProducts} Produkte${duplicateCount > 0 ? ` · ${duplicateCount} mögliche Duplikat${duplicateCount > 1 ? "e" : ""}` : ""}`;
 
     openModal({
       title,

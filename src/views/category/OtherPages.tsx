@@ -1,4 +1,7 @@
+"use client";
+
 import { useState, useEffect, useMemo } from "react";
+import { usePathname } from "next/navigation";
 import {
   type DropdownOptions,
   paycheckFilterOptions,
@@ -34,7 +37,8 @@ type CategoryProps = {
 export const OtherPages = ({ title }: CategoryProps) => {
   const { user } = useAuth();
   const { year } = useYear();
-  const params = window.location.pathname.split("/")[1];
+  const pathname = usePathname();
+  const params = pathname.split("/")[1];
 
   const [sortSelected, setSortSelected] = useState<
     DropdownOptions["paycheckFilter"][number]

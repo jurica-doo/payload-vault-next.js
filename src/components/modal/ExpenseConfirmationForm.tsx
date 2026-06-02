@@ -6,6 +6,7 @@ import type { Option } from "../dropdown/Dropdown.types";
 import type {
   PendingExpenseUpload,
   ConfirmReceiptPayload,
+  DuplicateMatch,
   ExpenseCategory,
 } from "../../hooks/useExpenses/types";
 import {
@@ -41,6 +42,8 @@ type ReceiptState = {
   image_url: string;
   file_name: string;
   products: EditableProduct[];
+  isDuplicate: boolean;
+  duplicateMatch?: DuplicateMatch;
 };
 
 export const ExpenseConfirmationForm = ({
@@ -58,6 +61,8 @@ export const ExpenseConfirmationForm = ({
       vendor_name: u.vendor_name,
       image_url: u.image_url,
       file_name: u.file_name,
+      isDuplicate: u.isDuplicate ?? false,
+      duplicateMatch: u.duplicateMatch,
       products: u.products.map((p) => ({
         id: p.id,
         product_name: p.product_name,
@@ -208,142 +213,194 @@ export const ExpenseConfirmationForm = ({
   const getCategoryOption = (category: ExpenseCategory): Option | null =>
     EXPENSE_CATEGORY_OPTIONS.find((opt) => opt.id === category) || null;
 
-  return (
-    <div className="flex flex-col gap-6 max-h-[70vh] overflow-y-auto pr-1">
-      {receipts.map((receipt) => {
-        const isProcessing = processingIds.has(receipt.id);
-        const hasProducts = receipt.products.length > 0;
+  const newReceipts = receipts.filter((r) => !r.isDuplicate);
+  const duplicateReceipts = receipts.filter((r) => r.isDuplicate);
 
-        return (
+  const renderReceipt = (receipt: ReceiptState) => {
+    const isProcessing = processingIds.has(receipt.id);
+    const hasProducts = receipt.products.length > 0;
+
+    return (
+      <div
+        key={receipt.id}
+        className={`flex flex-col gap-4 rounded-lg p-4 ${
+          receipt.isDuplicate
+            ? "bg-amber-900/20 border border-amber-500/50"
+            : "bg-color-bg-dark"
+        }`}
+      >
+        {/* Receipt header */}
+        <h3 className="font-semibold text-color-text-main truncate">
+          {receipt.fileName}
+        </h3>
+
+        {receipt.isDuplicate && (
+          <div className="text-sm text-amber-400">
+            <p>
+              Dieser Beleg existiert möglicherweise bereits. Sie können ihn
+              trotzdem hochladen.
+            </p>
+            {receipt.duplicateMatch?.signed_url && (
+              <a
+                href={receipt.duplicateMatch.signed_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block mt-1 underline hover:text-amber-300 transition-colors"
+              >
+                Vorhandene Datei ansehen: {receipt.duplicateMatch.file_name}
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* Receipt-level fields: vendor & date */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <InputField
+            label="Anbieter"
+            type="text"
+            placeholder="z.B. REWE, Shell"
+            value={receipt.vendor_name}
+            onChange={(val) =>
+              updateReceiptField(receipt.id, "vendor_name", val)
+            }
+          />
+          <div className="flex flex-col gap-1">
+            <label className="flex h-6 items-center font-semibold text-color-text-secondary">
+              <span className="ml-1 text-[14px]">Datum</span>
+            </label>
+            <input
+              type="date"
+              value={receipt.expense_date}
+              onChange={(e) =>
+                updateReceiptField(receipt.id, "expense_date", e.target.value)
+              }
+              className="w-full rounded-radius-md border border-color-border-light bg-color-bg-main px-4 py-3 text-color-text-main transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-color-bg-accent"
+            />
+          </div>
+        </div>
+
+        <div className="border-t border-color-border-light" />
+
+        {/* Products header */}
+        <span className="text-sm font-semibold text-color-text-secondary">
+          Produkte ({receipt.products.length})
+        </span>
+
+        {/* Product rows */}
+        {receipt.products.map((product) => (
           <div
-            key={receipt.id}
-            className="flex flex-col gap-4 rounded-lg bg-color-bg-dark p-4"
+            key={product.id}
+            className="flex flex-col gap-3 rounded-md bg-color-bg-main p-3"
           >
-            {/* Receipt header */}
-            <h3 className="font-semibold text-color-text-main truncate">
-              {receipt.fileName}
-            </h3>
-
-            {/* Receipt-level fields: vendor & date */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <InputField
-                label="Anbieter"
+                label="Produkt"
                 type="text"
-                placeholder="z.B. REWE, Shell"
-                value={receipt.vendor_name}
+                placeholder="Produktname"
+                value={product.product_name}
                 onChange={(val) =>
-                  updateReceiptField(receipt.id, "vendor_name", val)
+                  updateProductField(
+                    receipt.id,
+                    product.id,
+                    "product_name",
+                    val,
+                  )
                 }
               />
-              <div className="flex flex-col gap-1">
-                <label className="flex h-6 items-center font-semibold text-color-text-secondary">
-                  <span className="ml-1 text-[14px]">Datum</span>
-                </label>
-                <input
-                  type="date"
-                  value={receipt.expense_date}
-                  onChange={(e) =>
-                    updateReceiptField(receipt.id, "expense_date", e.target.value)
-                  }
-                  className="w-full rounded-radius-md border border-color-border-light bg-color-bg-main px-4 py-3 text-color-text-main transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-color-bg-accent"
-                />
-              </div>
+              <InputField
+                label="Betrag (€)"
+                type="number"
+                placeholder="0.00"
+                value={product.amount}
+                onChange={(val) =>
+                  updateProductField(receipt.id, product.id, "amount", val)
+                }
+              />
+              <Dropdown
+                label="Kategorie"
+                options={EXPENSE_CATEGORY_OPTIONS}
+                value={getCategoryOption(product.category)}
+                onSelect={(opt) =>
+                  updateProductField(
+                    receipt.id,
+                    product.id,
+                    "category",
+                    opt.id as string,
+                  )
+                }
+                placeholder="Kategorie"
+              />
             </div>
 
-            <div className="border-t border-color-border-light" />
-
-            {/* Products header */}
-            <span className="text-sm font-semibold text-color-text-secondary">
-              Produkte ({receipt.products.length})
-            </span>
-
-            {/* Product rows */}
-            {receipt.products.map((product) => (
-              <div
-                key={product.id}
-                className="flex flex-col gap-3 rounded-md bg-color-bg-main p-3"
+            {/* Remove product button */}
+            <div className="flex justify-end">
+              <button
+                onClick={() => handleRemoveProduct(receipt.id, product.id)}
+                disabled={isProcessing}
+                className="rounded-md px-3 py-1.5 text-sm font-medium bg-color-error-border text-white hover:bg-color-error-border/80 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200 active:scale-95"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <InputField
-                    label="Produkt"
-                    type="text"
-                    placeholder="Produktname"
-                    value={product.product_name}
-                    onChange={(val) =>
-                      updateProductField(
-                        receipt.id,
-                        product.id,
-                        "product_name",
-                        val,
-                      )
-                    }
-                  />
-                  <InputField
-                    label="Betrag (€)"
-                    type="number"
-                    placeholder="0.00"
-                    value={product.amount}
-                    onChange={(val) =>
-                      updateProductField(receipt.id, product.id, "amount", val)
-                    }
-                  />
-                  <Dropdown
-                    label="Kategorie"
-                    options={EXPENSE_CATEGORY_OPTIONS}
-                    value={getCategoryOption(product.category)}
-                    onSelect={(opt) =>
-                      updateProductField(
-                        receipt.id,
-                        product.id,
-                        "category",
-                        opt.id as string,
-                      )
-                    }
-                    placeholder="Kategorie"
-                  />
-                </div>
-
-                {/* Remove product button */}
-                <div className="flex justify-end">
-                  <button
-                    onClick={() => handleRemoveProduct(receipt.id, product.id)}
-                    disabled={isProcessing}
-                    className="rounded-md px-3 py-1.5 text-sm font-medium bg-color-error-border text-white hover:bg-color-error-border/80 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all duration-200 active:scale-95"
-                  >
-                    Entfernen
-                  </button>
-                </div>
-              </div>
-            ))}
-
-            {/* Add product button */}
-            <button
-              onClick={() => addProduct(receipt.id)}
-              disabled={isProcessing}
-              className="flex items-center gap-2 rounded-md border border-dashed border-color-border-light px-3 py-2 text-sm text-color-text-secondary hover:bg-color-bg-main/50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-color-primary/50"
-            >
-              <span className="text-lg leading-none">+</span>
-              <span>Produkt hinzufügen</span>
-            </button>
-
-            {/* Receipt-level action buttons */}
-            <div className="flex flex-wrap gap-3 pt-2 border-t border-color-border-light">
-              <Button
-                variant="primary"
-                text={hasProducts ? "Beleg bestätigen" : "Keine Produkte"}
-                onClick={() => handleConfirmReceipt(receipt)}
-                isDisabled={isProcessing || !hasProducts}
-              />
-              <Button
-                variant="secondary"
-                text="Beleg ablehnen"
-                onClick={() => handleDeclineReceipt(receipt)}
-                isDisabled={isProcessing}
-              />
+                Entfernen
+              </button>
             </div>
           </div>
-        );
-      })}
+        ))}
+
+        {/* Add product button */}
+        <button
+          onClick={() => addProduct(receipt.id)}
+          disabled={isProcessing}
+          className="flex items-center gap-2 rounded-md border border-dashed border-color-border-light px-3 py-2 text-sm text-color-text-secondary hover:bg-color-bg-main/50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:border-color-primary/50"
+        >
+          <span className="text-lg leading-none">+</span>
+          <span>Produkt hinzufügen</span>
+        </button>
+
+        {/* Receipt-level action buttons */}
+        <div className="flex flex-wrap gap-3 pt-2 border-t border-color-border-light">
+          <Button
+            variant="primary"
+            text={
+              hasProducts
+                ? receipt.isDuplicate
+                  ? "Trotzdem hochladen"
+                  : "Beleg bestätigen"
+                : "Keine Produkte"
+            }
+            onClick={() => handleConfirmReceipt(receipt)}
+            isDisabled={isProcessing || !hasProducts}
+          />
+          <Button
+            variant="secondary"
+            text="Beleg ablehnen"
+            onClick={() => handleDeclineReceipt(receipt)}
+            isDisabled={isProcessing}
+          />
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-6 max-h-[70vh] overflow-y-auto pr-1">
+      {newReceipts.length > 0 && (
+        <div className="flex flex-col gap-4">
+          {duplicateReceipts.length > 0 && (
+            <h2 className="text-base font-semibold text-color-text-main">
+              Neue Belege ({newReceipts.length})
+            </h2>
+          )}
+          {newReceipts.map(renderReceipt)}
+        </div>
+      )}
+
+      {duplicateReceipts.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <h2 className="text-base font-semibold text-amber-400">
+            Mögliche Duplikate ({duplicateReceipts.length})
+          </h2>
+          {duplicateReceipts.map(renderReceipt)}
+        </div>
+      )}
     </div>
   );
 };
