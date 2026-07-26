@@ -95,37 +95,48 @@ export const SignUpPage = () => {
 
           {error && <Banner bannerType="error" title={error} description="" />}
 
-          <InputField
-            label="Email"
-            placeholder="nachname@pro-fina.de"
-            value={email}
-            onChange={(val) => setEmail(val)}
-          />
-
-          <PasswordInput
-            label="Passwort"
-            value={password}
-            onChange={(val) => setPassword(val)}
-          />
-
-          <PasswordInput
-            label="Passwort wiederholen"
-            value={repeatedPassword}
-            onChange={(val) => setRepeatedPassword(val)}
-            isRepeated
-          />
-
-          <div className="flex flex-col gap-3 mt-4">
-            <Button
-              onClick={handleSignUp}
-              text="Registrieren"
-              isLoading={loading}
+          <form
+            className="flex flex-col gap-6"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSignUp();
+            }}
+          >
+            <InputField
+              label="Email"
+              placeholder="nachname@pro-fina.de"
+              type="email"
+              name="email"
+              autoComplete="email"
+              value={email}
+              onChange={(val) => setEmail(val)}
             />
 
-            <p className="text-color-text-subtle text-center text-sm mt-2">
-              Schon ein Konto? <Link href="/login">Anmelden</Link>
-            </p>
-          </div>
+            <PasswordInput
+              label="Passwort"
+              name="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(val) => setPassword(val)}
+            />
+
+            <PasswordInput
+              label="Passwort wiederholen"
+              name="repeated-password"
+              autoComplete="new-password"
+              value={repeatedPassword}
+              onChange={(val) => setRepeatedPassword(val)}
+              isRepeated
+            />
+
+            <div className="flex flex-col gap-3 mt-4">
+              <Button type="submit" text="Registrieren" isLoading={loading} />
+
+              <p className="text-color-text-subtle text-center text-sm mt-2">
+                Schon ein Konto? <Link href="/login">Anmelden</Link>
+              </p>
+            </div>
+          </form>
         </div>
       </div>
       <MiniFooter />

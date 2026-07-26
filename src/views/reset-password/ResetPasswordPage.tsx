@@ -89,20 +89,27 @@ export const ResetPasswordPage = () => {
 
           {error && <Banner bannerType="error" title={error} description="" />}
 
-          <InputField
-            label="Email"
-            placeholder="nachname@pro-fina.de"
-            value={email}
-            onChange={(val) => setEmail(val)}
-          />
-
-          <div className="flex flex-col gap-3 mt-4">
-            <Button
-              onClick={handleReset}
-              text="Link senden"
-              isLoading={loading}
+          <form
+            className="flex flex-col gap-6"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleReset();
+            }}
+          >
+            <InputField
+              label="Email"
+              placeholder="nachname@pro-fina.de"
+              type="email"
+              name="email"
+              autoComplete="email"
+              value={email}
+              onChange={(val) => setEmail(val)}
             />
-          </div>
+
+            <div className="flex flex-col gap-3 mt-4">
+              <Button type="submit" text="Link senden" isLoading={loading} />
+            </div>
+          </form>
 
           <p className="text-color-text-subtle text-center text-sm mt-2">
             <Link href="/login">Zurück zur Anmeldung</Link>

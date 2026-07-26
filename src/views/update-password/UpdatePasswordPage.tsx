@@ -83,26 +83,38 @@ export const UpdatePasswordPage = () => {
 
           {error && <Banner bannerType="error" title={error} description="" />}
 
-          <PasswordInput
-            label="Neues Passwort"
-            value={password}
-            onChange={(val) => setPassword(val)}
-          />
-
-          <PasswordInput
-            label="Passwort wiederholen"
-            value={repeatPassword}
-            onChange={(val) => setRepeatPassword(val)}
-            isRepeated
-          />
-
-          <div className="flex flex-col gap-3 mt-4">
-            <Button
-              onClick={handleUpdatePassword}
-              text="Passwort speichern"
-              isLoading={loading}
+          <form
+            className="flex flex-col gap-6"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleUpdatePassword();
+            }}
+          >
+            <PasswordInput
+              label="Neues Passwort"
+              name="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(val) => setPassword(val)}
             />
-          </div>
+
+            <PasswordInput
+              label="Passwort wiederholen"
+              name="repeated-password"
+              autoComplete="new-password"
+              value={repeatPassword}
+              onChange={(val) => setRepeatPassword(val)}
+              isRepeated
+            />
+
+            <div className="flex flex-col gap-3 mt-4">
+              <Button
+                type="submit"
+                text="Passwort speichern"
+                isLoading={loading}
+              />
+            </div>
+          </form>
 
           <p className="text-color-text-subtle text-center text-sm mt-2">
             <Link href="/login">Zurück zur Anmeldung</Link>

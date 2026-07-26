@@ -12,6 +12,8 @@ export const InputField = ({
   value,
   onChange,
   isRequired = false,
+  name,
+  autoComplete,
 }: InputFieldProps) => {
   const inputId = useId();
 
@@ -36,6 +38,8 @@ export const InputField = ({
         readOnly={isReadOnly}
         placeholder={placeholder}
         type={type}
+        name={name}
+        autoComplete={autoComplete}
         value={value ?? undefined}
         onChange={handleChange}
         className={getInputStyles(position, type, Boolean(error), isReadOnly)}

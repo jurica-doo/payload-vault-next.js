@@ -10,6 +10,8 @@ export const PasswordInput = ({
   error,
   isRequired,
   isRepeated,
+  name,
+  autoComplete,
 }: PasswordInputProps) => {
   const [visible, setVisible] = useState(false);
 
@@ -49,6 +51,8 @@ export const PasswordInput = ({
           <input
             type={visible ? "text" : "password"}
             id={label.toLowerCase()}
+            name={name}
+            autoComplete={autoComplete}
             placeholder={
               isRepeated ? "Passwort erneut eingeben" : "Passwort eingeben"
             }

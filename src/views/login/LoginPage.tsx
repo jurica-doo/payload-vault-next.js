@@ -67,22 +67,35 @@ export const LoginPage = () => {
 
           {error && <Banner bannerType="error" title={error} description="" />}
 
-          <InputField
-            label="Email"
-            placeholder="nachname@pro-fina.de"
-            value={email}
-            onChange={(val) => setEmail(val)}
-          />
+          <form
+            className="flex flex-col gap-6"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
+          >
+            <InputField
+              label="Email"
+              placeholder="nachname@pro-fina.de"
+              type="email"
+              name="email"
+              autoComplete="email"
+              value={email}
+              onChange={(val) => setEmail(val)}
+            />
 
-          <PasswordInput
-            label="Passwort"
-            value={password}
-            onChange={(val) => setPassword(val)}
-          />
+            <PasswordInput
+              label="Passwort"
+              name="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(val) => setPassword(val)}
+            />
 
-          <div className="flex flex-col gap-3 mt-4">
-            <Button onClick={handleLogin} text="Anmelden" isLoading={loading} />
-          </div>
+            <div className="flex flex-col gap-3 mt-4">
+              <Button type="submit" text="Anmelden" isLoading={loading} />
+            </div>
+          </form>
 
           <p className="text-color-text-subtle text-center text-sm mt-2">
             Noch kein Konto? <Link href="/signup">Registrieren</Link>

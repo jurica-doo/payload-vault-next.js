@@ -10,7 +10,9 @@ interface ButtonProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
-  onClick: () => void;
+  /** "submit" inside a <form> lets Enter trigger it; default "button". */
+  type?: "button" | "submit";
+  onClick?: () => void;
 }
 
 export type { ButtonProps, ButtonVariant, ButtonSize };

@@ -15,6 +15,7 @@ export const Button = ({
   size = "small",
   variant = "primary",
   icon,
+  type = "button",
   onClick,
 }: ButtonProps) => {
   const isButtonDisabled = isDisabled || isLoading;
@@ -30,6 +31,7 @@ export const Button = ({
           : `${onHover[variant]} active:scale-95`
       } focus:outline-3 focus:outline-color-primary/70`}
       disabled={isButtonDisabled}
+      type={type}
       onClick={onClick}
     >
       {icon ? (

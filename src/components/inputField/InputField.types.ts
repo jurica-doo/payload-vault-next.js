@@ -11,6 +11,8 @@ type InputFieldProps = {
   value: string;
   onChange: (value: string) => void;
   isRequired?: boolean;
+  name?: string;
+  autoComplete?: string;
 };
 
 export type { InputFieldProps, InputFieldPosition, InputType };

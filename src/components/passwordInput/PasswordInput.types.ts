@@ -5,6 +5,9 @@ type PasswordInputProps = {
   error?: string;
   isRequired?: boolean;
   isRepeated?: boolean;
+  name?: string;
+  /** "current-password" (login) or "new-password" (signup/reset). */
+  autoComplete?: string;
 };
 
 export type { PasswordInputProps };

@@ -1,6 +1,12 @@
 import { z } from "zod";
 
-const allowedEmails = process.env.NEXT_PUBLIC_ALLOWED_EMAILS!.split(",");
+// Test-phase allowlist. Missing/empty env must NOT crash the build (this
+// module is evaluated while prerendering /signup) — with no list configured,
+// the allowlist check is skipped.
+const allowedEmails = (process.env.NEXT_PUBLIC_ALLOWED_EMAILS ?? "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
 
 export const signUpSchema = z
   .object({
@@ -8,10 +14,15 @@ export const signUpSchema = z
       .string()
       .trim()
       .email("Bitte geben Sie eine gültige E-Mail-Adresse ein")
-      .refine((email) => allowedEmails!.includes(email.toLowerCase()), {
-        message:
-          "Diese E-Mail-Adresse ist nicht für die Testphase freigegeben.",
-      }),
+      .refine(
+        (email) =>
+          allowedEmails.length === 0 ||
+          allowedEmails.includes(email.toLowerCase()),
+        {
+          message:
+            "Diese E-Mail-Adresse ist nicht für die Testphase freigegeben.",
+        },
+      ),
 
     password: z
       .string()
