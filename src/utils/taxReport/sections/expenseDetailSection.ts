@@ -1,3 +1,4 @@
+import type { CellHookData } from "jspdf-autotable";
 import type { jsPDF } from "jspdf";
 import type { ExpenseRecord, StoredProduct } from "../../../hooks/useExpenses/types";
 import {
@@ -7,6 +8,7 @@ import {
   TABLE_MARGIN,
   formatCurrency,
   addSectionTitle,
+  type AutoTableDoc,
 } from "../helpers";
 import { EXPENSE_KONTO, formatDate } from "../../csvExport";
 
@@ -47,7 +49,7 @@ export function addExpenseDetailSection(
 
   rows.push(["", "", "", "", "Gesamt", formatCurrency(runningTotal)]);
 
-  (doc as any).autoTable({
+  (doc as AutoTableDoc).autoTable({
     startY: y,
     head: [["Datum", "Lieferant", "Produkt", "Kategorie", "Konto", "Betrag"]],
     body: rows,
@@ -70,12 +72,12 @@ export function addExpenseDetailSection(
       4: { halign: "center", cellWidth: 16 },
       5: { halign: "right", cellWidth: 25 },
     },
-    didParseCell: (data: any) => {
+    didParseCell: (data: CellHookData) => {
       if (data.row.index === rows.length - 1) {
         data.cell.styles.fontStyle = "bold";
       }
     },
   });
 
-  return (doc as any).lastAutoTable.finalY + 10;
+  return (doc as AutoTableDoc).lastAutoTable.finalY + 10;
 }

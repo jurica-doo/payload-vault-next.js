@@ -288,7 +288,7 @@ export const HeaderHome = ({
 
   return (
     <header
-      className={`${isSticky ? "sticky top-0 z-40" : ""} bg-color-bg-main border-b-color-border-light border-b-2`}
+      className={`${isSticky ? "sticky top-0 z-40" : ""} bg-color-bg-main border-b-color-border-light border-b-2 pt-[env(safe-area-inset-top)]`}
     >
       <div className={mobileBrandWrapperClass}>
         <div className="px-4 pt-3 pb-3 sm:px-6">{brandBlock}</div>

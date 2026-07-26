@@ -59,7 +59,9 @@ export const PdfConfirmationForm = ({
 
   // Track pending uploads in ref for cleanup on unmount
   const pendingUploadsRef = useRef<PendingUpload[]>(pendingUploads);
-  pendingUploadsRef.current = pendingUploads;
+  useEffect(() => {
+    pendingUploadsRef.current = pendingUploads;
+  }, [pendingUploads]);
 
   // Guard against StrictMode double-mount: only allow cleanup after user interaction
   const userInteractedRef = useRef(false);

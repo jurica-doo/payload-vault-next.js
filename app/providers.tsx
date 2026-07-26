@@ -8,7 +8,7 @@ import { BannerProvider } from "@/context/banner/BannerProvider";
 import { ModalProvider } from "@/context/modal/ModalProvider";
 import { ScrollToTop } from "@/components/scrollToTop/ScrollToTop";
 import { PwaInstallPrompt } from "@/components/pwa/PwaInstallPrompt";
-import { PwaUpdateToast } from "@/components/pwa/PwaUpdateToast";
+import { PwaUpdateBar } from "@/components/pwa/PwaUpdateBar";
 import { setupCookieConsent } from "@/cookieconsent-config";
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -35,7 +35,7 @@ export function Providers({ children }: { children: ReactNode }) {
             <ModalProvider>
               <ScrollToTop />
               <PwaInstallPrompt />
-              <PwaUpdateToast />
+              <PwaUpdateBar />
               {children}
             </ModalProvider>
           </BannerProvider>

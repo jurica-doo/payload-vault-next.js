@@ -27,7 +27,6 @@ import { useAuth } from "../../context/AuthContext";
 import { useYear } from "../../hooks/year/UseYear";
 import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { formatAllPdfs } from "./utils";
-import type { AllPdfTypes } from "./types";
 import { PageSkeletonLoader } from "../../components/skeletonLoader/PageSkeletonLoader";
 import { DocumentSkeletonLoader } from "../../components/skeletonLoader/DocumentSkeletonLoader";
 import { Button } from "../../components/button/Button";
@@ -57,10 +56,6 @@ export const AllPdfsPage = () => {
   useLayoutEffect(() => {
     setTitle("Alle Dokumente");
   }, [setTitle]);
-
-  const [contentCardData, setContentCardData] = useState<
-    AllPdfTypes | undefined
-  >();
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -121,24 +116,20 @@ export const AllPdfsPage = () => {
     category: isCategoryType(categorySelected.id) ? categorySelected.id : "all",
   });
 
-  useEffect(() => {
-    if (pdfs) {
-      setContentCardData(formatAllPdfs(pdfs));
-    }
-  }, [pdfs]);
+  // Derived directly from the query result — no state+effect, so switching
+  // the year or filters can never briefly show the previous result set.
+  const contentCardData = useMemo(
+    () => (pdfs ? formatAllPdfs(pdfs) : undefined),
+    [pdfs],
+  );
 
+  // Reset all filters when the (header-owned) year changes. The event source
+  // lives outside this component, so an effect is the only hook point.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     handleResetFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year]);
-
-  useEffect(() => {
-    if (
-      monthOptions.indexOf(endMonthSelected) <
-      monthOptions.indexOf(startMonthSelected)
-    ) {
-      setEndMonthSelected(startMonthSelected);
-    }
-  }, [startMonthSelected]);
 
   const handleEditPdf = useCallback(
     (id: string) => {
@@ -164,8 +155,6 @@ export const AllPdfsPage = () => {
     },
     [pdfs, openModal, closeModal, updatePdf],
   );
-
-  if (!user) return <ErrorBlock />;
 
   const filteredPdfs = useMemo(() => {
     if (!contentCardData) return [];
@@ -242,9 +231,11 @@ export const AllPdfsPage = () => {
     }
   }, [bulk.selectedIds, filteredPdfs, showBanner]);
 
-  if (!contentCardData) return <PageSkeletonLoader />;
+  if (!user) return <ErrorBlock />;
 
   if (error) return <ErrorBlock />;
+
+  if (!contentCardData) return <PageSkeletonLoader />;
 
   const handleExportCsv = () => {
     if (!pdfs || filteredPdfs.length === 0) {
@@ -344,7 +335,7 @@ export const AllPdfsPage = () => {
         "Deine PDFs werden als ZIP-Datei heruntergeladen.",
         "success",
       );
-    } catch (error) {
+    } catch {
       showBanner(
         "PDF-Download fehlgeschlagen",
         "Beim Herunterladen der PDFs ist ein Fehler aufgetreten. Bitte versuche es erneut.",
@@ -387,6 +378,12 @@ export const AllPdfsPage = () => {
             onSelect={(v) => {
               bulk.exitSelectionMode();
               setStartMonthSelected(v);
+              // Keep the range valid: end month can never precede start month.
+              if (
+                monthOptions.indexOf(endMonthSelected) < monthOptions.indexOf(v)
+              ) {
+                setEndMonthSelected(v);
+              }
             }}
             value={startMonthSelected}
           />

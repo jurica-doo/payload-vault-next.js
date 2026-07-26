@@ -33,23 +33,23 @@ export const NavigationDropdown = ({
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
+  // Open/close transitions via render adjustment; only the exit timer
+  // (an actual external system) lives in an effect.
+  if (isOpen && (!isVisible || isAnimatingOut)) {
+    setIsVisible(true);
+    setIsAnimatingOut(false);
+  } else if (!isOpen && isVisible && !isAnimatingOut) {
+    setIsAnimatingOut(true);
+  }
+
   useEffect(() => {
-    if (isOpen) {
-      setIsVisible(true);
+    if (!isAnimatingOut) return;
+    const timer = setTimeout(() => {
+      setIsVisible(false);
       setIsAnimatingOut(false);
-      return;
-    }
-
-    if (isVisible) {
-      setIsAnimatingOut(true);
-      const timer = setTimeout(() => {
-        setIsVisible(false);
-        setIsAnimatingOut(false);
-      }, 150);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, isVisible]);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [isAnimatingOut]);
 
   if (!isVisible) return null;
 

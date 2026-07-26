@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, type ReactNode } from "react";
+import { useState, useRef, useEffect, useCallback, type ReactNode } from "react";
 import { type ModalState, type ModalData } from "./types";
 import { ModalContext } from "./ModalContext";
 import { Modal } from "../../components/modal/Modal";
@@ -6,7 +6,9 @@ import { Modal } from "../../components/modal/Modal";
 export const ModalProvider = ({ children }: { children: ReactNode }) => {
   const [modalState, setModalState] = useState<ModalState>({ isOpen: false });
   const modalStateRef = useRef(modalState);
-  modalStateRef.current = modalState;
+  useEffect(() => {
+    modalStateRef.current = modalState;
+  }, [modalState]);
 
   const openModal = (data: ModalData) =>
     setModalState({ isOpen: true, ...data });

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { cardIcon } from "./ContentCard.const";
 import type { CombinedContentCardProps } from "./ContentCard.types";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { TitleSide } from "./TitleSide";
 import { normalizeProfit } from "./ContentCard.utils";
 import {
@@ -18,7 +18,6 @@ import { useModal } from "../../context/modal/ModalContext";
 import { DeleteConfirmationForm } from "../modal/DeleteConfirmationForm";
 
 export const ContentCard = (props: CombinedContentCardProps) => {
-  const router = useRouter();
   const { openModal, closeModal } = useModal();
   const [isExpanded, setIsExpanded] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -82,11 +81,17 @@ export const ContentCard = (props: CombinedContentCardProps) => {
     }
   }, [isExpanded]);
 
-  const handleNavigate = () => {
-    if (link && variant !== "document") {
-      router.push(link);
-    }
-  };
+  // Category/allPdf cards render as real links (see bottom) so navigation
+  // supports middle-click, cmd-click and prefetch. Links must be absolute:
+  // relative hrefs resolve browser-style against the current URL and land on
+  // the wrong page (e.g. "bestandsprovision" from /kategorie/adcuri).
+  const isNavLink = variant !== "document" && !!link;
+
+  if (process.env.NODE_ENV !== "production" && link && !link.startsWith("/")) {
+    console.warn(
+      `ContentCard: expected absolute link starting with "/", got "${link}".`,
+    );
+  }
 
   const handleCardClick = () => {
     if (isSelecting && id && onToggleSelect) {
@@ -95,8 +100,6 @@ export const ContentCard = (props: CombinedContentCardProps) => {
     }
     if (isExpandable) {
       setIsExpanded((prev) => !prev);
-    } else {
-      handleNavigate();
     }
   };
 
@@ -181,10 +184,8 @@ export const ContentCard = (props: CombinedContentCardProps) => {
     setMobileMenuOpen((prev) => !prev);
   };
 
-  return (
-    <div
-      className={`relative w-full bg-color-bg-card border rounded-radius-md shadow-shadow-medium
-        transition-all duration-200 ease-in-out
+  const cardClassName = `relative block w-full bg-color-bg-card border rounded-radius-md shadow-shadow-medium
+        transition-all duration-200 ease-in-out no-underline
         ${
           isSelecting
             ? `cursor-pointer hover:-translate-y-0.5 hover:shadow-shadow-strong active:scale-[0.99] ${
@@ -195,9 +196,10 @@ export const ContentCard = (props: CombinedContentCardProps) => {
             : variant !== "document" || isExpandable
               ? "border-color-border-light cursor-pointer hover:border-color-primary hover:-translate-y-0.5 hover:shadow-shadow-strong active:scale-[0.99]"
               : "border-color-border-light"
-        }`}
-      onClick={handleCardClick}
-    >
+        }`;
+
+  const cardContent = (
+    <>
       <div className="p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {isSelecting && variant === "document" && (
@@ -461,6 +463,20 @@ export const ContentCard = (props: CombinedContentCardProps) => {
           </div>
         </div>
       )}
+    </>
+  );
+
+  if (isNavLink && link) {
+    return (
+      <Link href={link} className={cardClassName}>
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return (
+    <div className={cardClassName} onClick={handleCardClick}>
+      {cardContent}
     </div>
   );
 };

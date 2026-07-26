@@ -24,9 +24,13 @@ export const SearchBar = ({
     setSearchValue(e.target.value);
   };
 
-  useEffect(() => {
+  // Sync from the controlled prop via render adjustment (not an effect), so
+  // an external reset (e.g. "Filter zurücksetzen") can't flash the old text.
+  const [prevValue, setPrevValue] = useState(value);
+  if (prevValue !== value) {
+    setPrevValue(value);
     setSearchValue(value ?? "");
-  }, [value]);
+  }
 
   useEffect(() => {
     if (debounceMs === 0) {

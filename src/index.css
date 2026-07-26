@@ -404,3 +404,39 @@ button {
 .transition-smooth {
   transition: all 0.2s ease-in-out;
 }
+
+/* Theme-aware logo swap (dark logo by default, light variant under
+   :root[data-theme="light"]). Used by the LoadingScreen. */
+.theme-logo-light {
+  display: none;
+}
+:root[data-theme="light"] .theme-logo-dark {
+  display: none;
+}
+:root[data-theme="light"] .theme-logo-light {
+  display: block;
+}
+
+/* Bouncing loading dots (LoadingScreen). Staggered, soft ease, subtle fade. */
+@keyframes loadingDotBounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-7px);
+    opacity: 1;
+  }
+}
+
+.loading-dot {
+  animation: loadingDotBounce 1.2s ease-in-out infinite;
+}
+.loading-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.loading-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}

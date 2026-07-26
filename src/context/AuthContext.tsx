@@ -60,10 +60,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signOut,
   };
 
+  // Children render immediately — ProtectedRoute owns the loading state, so
+  // the app paints instead of showing a blank screen while the session loads.
   return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
   );
 };
 

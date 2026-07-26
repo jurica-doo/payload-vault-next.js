@@ -35,11 +35,16 @@ export function YearProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(storageKey, year.toString());
   }, [year]);
 
-  useEffect(() => {
-    if (!isLoadingYears && availableYears.length > 0 && !availableYears.includes(year)) {
-      setYear(new Date().getFullYear());
-    }
-  }, [availableYears, isLoadingYears, year]);
+  // If the stored year no longer exists in the user's data, fall back to the
+  // current year. Render adjustment instead of an effect: the invalid year is
+  // never painted.
+  if (
+    !isLoadingYears &&
+    availableYears.length > 0 &&
+    !availableYears.includes(year)
+  ) {
+    setYear(new Date().getFullYear());
+  }
 
   return (
     <YearContext.Provider

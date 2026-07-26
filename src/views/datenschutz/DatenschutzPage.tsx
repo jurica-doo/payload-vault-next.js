@@ -44,7 +44,7 @@ export const DatenschutzPage = () => {
               <br />
               Die Datenverarbeitung auf dieser Website erfolgt durch den
               Websitebetreiber. Dessen Kontaktdaten können Sie dem Abschnitt
-              „Hinweis zur verantwortlichen Stelle" in dieser
+              „Hinweis zur verantwortlichen Stelle&ldquo; in dieser
               Datenschutzerklärung entnehmen.
             </p>
             <p className="text-color-text-secondary mt-2">
@@ -383,8 +383,9 @@ export const DatenschutzPage = () => {
             <p className="text-color-text-secondary">
               Diese Website nutzt aus Sicherheitsgründen eine
               SSL-/TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennen
-              Sie daran, dass die Adresszeile des Browsers von „http://" auf
-              „https://" wechselt und an dem Schloss-Symbol in Ihrer
+              Sie daran, dass die Adresszeile des Browsers von
+              „http://&ldquo; auf „https://&ldquo; wechselt und an dem
+              Schloss-Symbol in Ihrer
               Browserzeile.
             </p>
             <p className="text-color-text-secondary mt-2">

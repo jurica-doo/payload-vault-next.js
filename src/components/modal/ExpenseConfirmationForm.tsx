@@ -74,7 +74,9 @@ export const ExpenseConfirmationForm = ({
 
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const receiptsRef = useRef(receipts);
-  receiptsRef.current = receipts;
+  useEffect(() => {
+    receiptsRef.current = receipts;
+  }, [receipts]);
 
   const hasReceipts = receipts.length > 0;
 

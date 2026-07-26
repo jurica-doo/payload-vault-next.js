@@ -200,7 +200,8 @@ export const BudgetTargets = ({
         <div className="flex flex-col items-center justify-center h-32 text-color-text-subtle text-sm gap-2">
           <p>Noch keine Budgets definiert</p>
           <p className="text-xs">
-            Klicke „+ Budget hinzufügen" um ein Kategorie-Budget zu setzen
+            Klicke „+ Budget hinzufügen&ldquo; um ein Kategorie-Budget zu
+            setzen
           </p>
         </div>
       ) : (

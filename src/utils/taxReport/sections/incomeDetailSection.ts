@@ -1,3 +1,4 @@
+import type { CellHookData } from "jspdf-autotable";
 import type { jsPDF } from "jspdf";
 import type { PdfRecord } from "../../../hooks/usePdf/types";
 import {
@@ -7,6 +8,7 @@ import {
   TABLE_MARGIN,
   formatCurrency,
   addSectionTitle,
+  type AutoTableDoc,
 } from "../helpers";
 import { INCOME_KONTO, formatDate } from "../../csvExport";
 
@@ -40,7 +42,7 @@ export function addIncomeDetailSection(
   const total = pdfs.reduce((s, p) => s + p.profit, 0);
   rows.push(["", "", "", "Gesamt", formatCurrency(total)]);
 
-  (doc as any).autoTable({
+  (doc as AutoTableDoc).autoTable({
     startY: y,
     head: [["Datum", "Dateiname", "Kategorie", "Konto", "Betrag"]],
     body: rows,
@@ -61,12 +63,12 @@ export function addIncomeDetailSection(
       3: { halign: "center", cellWidth: 18 },
       4: { halign: "right", cellWidth: 28 },
     },
-    didParseCell: (data: any) => {
+    didParseCell: (data: CellHookData) => {
       if (data.row.index === rows.length - 1) {
         data.cell.styles.fontStyle = "bold";
       }
     },
   });
 
-  return (doc as any).lastAutoTable.finalY + 10;
+  return (doc as AutoTableDoc).lastAutoTable.finalY + 10;
 }

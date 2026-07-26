@@ -290,7 +290,8 @@ export const IncomeGoalTracking = ({
         <div className="flex flex-col items-center justify-center h-32 text-color-text-subtle text-sm gap-2">
           <p>Noch keine Einnahmen-Ziele definiert</p>
           <p className="text-xs">
-            Klicke „+ Ziel hinzufügen" um ein Jahres- oder Monatsziel zu setzen
+            Klicke „+ Ziel hinzufügen&ldquo; um ein Jahres- oder Monatsziel zu
+            setzen
           </p>
         </div>
       )}

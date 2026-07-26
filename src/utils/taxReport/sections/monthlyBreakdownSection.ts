@@ -1,3 +1,4 @@
+import type { CellHookData } from "jspdf-autotable";
 import type { jsPDF } from "jspdf";
 import type { PdfRecord } from "../../../hooks/usePdf/types";
 import type { ExpenseRecord } from "../../../hooks/useExpenses/types";
@@ -8,6 +9,7 @@ import {
   TABLE_MARGIN,
   formatCurrency,
   addSectionTitle,
+  type AutoTableDoc,
 } from "../helpers";
 import {
   aggregateEarningsByMonth,
@@ -33,7 +35,7 @@ export function addMonthlyBreakdownSection(
   const earningsTotal = earningsMonthly.reduce((s, m) => s + m.total, 0);
   earningsRows.push(["Gesamt", formatCurrency(earningsTotal)]);
 
-  (doc as any).autoTable({
+  (doc as AutoTableDoc).autoTable({
     startY: y,
     head: [["Monat", "Betrag"]],
     body: earningsRows,
@@ -49,14 +51,14 @@ export function addMonthlyBreakdownSection(
     bodyStyles: { fontSize: 9, textColor: COLORS.text },
     alternateRowStyles: { fillColor: COLORS.altRow },
     columnStyles: { 1: { halign: "right" } },
-    didParseCell: (data: any) => {
+    didParseCell: (data: CellHookData) => {
       if (data.row.index === earningsRows.length - 1) {
         data.cell.styles.fontStyle = "bold";
       }
     },
   });
 
-  y = (doc as any).lastAutoTable.finalY + 10;
+  y = (doc as AutoTableDoc).lastAutoTable.finalY + 10;
 
   // Monthly expenses
   y = addSectionTitle(doc, "Monatliche Ausgaben", y);
@@ -69,7 +71,7 @@ export function addMonthlyBreakdownSection(
   const expenseTotal = expensesMonthly.reduce((s, m) => s + m.total, 0);
   expenseRows.push(["Gesamt", formatCurrency(expenseTotal)]);
 
-  (doc as any).autoTable({
+  (doc as AutoTableDoc).autoTable({
     startY: y,
     head: [["Monat", "Betrag"]],
     body: expenseRows,
@@ -85,12 +87,12 @@ export function addMonthlyBreakdownSection(
     bodyStyles: { fontSize: 9, textColor: COLORS.text },
     alternateRowStyles: { fillColor: COLORS.altRow },
     columnStyles: { 1: { halign: "right" } },
-    didParseCell: (data: any) => {
+    didParseCell: (data: CellHookData) => {
       if (data.row.index === expenseRows.length - 1) {
         data.cell.styles.fontStyle = "bold";
       }
     },
   });
 
-  return (doc as any).lastAutoTable.finalY + 10;
+  return (doc as AutoTableDoc).lastAutoTable.finalY + 10;
 }

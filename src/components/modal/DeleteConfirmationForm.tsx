@@ -27,7 +27,7 @@ export const DeleteConfirmationForm = ({
         `Die Datei wurde erfolgreich gelöscht: "${fileName}"`,
         "success",
       );
-    } catch (error) {
+    } catch {
       showBanner(
         "Fehler",
         `Beim Löschen der Datei ist ein Fehler aufgetreten.: "${fileName}".`,
@@ -41,11 +41,11 @@ export const DeleteConfirmationForm = ({
   return (
     <div className="flex flex-col gap-6 pt-2">
       <p className="text-color-text-secondary w-full sm:w-70">
-        Möchten Sie wirklich löschen "
+        Möchten Sie wirklich löschen &bdquo;
         <span className="font-semibold text-color-text-primary break-all">
           {fileName}
         </span>
-        "?
+        &ldquo;?
       </p>
       <div className="mt-6 flex flex-wrap gap-3 sm:gap-6">
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} />

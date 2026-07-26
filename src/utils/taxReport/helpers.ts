@@ -165,3 +165,9 @@ export const TABLE_MARGIN = {
   top: CONTENT_TOP,
   bottom: PAGE_MARGIN + 10,
 } as const;
+
+/** jsPDF instance after jspdf-autotable's `applyPlugin()` has run. */
+export type AutoTableDoc = jsPDF & {
+  autoTable: (options: import("jspdf-autotable").UserOptions) => void;
+  lastAutoTable: { finalY: number };
+};

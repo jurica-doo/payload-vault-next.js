@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useLayoutEffect } from "react";
+import { useMemo, useLayoutEffect } from "react";
 import { ContentCard } from "../../components/contentCard/ContentCard";
 import { TotalIncomeCard } from "../../components/totalIncomeCard/TotalIncomeCard";
 import { PdfImportFooter } from "../../components/pdfImport/PdfImportFooter";
@@ -8,7 +8,6 @@ import { usePdfs } from "../../hooks/usePdf/UsePdfs";
 import { useAuth } from "../../context/AuthContext";
 import { useYear } from "../../hooks/year/UseYear";
 import { formatData } from "./utils";
-import type { FullData } from "./types";
 import { PageSkeletonLoader } from "../../components/skeletonLoader/PageSkeletonLoader";
 import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { useTitle } from "../../context/title/TitleContext";
@@ -16,9 +15,6 @@ import { useTitle } from "../../context/title/TitleContext";
 export const SalesPage = () => {
   const { user } = useAuth();
   const { year } = useYear();
-  const [contentCardData, setContentCardData] = useState<
-    FullData | undefined
-  >();
 
   const { setTitle } = useTitle();
 
@@ -35,11 +31,12 @@ export const SalesPage = () => {
     year,
   });
 
-  useEffect(() => {
-    if (pdfs) {
-      setContentCardData(formatData(pdfs));
-    }
-  }, [pdfs]);
+  // Derived directly from the query result — no state+effect, so switching
+  // the year can never show the previous year's numbers.
+  const contentCardData = useMemo(
+    () => (pdfs ? formatData(pdfs) : undefined),
+    [pdfs],
+  );
 
   if (!user) return <ErrorBlock />;
 

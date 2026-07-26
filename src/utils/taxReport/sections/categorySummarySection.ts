@@ -1,3 +1,4 @@
+import type { CellHookData } from "jspdf-autotable";
 import type { jsPDF } from "jspdf";
 import type { PdfRecord } from "../../../hooks/usePdf/types";
 import type { ExpenseRecord, StoredProduct } from "../../../hooks/useExpenses/types";
@@ -7,6 +8,7 @@ import {
   TABLE_MARGIN,
   formatCurrency,
   addSectionTitle,
+  type AutoTableDoc,
 } from "../helpers";
 import { INCOME_KONTO, EXPENSE_KONTO } from "../../csvExport";
 
@@ -33,7 +35,7 @@ export function addCategorySummarySection(
   const incomeTotal = pdfs.reduce((s, p) => s + p.profit, 0);
   incomeRows.push(["Gesamt", "", formatCurrency(incomeTotal)]);
 
-  (doc as any).autoTable({
+  (doc as AutoTableDoc).autoTable({
     startY: y,
     head: [["Kategorie", "Konto", "Betrag"]],
     body: incomeRows,
@@ -52,14 +54,14 @@ export function addCategorySummarySection(
       1: { halign: "center" },
       2: { halign: "right" },
     },
-    didParseCell: (data: any) => {
+    didParseCell: (data: CellHookData) => {
       if (data.row.index === incomeRows.length - 1) {
         data.cell.styles.fontStyle = "bold";
       }
     },
   });
 
-  y = (doc as any).lastAutoTable.finalY + 10;
+  y = (doc as AutoTableDoc).lastAutoTable.finalY + 10;
 
   // Expenses by category
   y = addSectionTitle(doc, "Ausgaben nach Kategorie", y);
@@ -85,7 +87,7 @@ export function addCategorySummarySection(
   const expenseTotal = expenses.reduce((s, e) => s + e.amount, 0);
   expenseRows.push(["Gesamt", "", formatCurrency(expenseTotal)]);
 
-  (doc as any).autoTable({
+  (doc as AutoTableDoc).autoTable({
     startY: y,
     head: [["Kategorie", "Konto", "Betrag"]],
     body: expenseRows,
@@ -104,12 +106,12 @@ export function addCategorySummarySection(
       1: { halign: "center" },
       2: { halign: "right" },
     },
-    didParseCell: (data: any) => {
+    didParseCell: (data: CellHookData) => {
       if (data.row.index === expenseRows.length - 1) {
         data.cell.styles.fontStyle = "bold";
       }
     },
   });
 
-  return (doc as any).lastAutoTable.finalY + 10;
+  return (doc as AutoTableDoc).lastAutoTable.finalY + 10;
 }

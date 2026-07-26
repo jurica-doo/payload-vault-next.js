@@ -8,6 +8,7 @@ import {
   TABLE_MARGIN,
   formatCurrency,
   addSectionTitle,
+  type AutoTableDoc,
 } from "../helpers";
 import { formatDate } from "../../csvExport";
 
@@ -79,7 +80,7 @@ export function addHeaderSection(
     ["Anzahl Ausgaben", String(expenses.length)],
   ];
 
-  (doc as any).autoTable({
+  (doc as AutoTableDoc).autoTable({
     startY: y,
     head: [["Position", "Wert"]],
     body: summaryData,
@@ -99,5 +100,5 @@ export function addHeaderSection(
     },
   });
 
-  return (doc as any).lastAutoTable.finalY + 10;
+  return (doc as AutoTableDoc).lastAutoTable.finalY + 10;
 }

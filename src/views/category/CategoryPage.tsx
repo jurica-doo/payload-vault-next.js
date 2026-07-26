@@ -7,6 +7,7 @@ import { useLayoutEffect } from "react";
 import { AdcuriPage } from "./AdcuriPage";
 import { OtherPages } from "./OtherPages";
 import { OtherExpensesPages } from "./OtherExpensesPages";
+import { CategoryNotFound } from "./CategoryNotFound";
 
 export function CategoryPage() {
   const { slug, subSlug } = useParams<{ slug: string; subSlug?: string }>();
@@ -21,7 +22,7 @@ export function CategoryPage() {
     setTitle(category?.title || "Kategorie");
   }, [setTitle, category?.title]);
 
-  if (!category) return <h1>Kategorie nicht gefunden: {fullSlug}</h1>;
+  if (!category) return <CategoryNotFound slug={fullSlug} />;
 
   return (
     <div>

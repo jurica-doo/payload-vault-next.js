@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import {
   type DropdownOptions,
@@ -14,7 +14,6 @@ import { ContentCard } from "../../components/contentCard/ContentCard";
 import { TotalIncomeCard } from "../../components/totalIncomeCard/TotalIncomeCard";
 import { useAuth } from "../../context/AuthContext";
 import { useYear } from "../../hooks/year/UseYear";
-import type { AllPdfTypes } from "../allPdfs/types";
 import { usePdfs } from "../../hooks/usePdf/UsePdfs";
 import { formatAllPdfs } from "../allPdfs/utils";
 import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
@@ -51,10 +50,6 @@ export const OtherPages = ({ title }: CategoryProps) => {
     DropdownOptions["month"][number]
   >(monthOptions[monthOptions.length - 1]);
 
-  const [contentCardData, setContentCardData] = useState<
-    AllPdfTypes | undefined
-  >();
-
   const endMonthOptions = useMemo(
     () => monthOptions.slice(monthOptions.indexOf(startMonthSelected)),
     [startMonthSelected],
@@ -82,11 +77,12 @@ export const OtherPages = ({ title }: CategoryProps) => {
     category: isCategoryType(title) ? title : "all",
   });
 
-  useEffect(() => {
-    if (pdfs) {
-      setContentCardData(formatAllPdfs(pdfs));
-    }
-  }, [pdfs]);
+  // Derived directly from the query result — no state+effect, so changing
+  // filters can never briefly show the previous result set.
+  const contentCardData = useMemo(
+    () => (pdfs ? formatAllPdfs(pdfs) : undefined),
+    [pdfs],
+  );
 
   const isFiltered = useMemo(() => {
     if (startMonthSelected.id !== "1") return true;

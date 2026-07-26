@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect, useLayoutEffect } from "react";
+import { useMemo, useLayoutEffect } from "react";
 import { ContentCard } from "../../components/contentCard/ContentCard";
 import { TotalIncomeCard } from "../../components/totalIncomeCard/TotalIncomeCard";
 import { useAuth } from "../../context/AuthContext";
 import { useYear } from "../../hooks/year/UseYear";
 import { formatExpenses } from "./utils";
-import type { FullData } from "./types";
 import { PageSkeletonLoader } from "../../components/skeletonLoader/PageSkeletonLoader";
 import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { useTitle } from "../../context/title/TitleContext";
@@ -16,9 +15,6 @@ import { ExpensePdfImportFooter } from "../../components/pdfImport/ExpensePdfImp
 export const ExpensesPage = () => {
   const { user } = useAuth();
   const { year } = useYear();
-  const [contentCardData, setContentCardData] = useState<
-    FullData | undefined
-  >();
 
   const { setTitle } = useTitle();
 
@@ -35,11 +31,12 @@ export const ExpensesPage = () => {
     year,
   });
 
-  useEffect(() => {
-    if (expenses) {
-      setContentCardData(formatExpenses(expenses));
-    }
-  }, [expenses]);
+  // Derived directly from the query result — no state+effect, so switching
+  // the year can never show the previous year's numbers.
+  const contentCardData = useMemo(
+    () => (expenses ? formatExpenses(expenses) : undefined),
+    [expenses],
+  );
 
   if (!user) return <ErrorBlock />;
 

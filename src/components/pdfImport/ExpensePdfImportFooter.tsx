@@ -239,6 +239,7 @@ export const ExpensePdfImportFooter = () => {
       bg-color-bg-main
       z-50
       shadow-[0_-4px_12px_rgba(0,0,0,0.1)]
+      pb-[calc(env(safe-area-inset-bottom)+1rem)]
     "
     >
       <Button

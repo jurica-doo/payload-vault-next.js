@@ -5,6 +5,7 @@ import {
   COLORS,
   TABLE_MARGIN,
   addSectionTitle,
+  type AutoTableDoc,
 } from "../helpers";
 import { INCOME_KONTO, EXPENSE_KONTO } from "../../csvExport";
 
@@ -29,7 +30,7 @@ export function addKontoReferenceSection(doc: jsPDF): number {
 
   const allRows = [...incomeRows, ...expenseRows];
 
-  (doc as any).autoTable({
+  (doc as AutoTableDoc).autoTable({
     startY: y,
     head: [["Kategorie", "Konto", "Typ"]],
     body: allRows,
@@ -50,5 +51,5 @@ export function addKontoReferenceSection(doc: jsPDF): number {
     },
   });
 
-  return (doc as any).lastAutoTable.finalY + 10;
+  return (doc as AutoTableDoc).lastAutoTable.finalY + 10;
 }
