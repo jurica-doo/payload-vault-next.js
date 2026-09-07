@@ -55,6 +55,43 @@ export function formatDate(dateStr: string): string {
   return `${day}.${month}.${year}`;
 }
 
+/**
+ * Escapes a value for a semicolon-separated CSV cell.
+ *
+ * Two distinct problems are handled here:
+ *
+ * 1. **Formula injection (CWE-1236).** Excel, LibreOffice and DATEV import
+ *    treat a cell beginning with `=`, `+`, `-`, `@` or a leading tab/CR as a
+ *    formula, so a value like `=HYPERLINK("http://evil","click")` — or the
+ *    classic `=cmd|'/c calc'!A1` — executes when the accountant opens the
+ *    export. These exports carry `vendor_name` and `file_name`, which are not
+ *    trustworthy: `vendor_name` is produced by the AI from whatever text is on
+ *    an uploaded receipt (a third party can put anything on an invoice they
+ *    send us) and `file_name` is the raw name of the uploaded file. We prefix
+ *    such values with a single quote, the conventional neutraliser that
+ *    spreadsheets strip on display.
+ *
+ * 2. **Field/record breakout.** A value containing `;`, a quote or a newline
+ *    would otherwise shift every following column or forge extra rows. RFC 4180
+ *    quoting keeps the document structurally intact.
+ */
+export function escapeCsvValue(value: unknown): string {
+  const raw = value === null || value === undefined ? "" : String(value);
+
+  // Strip control characters that have no business in a CSV cell (NUL and the
+  // like); keep the text otherwise intact so the export stays readable.
+  const cleaned = raw.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "");
+
+  const needsFormulaGuard = /^[=+\-@\t\r]/.test(cleaned);
+  const guarded = needsFormulaGuard ? `'${cleaned}` : cleaned;
+
+  if (/[";\r\n]/.test(guarded)) {
+    return `"${guarded.replace(/"/g, '""')}"`;
+  }
+
+  return guarded;
+}
+
 export function generateExpenseCsv(
   expenses: SingleExpensePdf[],
   activeCategory?: string,
@@ -75,13 +112,13 @@ export function generateExpenseCsv(
       for (const product of relevantProducts) {
         const konto = EXPENSE_KONTO[product.category] ?? 4900;
         rows.push(
-          `${formatDate(expense.expense_date)};${formatAmount(product.amount)};${product.category};${konto};${expense.vendor_name}`,
+          `${formatDate(expense.expense_date)};${formatAmount(product.amount)};${escapeCsvValue(product.category)};${konto};${escapeCsvValue(expense.vendor_name)}`,
         );
       }
     } else {
       const konto = EXPENSE_KONTO[expense.category] ?? 4900;
       rows.push(
-        `${formatDate(expense.expense_date)};${formatAmount(expense.amount)};${expense.category};${konto};${expense.vendor_name}`,
+        `${formatDate(expense.expense_date)};${formatAmount(expense.amount)};${escapeCsvValue(expense.category)};${konto};${escapeCsvValue(expense.vendor_name)}`,
       );
     }
   }
@@ -105,16 +142,16 @@ export function generateIncomeCsv(pdfs: PdfRecord[]): string {
       const mainKonto = INCOME_KONTO[pdf.category] ?? 8300;
 
       rows.push(
-        `${datum};${formatAmount(mainAmount)};EUR;${mainKonto};1200;${belegfeld1};${buchungstext}`,
+        `${datum};${formatAmount(mainAmount)};EUR;${mainKonto};1200;${escapeCsvValue(belegfeld1)};${escapeCsvValue(buchungstext)}`,
       );
 
       rows.push(
-        `${datum};${formatAmount(pdf.general_grant)};EUR;8400;1200;${belegfeld1};${buchungstext}`,
+        `${datum};${formatAmount(pdf.general_grant)};EUR;8400;1200;${escapeCsvValue(belegfeld1)};${escapeCsvValue(buchungstext)}`,
       );
     } else {
       const konto = INCOME_KONTO[pdf.category] ?? 8300;
       rows.push(
-        `${datum};${formatAmount(pdf.profit)};EUR;${konto};1200;${belegfeld1};${buchungstext}`,
+        `${datum};${formatAmount(pdf.profit)};EUR;${konto};1200;${escapeCsvValue(belegfeld1)};${escapeCsvValue(buchungstext)}`,
       );
     }
   }

@@ -80,7 +80,26 @@ function itemsToReadableText(items: PdfTextItem[]): string {
 
 async function extractTextFromPdfBytes(bytes: Uint8Array): Promise<string> {
   const pdfjsLib = await getPdfjs();
-  const pdf = await pdfjsLib.getDocument({ data: bytes }).promise;
+  // These bytes come straight from a file the user picked, and commission
+  // statements arrive by e-mail from third parties, so a hostile PDF is a
+  // realistic input rather than a hypothetical.
+  //
+  // The "arbitrary JS on open" bug class (GHSA-hq66-cqwq-w95j, and
+  // CVE-2024-4367 before it) came from pdf.js compiling parts of a document
+  // with `new Function()`. pdfjs-dist v6 removed that path outright — the
+  // shipped build contains no `eval(`/`new Function(` at all — which is why
+  // this project is pinned to ^6. The old `isEvalSupported: false` option no
+  // longer exists because there is no longer an eval path to switch off.
+  //
+  // disableAutoFetch/disableStream stop pdf.js issuing its own range requests:
+  // moot for an in-memory byte array, but explicit beats implicit. No
+  // `docBaseUrl` is set, so relative links inside a document cannot resolve
+  // against our origin.
+  const pdf = await pdfjsLib.getDocument({
+    data: bytes,
+    disableAutoFetch: true,
+    disableStream: true,
+  }).promise;
 
   const pagesToRead = Math.min(pdf.numPages, MAX_PAGES);
   let fullText = "";

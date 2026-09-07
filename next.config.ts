@@ -29,7 +29,12 @@ const SUPABASE_WS = SUPABASE_ORIGIN.replace(/^http/, "ws");
 
 const CSP = [
   "default-src 'self'",
-  `connect-src 'self' ${SUPABASE_ORIGIN} ${SUPABASE_WS} https://generativelanguage.googleapis.com`,
+  // Gemini is called from the Edge Function (server side, where CSP does not
+  // apply), never from the browser — verified: no client module imports
+  // @google/generative-ai or references generativelanguage.googleapis.com.
+  // Leaving that host in connect-src only widened where a hypothetical
+  // injected script could exfiltrate to.
+  `connect-src 'self' ${SUPABASE_ORIGIN} ${SUPABASE_WS}`,
   `img-src 'self' data: blob: ${SUPABASE_ORIGIN}`,
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} blob:`,
   "style-src 'self' 'unsafe-inline'",
@@ -40,9 +45,34 @@ const CSP = [
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
+  // No <iframe>/<embed>/<object> anywhere in the app, so deny framing outright
+  // rather than letting it fall through to default-src.
+  "frame-src 'none'",
+  // Production only. Local development points NEXT_PUBLIC_SUPABASE_URL at
+  // http://127.0.0.1:54321, and this directive rewrites http:// subresource
+  // requests to https://, which would break every Supabase call on a dev
+  // machine. In production every origin we talk to is already https, so it
+  // costs nothing and closes the gap if an http:// URL ever creeps in.
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
 const securityHeaders = [
+  // HSTS: the app is a PWA handling financial documents and is served over
+  // HTTPS in production, so pin browsers to it and remove the first-request
+  // downgrade window. Two years + includeSubDomains is the preload-eligible
+  // setting; `preload` itself is intentionally NOT sent, because submitting to
+  // the preload list is a one-way door for the apex domain and its subdomains
+  // and must be a deliberate decision by the domain owner, not a side effect
+  // of a header change. Emitted only outside development so local http://
+  // origins are not pinned on the developer's machine.
+  ...(isDev
+    ? []
+    : [
+        {
+          key: "Strict-Transport-Security",
+          value: "max-age=63072000; includeSubDomains",
+        },
+      ]),
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

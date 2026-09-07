@@ -12,6 +12,7 @@ import { Button } from "../../components/button/Button";
 import { VaultIcon } from "../../components/icons";
 import { loginSchema } from "../../validation/LoginValidation";
 import { MiniFooter } from "../../components/footer/MiniFooter";
+import { safeInternalPath } from "../../utils/safeRedirect";
 
 export const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -25,8 +26,7 @@ export const LoginPage = () => {
 
   useEffect(() => {
     if (user) {
-      const origin = searchParams.get("from") || "/";
-      router.replace(origin);
+      router.replace(safeInternalPath(searchParams.get("from")));
     }
   }, [user, router, searchParams]);
 

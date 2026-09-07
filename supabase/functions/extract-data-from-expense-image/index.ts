@@ -169,6 +169,9 @@ function buildProducts(aiParsed: ExtractedAIData | null): ExtractedProduct[] {
   ];
 }
 
+// Mirrors the expense_invoices bucket's file_size_limit (5 MB).
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+
 const ALLOWED_MIME_TYPES = new Set([
   "application/pdf",
   "image/png",
@@ -229,21 +232,31 @@ function corsHeaders(req: Request) {
   };
 }
 
-// Simple in-memory rate limiter (per warm instance)
-const requestCounts = new Map<string, { count: number; resetAt: number }>();
+// Rate limiting is backed by Postgres, not by process memory: this function
+// runs across many Deno isolates that are cold-started and recycled
+// independently, so a module-level Map only ever limited "per isolate the
+// caller happened to land on" — trivially multiplied by issuing requests in
+// parallel, and wiped on every cold start. Each call here costs a multimodal
+// Gemini request against the project owner's quota, so the limit has to hold
+// globally. See supabase/migrations/20260907122000_edge_rate_limits.sql.
 const RATE_LIMIT = 10;
-const WINDOW_MS = 60_000;
+const WINDOW_SECONDS = 60;
 
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now();
-  const entry = requestCounts.get(userId);
-  if (!entry || now > entry.resetAt) {
-    requestCounts.set(userId, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
+async function checkRateLimit(userId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc("consume_rate_limit", {
+    p_key: `extract-expense:${userId}`,
+    p_limit: RATE_LIMIT,
+    p_window_seconds: WINDOW_SECONDS,
+  });
+
+  if (error) {
+    // Fail closed. If the counter is unreachable we cannot tell an abusive
+    // caller from a legitimate one, and the downstream call costs money.
+    console.error("Rate limit check failed:", error.message);
+    return false;
   }
-  if (entry.count >= RATE_LIMIT) return false;
-  entry.count++;
-  return true;
+
+  return data === true;
 }
 
 // ---------- Gemini call with retry + fallback ----------
@@ -315,7 +328,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // Rate limiting
-  if (!checkRateLimit(user.id)) {
+  if (!(await checkRateLimit(user.id))) {
     console.warn(`Rate limit exceeded for user ${user.id}`);
     return new Response(JSON.stringify({ error: "Too many requests" }), {
       status: 429,
@@ -369,6 +382,25 @@ Deno.serve(async (req: Request) => {
     }
 
     const arrayBuffer = await fileBlob.arrayBuffer();
+
+    // The bucket caps uploads at 5 MB, but that limit is enforced on the upload
+    // path only — this function reads whatever is already at the path, so it
+    // re-checks rather than inheriting an assumption. Oversized input would be
+    // base64-expanded (+33%) into isolate memory and then billed as Gemini
+    // input tokens.
+    if (arrayBuffer.byteLength > MAX_FILE_BYTES) {
+      console.warn(
+        `Rejected oversized file for user ${user.id}: ${arrayBuffer.byteLength} bytes`,
+      );
+      return new Response(
+        JSON.stringify({ success: false, error: "Die Datei ist zu groß." }),
+        {
+          status: 413,
+          headers: { ...corsHeaders(req), "Content-Type": "application/json" },
+        },
+      );
+    }
+
     const base64Data = toBase64(arrayBuffer);
     const mimeType = getMimeType(filePath, fileBlob.type);
     console.log(`File downloaded: ${arrayBuffer.byteLength} bytes, mime=${mimeType}`);
