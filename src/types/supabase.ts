@@ -34,6 +34,97 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          linked_id: string | null
+          linked_type: string | null
+          notes: string | null
+          occurred_at: string
+          outcome: string | null
+          owner_id: string
+          production_id: string | null
+          scheduled_at: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          linked_id?: string | null
+          linked_type?: string | null
+          notes?: string | null
+          occurred_at?: string
+          outcome?: string | null
+          owner_id: string
+          production_id?: string | null
+          scheduled_at?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          linked_id?: string | null
+          linked_type?: string | null
+          notes?: string | null
+          occurred_at?: string
+          outcome?: string | null
+          owner_id?: string
+          production_id?: string | null
+          scheduled_at?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "activities_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "activities_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "v_production"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           description: string | null
@@ -85,6 +176,24 @@ export type Database = {
           updated_at?: string
           user_id?: string
           year?: number
+        }
+        Relationships: []
+      }
+      business_calendar: {
+        Row: {
+          day: string
+          name: string
+          region: string
+        }
+        Insert: {
+          day: string
+          name: string
+          region?: string
+        }
+        Update: {
+          day?: string
+          name?: string
+          region?: string
         }
         Relationships: []
       }
@@ -1062,6 +1171,442 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          from_owner: string | null
+          id: number
+          lead_id: string
+          reason: string | null
+          to_owner: string | null
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          from_owner?: string | null
+          id?: never
+          lead_id: string
+          reason?: string | null
+          to_owner?: string | null
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          from_owner?: string | null
+          id?: never
+          lead_id?: string
+          reason?: string | null
+          to_owner?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "lead_assignments_from_owner_fkey"
+            columns: ["from_owner"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_assignments_from_owner_fkey"
+            columns: ["from_owner"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "lead_assignments_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_assignments_to_owner_fkey"
+            columns: ["to_owner"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_assignments_to_owner_fkey"
+            columns: ["to_owner"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      lead_source_costs: {
+        Row: {
+          amount: number
+          month: string
+          note: string | null
+          source_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          month: string
+          note?: string | null
+          source_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          month?: string
+          note?: string | null
+          source_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_source_costs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "lead_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_sources: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kind?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      lead_stage_history: {
+        Row: {
+          automatic: boolean
+          changed_at: string
+          changed_by: string | null
+          from_stage: string | null
+          id: number
+          lead_id: string
+          note: string | null
+          to_stage: string
+        }
+        Insert: {
+          automatic?: boolean
+          changed_at?: string
+          changed_by?: string | null
+          from_stage?: string | null
+          id?: never
+          lead_id: string
+          note?: string | null
+          to_stage: string
+        }
+        Update: {
+          automatic?: boolean
+          changed_at?: string
+          changed_by?: string | null
+          from_stage?: string | null
+          id?: never
+          lead_id?: string
+          note?: string | null
+          to_stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_stage_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_stage_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "lead_stage_history_from_stage_fkey"
+            columns: ["from_stage"]
+            isOneToOne: false
+            referencedRelation: "lead_stages"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "lead_stage_history_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_stage_history_to_stage_fkey"
+            columns: ["to_stage"]
+            isOneToOne: false
+            referencedRelation: "lead_stages"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      lead_stages: {
+        Row: {
+          active: boolean
+          allow_skip: boolean
+          code: string
+          kind: string
+          name_de: string
+          position: number
+          required_fields: string[]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          allow_skip?: boolean
+          code: string
+          kind: string
+          name_de: string
+          position: number
+          required_fields?: string[]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          allow_skip?: boolean
+          code?: string
+          kind?: string
+          name_de?: string
+          position?: number
+          required_fields?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          campaign: string | null
+          closed_at: string | null
+          company: string | null
+          consent_basis: string | null
+          consent_recorded_at: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string | null
+          email: string | null
+          first_contact_at: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          lead_no: number
+          loss_reason: string | null
+          merged_into: string | null
+          next_action: string | null
+          next_action_at: string | null
+          notes: string | null
+          owner_id: string | null
+          phone: string | null
+          preferred_channel: string
+          priority: string
+          product_interest: string[]
+          production_id: string | null
+          received_at: string
+          referral: string | null
+          region: string | null
+          search_name: string | null
+          sla_due_at: string | null
+          source_id: string
+          stage: string
+          stage_entered_at: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          campaign?: string | null
+          closed_at?: string | null
+          company?: string | null
+          consent_basis?: string | null
+          consent_recorded_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          email?: string | null
+          first_contact_at?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          lead_no?: never
+          loss_reason?: string | null
+          merged_into?: string | null
+          next_action?: string | null
+          next_action_at?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          preferred_channel?: string
+          priority?: string
+          product_interest?: string[]
+          production_id?: string | null
+          received_at?: string
+          referral?: string | null
+          region?: string | null
+          search_name?: string | null
+          sla_due_at?: string | null
+          source_id: string
+          stage?: string
+          stage_entered_at?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          campaign?: string | null
+          closed_at?: string | null
+          company?: string | null
+          consent_basis?: string | null
+          consent_recorded_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string | null
+          email?: string | null
+          first_contact_at?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          lead_no?: never
+          loss_reason?: string | null
+          merged_into?: string | null
+          next_action?: string | null
+          next_action_at?: string | null
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          preferred_channel?: string
+          priority?: string
+          product_interest?: string[]
+          production_id?: string | null
+          received_at?: string
+          referral?: string | null
+          region?: string | null
+          search_name?: string | null
+          sla_due_at?: string | null
+          source_id?: string
+          stage?: string
+          stage_entered_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "leads_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "leads_merged_into_fkey"
+            columns: ["merged_into"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "leads_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "v_production"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "lead_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_stage_fkey"
+            columns: ["stage"]
+            isOneToOne: false
+            referencedRelation: "lead_stages"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       monthly_goal_versions: {
         Row: {
           employee_comment: string | null
@@ -1152,6 +1697,90 @@ export type Database = {
           {
             foreignKeyName: "monthly_goals_employee_id_fkey"
             columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          employee_id: string
+          muted_kinds: string[]
+          updated_at: string
+        }
+        Insert: {
+          employee_id: string
+          muted_kinds?: string[]
+          updated_at?: string
+        }
+        Update: {
+          employee_id?: string
+          muted_kinds?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_preferences_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          critical: boolean
+          id: string
+          kind: string
+          link: string | null
+          read_at: string | null
+          recipient_id: string
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          critical?: boolean
+          id?: string
+          kind: string
+          link?: string | null
+          read_at?: string | null
+          recipient_id: string
+          title: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          critical?: boolean
+          id?: string
+          kind?: string
+          link?: string | null
+          read_at?: string | null
+          recipient_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
             isOneToOne: false
             referencedRelation: "v_current_hierarchy"
             referencedColumns: ["employee_id"]
@@ -1543,6 +2172,92 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          completion_note: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          linked_id: string | null
+          linked_type: string | null
+          owner_id: string
+          priority: string
+          source: string
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completion_note?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          linked_id?: string | null
+          linked_type?: string | null
+          owner_id: string
+          priority?: string
+          source?: string
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completion_note?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          linked_id?: string | null
+          linked_type?: string | null
+          owner_id?: string
+          priority?: string
+          source?: string
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "tasks_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           granted_at: string
@@ -1824,6 +2539,10 @@ export type Database = {
           year: number
         }[]
       }
+      rpc_activity_summary: {
+        Args: { p_employee_id: string; p_from: string; p_to: string }
+        Returns: Json
+      }
       rpc_add_coaching_note: {
         Args: { p_body: string; p_employee_id: string; p_visibility: string }
         Returns: string
@@ -1842,6 +2561,10 @@ export type Database = {
       rpc_approve_promotion: {
         Args: { p_employee_id: string; p_reason: string }
         Returns: string
+      }
+      rpc_assign_lead: {
+        Args: { p_lead_id: string; p_owner_id: string; p_reason?: string }
+        Returns: Json
       }
       rpc_assign_manager: {
         Args: {
@@ -1903,8 +2626,29 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_create_lead: {
+        Args: {
+          p_confirm_duplicates?: boolean
+          p_data: Json
+          p_owner_id?: string
+          p_to_pool?: boolean
+        }
+        Returns: string
+      }
       rpc_create_rule_draft: {
         Args: { p_effective_from: string; p_kind: string; p_label: string }
+        Returns: string
+      }
+      rpc_create_task: {
+        Args: {
+          p_description?: string
+          p_due_at?: string
+          p_linked_id?: string
+          p_linked_type?: string
+          p_owner_id: string
+          p_priority?: string
+          p_title: string
+        }
         Returns: string
       }
       rpc_dashboard_admin: { Args: never; Returns: Json }
@@ -1922,6 +2666,17 @@ export type Database = {
         Args: { p_id: string; p_reason: string }
         Returns: undefined
       }
+      rpc_find_lead_duplicates: {
+        Args: {
+          p_company: string
+          p_email: string
+          p_exclude?: string
+          p_first_name: string
+          p_last_name: string
+          p_phone: string
+        }
+        Returns: Json
+      }
       rpc_generate_all_periods: { Args: never; Returns: number }
       rpc_grant_role: {
         Args: {
@@ -1932,12 +2687,38 @@ export type Database = {
         Returns: undefined
       }
       rpc_issue_invite: { Args: { p_employee_id: string }; Returns: Json }
+      rpc_lead_config: { Args: never; Returns: Json }
+      rpc_lead_funnel: {
+        Args: { p_from: string; p_scope?: string; p_to: string }
+        Returns: Json
+      }
+      rpc_log_activity: {
+        Args: {
+          p_linked_id?: string
+          p_linked_type?: string
+          p_notes?: string
+          p_occurred_at?: string
+          p_outcome?: string
+          p_owner_id?: string
+          p_scheduled_at?: string
+          p_type: string
+        }
+        Returns: string
+      }
       rpc_log_export: {
         Args: { p_kind: string; p_row_count: number; p_scope: Json }
         Returns: undefined
       }
+      rpc_mark_notifications_read: {
+        Args: { p_ids?: string[] }
+        Returns: number
+      }
       rpc_mark_production_eligible: {
         Args: { p_id: string }
+        Returns: undefined
+      }
+      rpc_merge_leads: {
+        Args: { p_keep_id: string; p_merge_id: string; p_reason: string }
         Returns: undefined
       }
       rpc_my_context: { Args: never; Returns: Json }
@@ -1960,6 +2741,10 @@ export type Database = {
       rpc_promotion_queue: { Args: never; Returns: Json[] }
       rpc_publish_rule_version: {
         Args: { p_reason: string; p_version_id: string }
+        Returns: undefined
+      }
+      rpc_reassign_task: {
+        Args: { p_new_owner: string; p_reason: string; p_task_id: string }
         Returns: undefined
       }
       rpc_retry_commission: {
@@ -1987,8 +2772,18 @@ export type Database = {
         Returns: undefined
       }
       rpc_rules_at: { Args: { p_date?: string }; Returns: Json }
+      rpc_run_task_generators: { Args: never; Returns: Json }
       rpc_save_goal_draft: {
         Args: { p_month: string; p_targets: Json }
+        Returns: string
+      }
+      rpc_save_lead_source: {
+        Args: {
+          p_active: boolean
+          p_id: string
+          p_kind: string
+          p_name: string
+        }
         Returns: string
       }
       rpc_save_production: {
@@ -2007,6 +2802,10 @@ export type Database = {
         }
         Returns: string
       }
+      rpc_set_appointment_outcome: {
+        Args: { p_activity_id: string; p_notes?: string; p_outcome: string }
+        Returns: undefined
+      }
       rpc_set_coaching_action_status: {
         Args: { p_action_id: string; p_status: string }
         Returns: undefined
@@ -2024,6 +2823,39 @@ export type Database = {
         }
         Returns: string
       }
+      rpc_set_holiday: {
+        Args: { p_day: string; p_name?: string; p_region: string }
+        Returns: undefined
+      }
+      rpc_set_lead_sla: {
+        Args: { p_reason: string; p_value: Json }
+        Returns: undefined
+      }
+      rpc_set_lead_source_cost: {
+        Args: {
+          p_amount: number
+          p_month: string
+          p_note?: string
+          p_source_id: string
+        }
+        Returns: undefined
+      }
+      rpc_set_lead_stage: {
+        Args: {
+          p_lead_id: string
+          p_loss_reason?: string
+          p_next_action?: string
+          p_next_action_at?: string
+          p_note?: string
+          p_production_id?: string
+          p_stage: string
+        }
+        Returns: undefined
+      }
+      rpc_set_muted_notifications: {
+        Args: { p_kinds: string[] }
+        Returns: string[]
+      }
       rpc_set_statement_status: {
         Args: { p_month: string; p_reason: string; p_status: string }
         Returns: undefined
@@ -2038,6 +2870,10 @@ export type Database = {
           p_reason: string
         }
         Returns: string
+      }
+      rpc_set_task_status: {
+        Args: { p_note?: string; p_status: string; p_task_id: string }
+        Returns: undefined
       }
       rpc_stage_production_import: {
         Args: { p_file_name: string; p_rows: Json; p_source_system: string }
@@ -2084,6 +2920,20 @@ export type Database = {
           p_phone: string
           p_reason: string
           p_start_date: string
+        }
+        Returns: undefined
+      }
+      rpc_update_lead: {
+        Args: { p_data: Json; p_lead_id: string }
+        Returns: undefined
+      }
+      rpc_update_lead_stage_config: {
+        Args: {
+          p_active: boolean
+          p_allow_skip: boolean
+          p_code: string
+          p_reason: string
+          p_required_fields: string[]
         }
         Returns: undefined
       }

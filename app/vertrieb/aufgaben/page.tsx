@@ -1,5 +1,5 @@
-import { ModulePlaceholder } from "@/views/sales/ModulePlaceholder";
+import { TasksPage } from "@/views/tasks/TasksPage";
 
 export default function Page() {
-  return <ModulePlaceholder moduleKey="tasks" />;
+  return <TasksPage />;
 }

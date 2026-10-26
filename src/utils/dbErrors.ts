@@ -72,6 +72,31 @@ const MESSAGES: Record<string, string> = {
   unknown_target: "Unbekanntes Zielfeld.",
   reviewer_not_employee: "Nur aktive Führungskräfte können Ziele freigeben.",
 
+  // tasks
+  owner_inactive: "Die Person ist inaktiv.",
+
+  // activities
+  date_in_future: "Das Datum darf nicht in der Zukunft liegen.",
+  appointment_in_future: "Der Termin liegt noch in der Zukunft. Er kann erst danach als durchgeführt oder nicht erschienen markiert werden.",
+  not_an_appointment: "Das ist kein Termin.",
+
+  // leads
+  lead_name_required: "Bitte einen Nachnamen oder eine Firma angeben.",
+  invalid_phone: "Die Telefonnummer ist ungültig (z. B. 0170 1234567 oder +49 170 1234567).",
+  invalid_email: "Die E-Mail-Adresse ist ungültig.",
+  unknown_source: "Bitte eine aktive Lead-Quelle wählen.",
+  possible_duplicate: "Es gibt bereits einen ähnlichen Lead. Bitte prüfen und bei Bedarf ausdrücklich bestätigen.",
+  lead_merged: "Dieser Lead wurde mit einem anderen zusammengeführt.",
+  lead_closed: "Der Lead ist abgeschlossen (gewonnen oder verloren).",
+  unknown_stage: "Unbekannte oder deaktivierte Phase.",
+  stage_requirements_missing: "Für diese Phase fehlen Pflichtangaben.",
+  stage_skip_not_allowed: "Diese Phase darf nicht übersprungen werden.",
+  production_not_owner: "Der Vertrag gehört nicht der zuständigen Person.",
+  stage_required: "Diese Phase kann nicht deaktiviert werden.",
+  stage_in_use: "In dieser Phase befinden sich noch Leads.",
+  invalid_input: "Bitte prüfen Sie Ihre Eingaben.",
+  append_only: "Verlaufseinträge können nicht geändert werden.",
+
   // production
   no_rules_for_date: "Für dieses Datum gibt es keine gültigen Umrechnungsregeln.",
   premium_must_be_positive: "Der Beitrag muss größer als 0 sein.",

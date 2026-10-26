@@ -11,7 +11,7 @@ const me = {
   production: { points: "15", kv_points: "5", ae: "420" },
   year: { points: "120", kv_points: "20", ae: "3360" },
   trend: [{ month: "2026-05-01", points: 0 }, { month: "2026-10-01", points: 15 }],
-  goal: { status: "approved", targets: { points: 20 } },
+  goal: { status: "approved", targets: { points: 20, appointments_held: 4 } },
   career: { status: "in_progress", reason: null, level: "FA", target: "FB", eligible: "80", required: "100", eligible_kv: "5", kv_required: "10", expected_now: "82", period_end: "2027-01-01", window_start: "2026-01-01" },
   commission: { gross: "420", net: "378" },
   todo: { drafts: 2, goal_missing: false, goals_to_review: 0 },
@@ -34,6 +34,9 @@ vi.mock("../../hooks/useDashboard/useDashboard", () => ({
 vi.mock("../../hooks/useCoaching/useCoaching", () => ({
   useCoaching: () => ({ data: { actions: [{ id: "a1", title: "Zwei KV-Termine", status: "open", owner_id: "me", due_on: "2026-11-01" }] }, setActionStatus: { mutate: vi.fn() } }),
 }));
+vi.mock("../../hooks/useActivities/useActivities", () => ({
+  useActivitySummary: () => ({ data: { contact_attempts: 9, reached: 4, appointments_booked: 5, appointments_held: 3, no_shows: 1, offers: 2, followups: 1, upcoming_appointments: 2 } }),
+}));
 vi.mock("../../components/charts/TrendChart", () => ({ TrendChart: ({ caption }: { caption: string }) => <figure>{caption}</figure> }));
 
 const { DashboardPage } = await import("./DashboardPage");
@@ -47,6 +50,13 @@ describe("DashboardPage", () => {
     render(<DashboardPage />);
     expect(screen.getByText("Mein Monat")).toBeInTheDocument();
     expect(screen.getByText(/25\s%\sggü\. Ziel 20 P/)).toBeInTheDocument(); // 15 vs 20 → −25 %
+  });
+
+  it("shows activity counts against the goal's activity targets", () => {
+    render(<DashboardPage />);
+    expect(screen.getByText("Termine durchgeführt")).toBeInTheDocument();
+    expect(screen.getByText(/25\s%\sggü\. Ziel 4$/)).toBeInTheDocument(); // 3 vs 4 → −25 %
+    expect(screen.getByText("1 nicht erschienen")).toBeInTheDocument();
   });
 
   it("shows the employee's agreed coaching actions", () => {

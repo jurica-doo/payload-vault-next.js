@@ -1,5 +1,5 @@
-import { ModulePlaceholder } from "@/views/sales/ModulePlaceholder";
+import { LeadsPage } from "@/views/leads/LeadsPage";
 
 export default function Page() {
-  return <ModulePlaceholder moduleKey="leads" />;
+  return <LeadsPage />;
 }
