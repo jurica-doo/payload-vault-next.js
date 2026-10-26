@@ -228,6 +228,156 @@ export type Database = {
           },
         ]
       }
+      commission_ledger: {
+        Row: {
+          calculation_id: string
+          commission_type: string
+          created_at: string
+          depth: number
+          entry_kind: string
+          gross_amount: number
+          id: string
+          net_after_reserve: number
+          points: number
+          producer_id: string
+          producer_level: string
+          production_id: string
+          rate_per_point: number
+          recipient_id: string
+          recipient_level: string
+          relationship: string
+          reserve_amount: number
+          reverses_entry_id: string | null
+          rule_version_id: string
+          seq: number
+          statement_period_id: string
+        }
+        Insert: {
+          calculation_id: string
+          commission_type: string
+          created_at?: string
+          depth: number
+          entry_kind: string
+          gross_amount: number
+          id?: string
+          net_after_reserve: number
+          points: number
+          producer_id: string
+          producer_level: string
+          production_id: string
+          rate_per_point: number
+          recipient_id: string
+          recipient_level: string
+          relationship: string
+          reserve_amount: number
+          reverses_entry_id?: string | null
+          rule_version_id: string
+          seq?: never
+          statement_period_id: string
+        }
+        Update: {
+          calculation_id?: string
+          commission_type?: string
+          created_at?: string
+          depth?: number
+          entry_kind?: string
+          gross_amount?: number
+          id?: string
+          net_after_reserve?: number
+          points?: number
+          producer_id?: string
+          producer_level?: string
+          production_id?: string
+          rate_per_point?: number
+          recipient_id?: string
+          recipient_level?: string
+          relationship?: string
+          reserve_amount?: number
+          reverses_entry_id?: string | null
+          rule_version_id?: string
+          seq?: never
+          statement_period_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_ledger_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "point_calculations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "v_production"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_reverses_entry_id_fkey"
+            columns: ["reverses_entry_id"]
+            isOneToOne: false
+            referencedRelation: "commission_ledger"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_reverses_entry_id_fkey"
+            columns: ["reverses_entry_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_ledger"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_rule_version_id_fkey"
+            columns: ["rule_version_id"]
+            isOneToOne: false
+            referencedRelation: "rule_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_statement_period_id_fkey"
+            columns: ["statement_period_id"]
+            isOneToOne: false
+            referencedRelation: "statement_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversion_rules: {
         Row: {
           category_code: string
@@ -396,6 +546,45 @@ export type Database = {
           timezone?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      exception_queue: {
+        Row: {
+          created_at: string
+          details: Json | null
+          entity_id: string
+          entity_type: string
+          id: string
+          reason_code: string
+          resolution: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          reason_code: string
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          reason_code?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
         }
         Relationships: []
       }
@@ -925,6 +1114,33 @@ export type Database = {
         }
         Relationships: []
       }
+      statement_periods: {
+        Row: {
+          created_at: string
+          id: string
+          period_month: string
+          status: string
+          status_changed_at: string | null
+          status_changed_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          period_month: string
+          status?: string
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          period_month?: string
+          status?: string
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           granted_at: string
@@ -957,6 +1173,123 @@ export type Database = {
       }
     }
     Views: {
+      v_commission_ledger: {
+        Row: {
+          calculation_id: string | null
+          category_code: string | null
+          commission_type: string | null
+          created_at: string | null
+          depth: number | null
+          entry_kind: string | null
+          gross_amount: number | null
+          id: string | null
+          net_after_reserve: number | null
+          period_month: string | null
+          period_status: string | null
+          points: number | null
+          producer_id: string | null
+          producer_level: string | null
+          producer_name: string | null
+          production_date: string | null
+          production_id: string | null
+          rate_per_point: number | null
+          recipient_id: string | null
+          recipient_level: string | null
+          recipient_name: string | null
+          relationship: string | null
+          reserve_amount: number | null
+          reverses_entry_id: string | null
+          rule_version_id: string | null
+          seq: number | null
+          statement_period_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_ledger_calculation_id_fkey"
+            columns: ["calculation_id"]
+            isOneToOne: false
+            referencedRelation: "point_calculations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "v_production"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_reverses_entry_id_fkey"
+            columns: ["reverses_entry_id"]
+            isOneToOne: false
+            referencedRelation: "commission_ledger"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_reverses_entry_id_fkey"
+            columns: ["reverses_entry_id"]
+            isOneToOne: false
+            referencedRelation: "v_commission_ledger"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_rule_version_id_fkey"
+            columns: ["rule_version_id"]
+            isOneToOne: false
+            referencedRelation: "rule_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commission_ledger_statement_period_id_fkey"
+            columns: ["statement_period_id"]
+            isOneToOne: false
+            referencedRelation: "statement_periods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_category_code_fkey"
+            columns: ["category_code"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       v_current_hierarchy: {
         Row: {
           effective_from: string | null
@@ -1132,6 +1465,10 @@ export type Database = {
         Args: { p_version_id: string }
         Returns: undefined
       }
+      rpc_dismiss_exception: {
+        Args: { p_id: string; p_reason: string }
+        Returns: undefined
+      }
       rpc_generate_all_periods: { Args: never; Returns: number }
       rpc_grant_role: {
         Args: {
@@ -1163,6 +1500,10 @@ export type Database = {
       rpc_publish_rule_version: {
         Args: { p_reason: string; p_version_id: string }
         Returns: undefined
+      }
+      rpc_retry_commission: {
+        Args: { p_calculation_id: string }
+        Returns: number
       }
       rpc_revoke_invite: {
         Args: { p_employee_id: string; p_reason: string }
