@@ -19,6 +19,7 @@ import {
 } from "../../hooks/useDashboard/useDashboard";
 import { formatDate, formatPoints, safeRatio, toDecimal } from "../../utils/format";
 import { goalStatus } from "../goals/GoalsPage";
+import { useCoaching } from "../../hooks/useCoaching/useCoaching";
 
 const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
 const monthShort = (iso: string) => MONTHS[Number(iso.slice(5, 7)) - 1];
@@ -33,6 +34,7 @@ export const DashboardPage = () => {
 
   return (
     <div className="flex flex-col gap-6">
+      {isEmployee && <MyActions employeeId={permissions.employeeId!} />}
       {isEmployee && (me.data ? <MySection d={me.data} /> : me.isLoading ? <p className="text-sm">Lädt…</p> : <EmptyState message="Dashboard nicht verfügbar." hint={me.error?.message} />)}
       {permissions.isLeader && team.data && <TeamSection d={team.data} />}
       {(permissions.isAdmin || permissions.isFinance) && admin.data && <AdminSection d={admin.data} />}
@@ -157,6 +159,29 @@ const AdminSection = ({ d }: { d: AdminDashboard }) => {
           ))}
         </ul>
       )}
+    </section>
+  );
+};
+
+/** Agreed coaching actions show up on the employee's dashboard (§8.4). */
+const MyActions = ({ employeeId }: { employeeId: string }) => {
+  const { data, setActionStatus } = useCoaching(employeeId);
+  const open = (data?.actions ?? []).filter((a) => a.status === "open" && a.owner_id === employeeId);
+  if (open.length === 0) return null;
+  return (
+    <section className="rounded-radius-lg border border-color-primary/40 bg-color-bg-accent-subtle p-3">
+      <h2 className="mb-2 text-sm font-semibold">Vereinbarte Maßnahmen</h2>
+      <ul className="flex flex-col gap-1 text-sm">
+        {open.map((a) => (
+          <li key={a.id}>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" onChange={() => setActionStatus.mutate({ id: a.id, status: "done" })} />
+              {a.title}
+              {a.due_on && <span className="text-xs text-color-text-subtle">bis {formatDate(a.due_on)}</span>}
+            </label>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 };

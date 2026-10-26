@@ -31,6 +31,9 @@ vi.mock("../../hooks/useDashboard/useDashboard", () => ({
   useTeamDashboard: (on: boolean) => ({ data: on ? team : undefined }),
   useAdminDashboard: (on: boolean) => ({ data: on ? admin : undefined }),
 }));
+vi.mock("../../hooks/useCoaching/useCoaching", () => ({
+  useCoaching: () => ({ data: { actions: [{ id: "a1", title: "Zwei KV-Termine", status: "open", owner_id: "me", due_on: "2026-11-01" }] }, setActionStatus: { mutate: vi.fn() } }),
+}));
 vi.mock("../../components/charts/TrendChart", () => ({ TrendChart: ({ caption }: { caption: string }) => <figure>{caption}</figure> }));
 
 const { DashboardPage } = await import("./DashboardPage");
@@ -44,6 +47,12 @@ describe("DashboardPage", () => {
     render(<DashboardPage />);
     expect(screen.getByText("Mein Monat")).toBeInTheDocument();
     expect(screen.getByText(/25\s%\sggü\. Ziel 20 P/)).toBeInTheDocument(); // 15 vs 20 → −25 %
+  });
+
+  it("shows the employee's agreed coaching actions", () => {
+    render(<DashboardPage />);
+    expect(screen.getByText("Vereinbarte Maßnahmen")).toBeInTheDocument();
+    expect(screen.getByText("Zwei KV-Termine")).toBeInTheDocument();
   });
 
   it("lists open to-dos with links", () => {

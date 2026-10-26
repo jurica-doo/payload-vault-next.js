@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { HierarchyTree } from "../../components/hierarchyTree/HierarchyTree";
 import { StatusBadge, type StatusMap } from "../../components/statusBadge/StatusBadge";
@@ -69,6 +70,9 @@ export const TeamPage = () => {
             <dd>{direct}</dd>
             <dt className="text-color-text-subtle">Gesamt</dt>
             <dd>{structure.descendantCount(selected.employee_id)}</dd>
+            <dd className="col-span-2 pt-2">
+              <Link href={`/vertrieb/team/${selected.employee_id}`} className="font-semibold">Profil & Coaching öffnen</Link>
+            </dd>
           </dl>
         ) : (
           <p className="text-sm text-color-text-subtle">Person in der Struktur auswählen, um Details zu sehen.</p>
