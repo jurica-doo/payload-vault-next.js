@@ -77,6 +77,13 @@ fi
 echo "▸ test helpers"
 as_admin < "$ROOT/supabase/tests/_harness/helpers.sql" >/dev/null
 
+# psql treats anything after \gset as variable names, so a trailing comment
+# there silently breaks the whole file. Catch it with a clear message.
+if grep -nE '\\gset[^\n]*--' "$ROOT"/supabase/tests/*.test.sql; then
+  echo "✗ comment after \\gset found (move it to its own line)"
+  exit 1
+fi
+
 echo "▸ tests"
 failed=0
 total=0
