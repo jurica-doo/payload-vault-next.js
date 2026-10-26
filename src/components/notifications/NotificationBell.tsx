@@ -11,6 +11,9 @@ const MUTABLE = [
   { kind: "coaching_review", label: "Coaching-Termine" },
   { kind: "career_period_end", label: "Karrierezeitraum endet" },
   { kind: "lead_first_contact", label: "Lead-Erstkontakt" },
+  { kind: "lead_next_action", label: "Lead: nächster Schritt" },
+  { kind: "lead_assigned", label: "Zugewiesene Leads" },
+  { kind: "lead_sla_breach", label: "Überfällige Erstkontakte im Team" },
 ];
 
 /**

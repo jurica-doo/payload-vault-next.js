@@ -26,6 +26,11 @@ const AREAS = [
     title: "Beförderungen",
     description: "Qualifizierte Mitarbeitende prüfen und befördern.",
   },
+  {
+    href: "/admin/leads",
+    title: "Leads",
+    description: "Phasen, Pflichtfelder, Quellen und Kosten, Erstkontakt-Frist und Feiertage.",
+  },
 ];
 
 export const AdminHomePage = () => {
