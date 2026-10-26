@@ -228,6 +228,199 @@ export type Database = {
           },
         ]
       }
+      coaching_actions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          done_at: string | null
+          due_on: string | null
+          employee_id: string
+          id: string
+          owner_id: string
+          session_id: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          done_at?: string | null
+          due_on?: string | null
+          employee_id: string
+          id?: string
+          owner_id: string
+          session_id?: string | null
+          status?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          done_at?: string | null
+          due_on?: string | null
+          employee_id?: string
+          id?: string
+          owner_id?: string
+          session_id?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_actions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_actions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "coaching_actions_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_actions_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "coaching_actions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "coaching_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coaching_notes: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          employee_id: string
+          id: string
+          visibility: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          visibility: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_notes_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_notes_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "coaching_notes_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_notes_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      coaching_sessions: {
+        Row: {
+          created_at: string
+          employee_id: string
+          held_on: string
+          id: string
+          leader_id: string
+          next_review_on: string | null
+          participants: string | null
+          summary: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          held_on: string
+          id?: string
+          leader_id: string
+          next_review_on?: string | null
+          participants?: string | null
+          summary: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          held_on?: string
+          id?: string
+          leader_id?: string
+          next_review_on?: string | null
+          participants?: string | null
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_sessions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_sessions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "coaching_sessions_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_sessions_leader_id_fkey"
+            columns: ["leader_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       commission_ledger: {
         Row: {
           calculation_id: string
@@ -1631,6 +1824,21 @@ export type Database = {
           year: number
         }[]
       }
+      rpc_add_coaching_note: {
+        Args: { p_body: string; p_employee_id: string; p_visibility: string }
+        Returns: string
+      }
+      rpc_add_coaching_session: {
+        Args: {
+          p_actions?: Json
+          p_employee_id: string
+          p_held_on: string
+          p_next_review_on?: string
+          p_participants?: string
+          p_summary: string
+        }
+        Returns: string
+      }
       rpc_approve_promotion: {
         Args: { p_employee_id: string; p_reason: string }
         Returns: string
@@ -1733,6 +1941,10 @@ export type Database = {
         Returns: undefined
       }
       rpc_my_context: { Args: never; Returns: Json }
+      rpc_performance_profile: {
+        Args: { p_employee_id: string }
+        Returns: Json
+      }
       rpc_preview_points: {
         Args: {
           p_category: string
@@ -1794,6 +2006,10 @@ export type Database = {
           p_term_years: number
         }
         Returns: string
+      }
+      rpc_set_coaching_action_status: {
+        Args: { p_action_id: string; p_status: string }
+        Returns: undefined
       }
       rpc_set_employee_active: {
         Args: { p_active: boolean; p_employee_id: string; p_reason: string }
