@@ -75,7 +75,7 @@ Visibility (RLS): owner, the owner's managers, admins. Unassigned leads (the poo
 ## Tests
 - pgTAP `170_leads.test.sql` (57): SLA golden cases, create/duplicate/validation, the pool, assignment rules, automatic stage moves, required fields, backward moves, appointment transfer, loss of access after reassignment, lost/closed, merge permissions and MFA, append-only history, all three generators with escalation, and SLA admin.
 - Vitest: `sla.test.ts` (10), `leads.test.ts` (6), `LeadsPage.test.tsx` (3).
-- Totals: 580 pgTAP assertions (18 files), 335 unit tests, 47 golden IDs, lint at 0 errors, build OK.
+- Totals: 562 pgTAP assertions (18 files), 335 unit tests, 47 golden IDs, lint at 0 errors, build OK.
 
 ## What to look at when testing
 1. Turn on the `leads` flag. Create a lead with phone `0170 1234567`, then create another with `+49 170 1234567`: the duplicate warning appears and saving is blocked until you tick the box.
