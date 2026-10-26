@@ -874,6 +874,7 @@ export type Database = {
           notes: string | null
           published_at: string | null
           published_by: string | null
+          reserve_ratio: number | null
           status: string
         }
         Insert: {
@@ -887,6 +888,7 @@ export type Database = {
           notes?: string | null
           published_at?: string | null
           published_by?: string | null
+          reserve_ratio?: number | null
           status?: string
         }
         Update: {
@@ -900,6 +902,7 @@ export type Database = {
           notes?: string | null
           published_at?: string | null
           published_by?: string | null
+          reserve_ratio?: number | null
           status?: string
         }
         Relationships: []
@@ -1240,6 +1243,10 @@ export type Database = {
           p_threshold_points: number
           p_version_id: string
         }
+        Returns: undefined
+      }
+      rpc_update_reserve_draft: {
+        Args: { p_reserve_ratio: number; p_version_id: string }
         Returns: undefined
       }
     }
