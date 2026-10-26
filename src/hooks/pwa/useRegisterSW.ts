@@ -40,6 +40,21 @@ export function useRegisterSW(
       return;
     }
 
+    // Never in development: the worker serves /_next/static cache-first, and
+    // dev chunk URLs aren't content-hashed, so edits would keep showing old
+    // code. Remove a worker left over from an earlier dev session as well.
+    if (process.env.NODE_ENV === "development") {
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((registrations) =>
+          Promise.all(registrations.map((r) => r.unregister())),
+        )
+        .then(() => caches.keys())
+        .then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+        .catch(() => {});
+      return;
+    }
+
     let registrationRef: ServiceWorkerRegistration | undefined;
 
     const trackWaiting = (registration: ServiceWorkerRegistration) => {

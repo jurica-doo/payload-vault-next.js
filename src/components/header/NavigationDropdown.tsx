@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { usePermissions } from "../../hooks/permissions/usePermissions";
+import { moduleForPath } from "../../data/salesModules";
 
 type NavigationDropdownProps = {
   isOpen: boolean;
@@ -30,6 +32,7 @@ export const NavigationDropdown = ({
   setIsOpen,
 }: NavigationDropdownProps) => {
   const pathname = usePathname();
+  const { modules } = usePermissions();
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
 
@@ -53,6 +56,13 @@ export const NavigationDropdown = ({
 
   if (!isVisible) return null;
 
+  // Sales modules appear only when their feature flags are on and the user
+  // may use them (src/data/salesModules.ts). Most specific match wins, so
+  // "/vertrieb" isn't highlighted on "/vertrieb/produktion".
+  const salesLinks = modules.map((m) => ({ label: m.label, to: m.href }));
+  const activeSalesHref = moduleForPath(pathname)?.href;
+  const salesHrefs = new Set(salesLinks.map((l) => l.to));
+
   return (
     <div
       role="menu"
@@ -61,8 +71,10 @@ export const NavigationDropdown = ({
       }`}
     >
       <nav className="flex flex-col py-1.5 md:py-2">
-        {navigationLinks.map((link) => {
-          const isActive = isActivePath(pathname, link.to);
+        {[...navigationLinks, ...salesLinks].map((link) => {
+          const isActive = salesHrefs.has(link.to)
+            ? activeSalesHref === link.to
+            : isActivePath(pathname, link.to);
 
           return (
             <Link
