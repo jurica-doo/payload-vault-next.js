@@ -170,3 +170,38 @@ export function useContracts(customerId: string) {
     }),
   };
 }
+
+export type ServiceItem = Tables<"customer_service_items">;
+
+/** Service items of one customer (§10.3). */
+export function useServiceItems(customerId: string) {
+  const queryClient = useQueryClient();
+  const query = useQuery({
+    queryKey: ["service-items", customerId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("customer_service_items").select("*").eq("customer_id", customerId).order("due_on");
+      if (error) throwDbError(error);
+      return (data ?? []) as ServiceItem[];
+    },
+  });
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["service-items", customerId] });
+    queryClient.invalidateQueries({ queryKey: ["tasks"] });
+  };
+  return {
+    ...query,
+    save: useMutation({
+      mutationFn: (a: { kind: string; title: string; dueOn: string | null; ownerId: string | null; recurrence: string; contractId: string | null; note: string }) =>
+        call("rpc_save_service_item", {
+          p_id: null, p_customer_id: customerId, p_kind: a.kind, p_title: a.title, p_due_on: a.dueOn, p_owner_id: a.ownerId,
+          p_recurrence: a.recurrence, p_contract_link_id: a.contractId, p_note: a.note || null,
+        }),
+      onSuccess: invalidate,
+    }),
+    setStatus: useMutation({
+      mutationFn: (a: { id: string; status: "done" | "cancelled"; note?: string }) =>
+        call("rpc_set_service_item_status", { p_id: a.id, p_status: a.status, p_note: a.note ?? null }),
+      onSuccess: invalidate,
+    }),
+  };
+}
