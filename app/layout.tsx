@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -73,11 +74,14 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Set per request by proxy.ts; the CSP refuses inline scripts without it.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html lang="de" translate="no" suppressHydrationWarning>
       <head>
@@ -86,6 +90,7 @@ export default function RootLayout({
             this, light-mode users get a dark flash/loading screen because the
             CSS default is dark and the React effect runs after paint. */}
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}document.documentElement.dataset.theme=t;}catch(e){}`,
           }}
