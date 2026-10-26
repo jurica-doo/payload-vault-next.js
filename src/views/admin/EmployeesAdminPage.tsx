@@ -14,6 +14,7 @@ import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useEmployees, type AppRole, type EmployeeWithRoles } from "../../hooks/useEmployees/useEmployees";
 import { formatDate } from "../../utils/format";
 import { EmployeeCreateForm } from "./EmployeeCreateForm";
+import { EmployeeLevelForm } from "./EmployeeLevelForm";
 
 const statusMap: StatusMap<"invited" | "active" | "inactive"> = {
   invited: { label: "Eingeladen", tone: "info" },
@@ -35,7 +36,7 @@ export const EmployeesAdminPage = () => {
   const { showBanner } = useBanner();
   const { user } = useAuth();
   const { permissions } = usePermissions();
-  const { data = [], isLoading, error, createEmployee, resendInvite, setActive, setRole } = useEmployees();
+  const { data = [], isLoading, error, createEmployee, resendInvite, setActive, setRole, setLevel } = useEmployees();
   const [search, setSearch] = useState("");
   const canWrite = permissions.isAdmin && permissions.hasMfa;
 
@@ -117,6 +118,23 @@ export const EmployeesAdminPage = () => {
     });
   };
 
+  const openLevel = (employee: EmployeeWithRoles) =>
+    openModal({
+      title: employee.levelCode ? "Stufe korrigieren" : "Einstiegsstufe festlegen",
+      children: (
+        <EmployeeLevelForm
+          currentLevel={employee.levelCode}
+          startDate={employee.start_date}
+          onCancel={closeModal}
+          onSubmit={async (levelCode, effectiveFrom, reason) => {
+            await setLevel.mutateAsync({ employeeId: employee.id, levelCode, effectiveFrom, reason });
+            closeModal();
+            showBanner("Stufe gespeichert", `${employee.first_name} ${employee.last_name}: ${levelCode}`, "success");
+          }}
+        />
+      ),
+    });
+
   const resend = async (employee: EmployeeWithRoles) => {
     try {
       await resendInvite.mutateAsync(employee.id);
@@ -158,6 +176,17 @@ export const EmployeesAdminPage = () => {
           },
           { id: "no", header: "Pers.-Nr.", cell: (e) => e.employee_no, sortValue: (e) => e.employee_no, hideOnMobile: true },
           { id: "start", header: "Start", cell: (e) => formatDate(e.start_date), sortValue: (e) => e.start_date, hideOnMobile: true },
+          {
+            id: "level",
+            header: "Stufe",
+            cell: (e) =>
+              e.levelCode ? (
+                <span className="font-semibold">{e.levelCode}</span>
+              ) : (
+                <span className="text-xs text-color-error-text">fehlt</span>
+              ),
+            sortValue: (e) => e.levelCode ?? "",
+          },
           {
             id: "status",
             header: "Status",
@@ -208,6 +237,9 @@ export const EmployeesAdminPage = () => {
                     Einladung senden
                   </button>
                 )}
+                <button type="button" className={actionClass} disabled={!canWrite} onClick={() => openLevel(e)}>
+                  Stufe
+                </button>
                 {e.user_id !== user?.id && (
                   <button type="button" className={actionClass} disabled={!canWrite} onClick={() => openStatusChange(e)}>
                     {e.status === "inactive" ? "Reaktivieren" : "Deaktivieren"}

@@ -5,15 +5,15 @@ const state = vi.hoisted(() => ({ hasMfa: true }));
 const employees = [
   {
     id: "e1", user_id: "me", employee_no: "P00001", first_name: "Ada", last_name: "Admin",
-    email: "ada@test.local", status: "active", start_date: "2026-01-01", roles: ["admin"], openInvite: false,
+    email: "ada@test.local", status: "active", start_date: "2026-01-01", roles: ["admin"], openInvite: false, levelCode: "VD",
   },
   {
     id: "e2", user_id: null, employee_no: "P00002", first_name: "Nora", last_name: "Neu",
-    email: "nora@test.local", status: "invited", start_date: "2026-11-01", roles: [], openInvite: false,
+    email: "nora@test.local", status: "invited", start_date: "2026-11-01", roles: [], openInvite: false, levelCode: null,
   },
   {
     id: "e3", user_id: "u3", employee_no: "P00003", first_name: "Fritz", last_name: "Berater",
-    email: "fritz@test.local", status: "inactive", start_date: "2025-01-01", roles: [], openInvite: false,
+    email: "fritz@test.local", status: "inactive", start_date: "2025-01-01", roles: [], openInvite: false, levelCode: "FB",
   },
 ];
 
@@ -21,7 +21,7 @@ const mutation = { mutateAsync: vi.fn(), isPending: false };
 vi.mock("../../hooks/useEmployees/useEmployees", () => ({
   useEmployees: () => ({
     data: employees, isLoading: false, error: null,
-    createEmployee: mutation, resendInvite: mutation, setActive: mutation, setRole: mutation,
+    createEmployee: mutation, resendInvite: mutation, setActive: mutation, setRole: mutation, setLevel: mutation,
   }),
 }));
 vi.mock("../../hooks/permissions/usePermissions", () => ({
@@ -59,6 +59,12 @@ describe("EmployeesAdminPage", () => {
     expect(screen.getByRole("button", { name: "Mitarbeitende anlegen" })).toBeDisabled();
     expect(within(row("Neu, Nora")).getByRole("button", { name: "Einladung senden" })).toBeDisabled();
     expect(within(row("Berater, Fritz")).getByRole("button", { name: "Reaktivieren" })).toBeDisabled();
+  });
+
+  it("flags a missing level", () => {
+    render(<EmployeesAdminPage />);
+    expect(within(row("Neu, Nora")).getByText("fehlt")).toBeInTheDocument();
+    expect(within(row("Admin, Ada")).getByText("VD")).toBeInTheDocument();
   });
 
   it("shows roles only for linked accounts", () => {

@@ -16,6 +16,11 @@ const AREAS = [
     title: "Struktur",
     description: "Führungskräfte zuordnen und Wechsel mit Stichtag planen.",
   },
+  {
+    href: "/admin/regeln",
+    title: "Regeln",
+    description: "Karrierestufen, Sätze und Punkteumrechnung – versioniert mit Stichtag.",
+  },
 ];
 
 export const AdminHomePage = () => {

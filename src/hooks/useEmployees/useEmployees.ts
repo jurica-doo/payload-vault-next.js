@@ -8,7 +8,7 @@ import type { Tables } from "../../types/supabase";
 
 export type Employee = Tables<"employees">;
 export type AppRole = "admin" | "finance" | "compliance";
-export type EmployeeWithRoles = Employee & { roles: AppRole[]; openInvite: boolean };
+export type EmployeeWithRoles = Employee & { roles: AppRole[]; openInvite: boolean; levelCode: string | null };
 
 export type NewEmployee = {
   firstName: string;
@@ -49,7 +49,7 @@ export function useEmployees() {
   const query = useQuery<EmployeeWithRoles[]>({
     queryKey: employeesKey,
     queryFn: async () => {
-      const [employees, roles, invites] = await Promise.all([
+      const [employees, roles, invites, levels] = await Promise.all([
         supabase.from("employees").select("*").order("last_name").order("first_name"),
         supabase.from("user_roles").select("user_id, role").is("revoked_at", null),
         supabase
@@ -57,10 +57,25 @@ export function useEmployees() {
           .select("employee_id, expires_at")
           .is("accepted_at", null)
           .is("revoked_at", null),
+        supabase
+          .from("career_level_history")
+          .select("employee_id, level_code, effective_from, created_at")
+          .order("effective_from", { ascending: false })
+          .order("created_at", { ascending: false }),
       ]);
       if (employees.error) throwDbError(employees.error);
       if (roles.error) throwDbError(roles.error);
       if (invites.error) throwDbError(invites.error);
+      if (levels.error) throwDbError(levels.error);
+
+      // Current level = latest entry effective today or earlier (Berlin date).
+      const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin" }).format(new Date());
+      const levelByEmployee = new Map<string, string>();
+      for (const l of levels.data ?? []) {
+        if (l.effective_from <= today && !levelByEmployee.has(l.employee_id)) {
+          levelByEmployee.set(l.employee_id, l.level_code);
+        }
+      }
 
       const now = Date.now();
       const openInvites = new Set(
@@ -76,6 +91,7 @@ export function useEmployees() {
         ...e,
         roles: e.user_id ? (rolesByUser.get(e.user_id) ?? []) : [],
         openInvite: openInvites.has(e.id),
+        levelCode: levelByEmployee.get(e.id) ?? null,
       }));
     },
     staleTime: 1000 * 30,
@@ -141,5 +157,19 @@ export function useEmployees() {
     onSuccess: invalidate,
   });
 
-  return { ...query, createEmployee, resendInvite, setActive, setRole };
+  const setLevel = useMutation({
+    mutationFn: async (args: { employeeId: string; levelCode: string; effectiveFrom: string; reason: string }) => {
+      const { data, error } = await supabase.rpc("rpc_set_employee_level", {
+        p_employee_id: args.employeeId,
+        p_level_code: args.levelCode,
+        p_effective_from: args.effectiveFrom,
+        p_reason: args.reason,
+      });
+      if (error) throwDbError(error);
+      return data as "initial" | "admin_correction";
+    },
+    onSuccess: invalidate,
+  });
+
+  return { ...query, createEmployee, resendInvite, setActive, setRole, setLevel };
 }
