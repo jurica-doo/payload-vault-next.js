@@ -16,6 +16,7 @@ const MUTABLE = [
   { kind: "lead_sla_breach", label: "Überfällige Erstkontakte im Team" },
   { kind: "customer_assigned", label: "Übernommene Kunden" },
   { kind: "customer_service", label: "Kundenservice-Termine" },
+  { kind: "customer_follow_up", label: "Kunden nachfassen" },
 ];
 
 /**

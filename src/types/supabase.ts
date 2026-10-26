@@ -1005,6 +1005,127 @@ export type Database = {
           },
         ]
       }
+      customer_service_items: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          contract_link_id: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          due_on: string
+          id: string
+          kind: string
+          note: string | null
+          owner_id: string
+          previous_id: string | null
+          recurrence: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          contract_link_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          due_on: string
+          id?: string
+          kind: string
+          note?: string | null
+          owner_id: string
+          previous_id?: string | null
+          recurrence?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          contract_link_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          due_on?: string
+          id?: string
+          kind?: string
+          note?: string | null
+          owner_id?: string
+          previous_id?: string | null
+          recurrence?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_service_items_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_contract_link_id_fkey"
+            columns: ["contract_link_id"]
+            isOneToOne: false
+            referencedRelation: "contract_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_previous_id_fkey"
+            columns: ["previous_id"]
+            isOneToOne: false
+            referencedRelation: "customer_service_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           archived_at: string | null
@@ -3392,6 +3513,20 @@ export type Database = {
         }
         Returns: string
       }
+      rpc_save_service_item: {
+        Args: {
+          p_contract_link_id?: string
+          p_customer_id: string
+          p_due_on: string
+          p_id: string
+          p_kind: string
+          p_note?: string
+          p_owner_id?: string
+          p_recurrence?: string
+          p_title: string
+        }
+        Returns: string
+      }
       rpc_set_appointment_outcome: {
         Args: { p_activity_id: string; p_notes?: string; p_outcome: string }
         Returns: undefined
@@ -3445,6 +3580,10 @@ export type Database = {
       rpc_set_muted_notifications: {
         Args: { p_kinds: string[] }
         Returns: string[]
+      }
+      rpc_set_service_item_status: {
+        Args: { p_id: string; p_note?: string; p_status: string }
+        Returns: string
       }
       rpc_set_statement_status: {
         Args: { p_month: string; p_reason: string; p_status: string }
