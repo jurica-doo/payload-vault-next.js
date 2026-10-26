@@ -112,6 +112,11 @@ const MESSAGES: Record<string, string> = {
   unknown_source_system: "Unbekanntes Quellsystem.",
   synced_read_only: "Synchronisierte Verträge werden im Vertragsportal gepflegt.",
   external_id_taken: "Diese Kundennummer ist bereits einem anderen Kunden zugeordnet.",
+  // email
+  unknown_merge_field: "Unbekannter Platzhalter in der Vorlage.",
+  invalid_template: "Ein Platzhalter ist nicht korrekt geschlossen ({{feld}}).",
+  cannot_approve_own: "Eigene Vorlagen können nicht selbst freigegeben werden (Vier-Augen-Prinzip).",
+  template_version_immutable: "Freigegebene Vorlagen können nicht mehr geändert werden. Bitte eine neue Version anlegen.",
   wrong_request_kind: "Diese Aktion passt nicht zur Art der Anfrage.",
   use_dedicated_action: "Auskunft und Löschung werden durch Export bzw. Pseudonymisierung abgeschlossen.",
   renewal_date_unconfirmed: "Für diesen Vertrag ist keine bestätigte Hauptfälligkeit hinterlegt.",
