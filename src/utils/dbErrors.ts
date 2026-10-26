@@ -103,6 +103,7 @@ const MESSAGES: Record<string, string> = {
   customer_erased: "Die Daten dieses Kunden wurden gelöscht (pseudonymisiert).",
   already_converted: "Dieser Lead wurde bereits in einen Kunden umgewandelt.",
   lead_unassigned: "Der Lead muss zuerst einer Person zugewiesen werden.",
+  consent_evidence_required: "Bitte angeben, wo und wie die Einwilligung erteilt wurde.",
 
   // production
   no_rules_for_date: "Für dieses Datum gibt es keine gültigen Umrechnungsregeln.",
