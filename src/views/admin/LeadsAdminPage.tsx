@@ -10,7 +10,7 @@ import { ReasonConfirmForm } from "../../components/reasonConfirm/ReasonConfirmF
 import { useBanner } from "../../context/banner/BannerContext";
 import { useModal } from "../../context/modal/ModalContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
-import { useLeadAdmin, useLeadConfig, useLeadSourceCosts, type LeadConfig } from "../../hooks/useLeads/useLeads";
+import { useAutoAssign, useLeadAdmin, useLeadConfig, useLeadSourceCosts, type LeadConfig } from "../../hooks/useLeads/useLeads";
 import { REQUIRED_FIELD_LABEL } from "../../domain/leads";
 import { berlinToday, formatDate, formatMoney } from "../../utils/format";
 import { Select } from "../leads/LeadForm";
@@ -29,6 +29,7 @@ export const LeadsAdminPage = () => {
     <div className="flex flex-col gap-4">
       {!permissions.hasMfa && <MfaRequiredNotice />}
       <SlaCard config={config} />
+      <AutoAssignCard />
       <StagesCard config={config} />
       <SourcesCard config={config} />
       <HolidaysCard config={config} />
@@ -239,6 +240,37 @@ const HolidaysCard = ({ config }: { config: LeadConfig }) => {
         <InputField label="Bezeichnung" placeholder="z. B. Fronleichnam" value={name} onChange={setName} />
         <Button text="Hinzufügen" isDisabled={!day || name.trim().length < 2 || !/^DE(-[A-Z]{2})?$/.test(region) || !permissions.hasMfa}
           onClick={() => run(async () => { await setHoliday.mutateAsync({ day, region, name }); setName(""); setDay(""); })} />
+      </div>
+    </section>
+  );
+};
+
+/** Optional auto-assignment (§9.3): pool leads → least-loaded member of the creator's structure. */
+const AutoAssignCard = () => {
+  const { data, save } = useAutoAssign(true);
+  const { openModal, closeModal } = useModal();
+  const [max, setMax] = useState<string | null>(null);
+  if (!data) return null;
+  const maxValue = max ?? String(data.max_open_per_person);
+  const confirm = (enabled: boolean) => openModal({
+    title: enabled ? "Automatische Zuweisung einschalten" : "Automatische Zuweisung speichern",
+    children: (
+      <ReasonConfirmForm message="Gilt für neue und wartende Leads im Pool, die von Führungskräften angelegt wurden." onCancel={closeModal}
+        onConfirm={async (reason) => { await save.mutateAsync({ enabled, maxOpen: Number(maxValue), reason }); setMax(null); closeModal(); }} />
+    ),
+  });
+  return (
+    <section className={card}>
+      <h2 className="text-base font-semibold">Automatische Zuweisung</h2>
+      <p className="text-sm text-color-text-secondary">
+        {data.enabled ? "Eingeschaltet" : "Ausgeschaltet"}: Pool-Leads einer Führungskraft gehen an die Person ihrer Struktur mit den wenigsten offenen Leads
+        (höchstens {data.max_open_per_person} offene Leads pro Person). Admin-Leads im Pool werden weiterhin von Hand verteilt.
+      </p>
+      <div className="flex flex-wrap items-end gap-3">
+        <InputField label="Max. offene Leads pro Person" placeholder="30" value={maxValue} onChange={setMax} />
+        <Button text={data.enabled ? "Ausschalten" : "Einschalten"} variant={data.enabled ? "decline" : "approve"} isDisabled={!(Number(maxValue) >= 1)}
+          onClick={() => confirm(!data.enabled)} />
+        {max !== null && <Button text="Grenze speichern" variant="secondary" isDisabled={!(Number(maxValue) >= 1)} onClick={() => confirm(data.enabled)} />}
       </div>
     </section>
   );
