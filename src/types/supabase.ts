@@ -3751,6 +3751,7 @@ export type Database = {
         Returns: Json
       }
       rpc_issue_invite: { Args: { p_employee_id: string }; Returns: Json }
+      rpc_lead_auto_assign_settings: { Args: never; Returns: Json }
       rpc_lead_config: { Args: never; Returns: Json }
       rpc_lead_funnel: {
         Args: { p_from: string; p_scope?: string; p_to: string }
@@ -4009,6 +4010,10 @@ export type Database = {
         Args: { p_day: string; p_name?: string; p_region: string }
         Returns: undefined
       }
+      rpc_set_lead_auto_assign: {
+        Args: { p_enabled: boolean; p_max_open: number; p_reason: string }
+        Returns: undefined
+      }
       rpc_set_lead_sla: {
         Args: { p_reason: string; p_value: Json }
         Returns: undefined
@@ -4070,6 +4075,7 @@ export type Database = {
         Args: { p_note?: string; p_status: string; p_task_id: string }
         Returns: undefined
       }
+      rpc_source_trends: { Args: { p_months?: number }; Returns: Json }
       rpc_stage_production_import: {
         Args: { p_file_name: string; p_rows: Json; p_source_system: string }
         Returns: string
@@ -4100,6 +4106,7 @@ export type Database = {
         Args: { p_version_id: string }
         Returns: undefined
       }
+      rpc_team_signals: { Args: never; Returns: Json }
       rpc_update_conversion_draft: {
         Args: {
           p_ae_per_point: number

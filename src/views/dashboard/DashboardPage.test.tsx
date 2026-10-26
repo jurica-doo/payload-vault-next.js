@@ -37,6 +37,9 @@ vi.mock("../../hooks/useCoaching/useCoaching", () => ({
 vi.mock("../../hooks/useActivities/useActivities", () => ({
   useActivitySummary: () => ({ data: { contact_attempts: 9, reached: 4, appointments_booked: 5, appointments_held: 3, no_shows: 1, offers: 2, followups: 1, upcoming_appointments: 2 } }),
 }));
+vi.mock("../../hooks/useLeads/useLeads", () => ({
+  useTeamSignals: () => ({ data: [{ code: "overdue_tasks", severity: "warning", name: "Fritz FB", count: 6 }] }),
+}));
 vi.mock("../../components/charts/TrendChart", () => ({ TrendChart: ({ caption }: { caption: string }) => <figure>{caption}</figure> }));
 
 const { DashboardPage } = await import("./DashboardPage");
@@ -76,6 +79,12 @@ describe("DashboardPage", () => {
     render(<DashboardPage />);
     expect(screen.getByText(/2 Produktions-Entwürfe/)).toBeInTheDocument();
     expect(screen.queryByText(/kein Ziel angelegt/)).not.toBeInTheDocument();
+  });
+
+  it("shows trend prompts with their numbers to leaders", () => {
+    state.perms = { ...state.perms, isLeader: true };
+    render(<DashboardPage />);
+    expect(screen.getByText(/Fritz FB: 6 Aufgaben/)).toBeInTheDocument();
   });
 
   it("adds the team section for leaders only", () => {

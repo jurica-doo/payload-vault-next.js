@@ -9,7 +9,7 @@ import { KpiTile } from "../../components/kpiTile/KpiTile";
 import { PeriodSelector, periodToRange, type Period } from "../../components/periodSelector/PeriodSelector";
 import { MoneyValue, PointsValue } from "../../components/values/Values";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
-import { useLeadFunnel, type LeadFunnel } from "../../hooks/useLeads/useLeads";
+import { useLeadFunnel, useSourceTrends, type LeadFunnel } from "../../hooks/useLeads/useLeads";
 import { FUNNEL_STEPS, funnelRates, rateValue } from "../../domain/funnel";
 import { LOSS_REASON_LABEL } from "../../domain/leads";
 import { berlinToday, formatDate, formatPercent } from "../../utils/format";
@@ -60,6 +60,7 @@ export const LeadAnalyticsPage = () => {
         : isLoading || !data ? <p className="text-sm">Lädt…</p>
         : data.totals.leads === 0 ? <EmptyState message="Im gewählten Zeitraum sind keine Leads eingegangen." />
         : <Report d={data} scope={scope} />}
+      {permissions.isAdmin && <SourceTrends />}
     </div>
   );
 };
@@ -163,5 +164,29 @@ const Report = ({ d, scope }: { d: LeadFunnel; scope: Scope }) => {
         </section>
       </div>
     </>
+  );
+};
+
+/** Source performance per receipt month (§9.4 "performance of each campaign/source over time"). Admins. */
+const SourceTrends = () => {
+  const { data = [] } = useSourceTrends(true, 12);
+  if (data.length === 0) return null;
+  return (
+    <section className={card}>
+      <h2 className="text-base font-semibold">Quellen im Zeitverlauf (12 Monate, nach Eingangsmonat)</h2>
+      <DataTable
+        rows={data}
+        getRowId={(r) => `${r.source_id}-${r.month}`}
+        columns={[
+          { id: "month", header: "Monat", cell: (r) => formatDate(r.month).slice(3), sortValue: (r) => r.month },
+          { id: "name", header: "Quelle", cell: (r) => r.name, sortValue: (r) => r.name },
+          { id: "leads", header: "Leads", align: "right", cell: (r) => r.leads, sortValue: (r) => r.leads },
+          { id: "won", header: "Gewonnen", align: "right", cell: (r) => `${r.won} (${formatPercent(rateValue({ numerator: r.won, denominator: r.leads }))})`, sortValue: (r) => r.won },
+          { id: "points", header: "Punkte", align: "right", hideOnMobile: true, cell: (r) => <PointsValue value={String(r.points)} /> },
+          { id: "cost", header: "Kosten", align: "right", hideOnMobile: true, cell: (r) => (r.cost === null ? "–" : <MoneyValue value={String(r.cost)} />) },
+          { id: "cps", header: "Kosten/Abschluss", align: "right", cell: (r) => (r.cost_per_sale === null ? "–" : <MoneyValue value={String(r.cost_per_sale)} />) },
+        ]}
+      />
+    </section>
   );
 };

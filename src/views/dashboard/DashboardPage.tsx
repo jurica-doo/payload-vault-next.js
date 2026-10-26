@@ -23,6 +23,8 @@ import { useCoaching } from "../../hooks/useCoaching/useCoaching";
 import { historicalAverage, projectCareer, projectMonthEnd } from "../../domain/forecast";
 import { useActivitySummary } from "../../hooks/useActivities/useActivities";
 import { monthWindow } from "../activities/ActivitiesPage";
+import { useTeamSignals } from "../../hooks/useLeads/useLeads";
+import { signalText } from "../../domain/signals";
 
 const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
 const monthShort = (iso: string) => MONTHS[Number(iso.slice(5, 7)) - 1];
@@ -154,8 +156,23 @@ const MySection = ({ d }: { d: MyDashboard }) => {
   );
 };
 
+/** Trend prompts (§8.3): questions with their numbers, never verdicts. */
+const TeamSignals = () => {
+  const { data = [] } = useTeamSignals(true);
+  if (data.length === 0) return null;
+  return (
+    <div className="rounded-radius-lg border border-color-secondary/40 bg-color-bg-card p-3">
+      <h3 className="text-sm font-semibold">Hinweise (letzte 30 Tage gegenüber den 30 davor)</h3>
+      <ul className="mt-1 flex flex-col gap-1 text-sm">
+        {data.map((s, i) => <li key={`${s.code}-${s.employee_id ?? i}`}>• {signalText(s)}</li>)}
+      </ul>
+    </div>
+  );
+};
+
 const TeamSection = ({ d }: { d: TeamDashboard }) => (
   <section className="flex flex-col gap-3">
+    <TeamSignals />
     <div className="flex flex-wrap items-baseline justify-between gap-2">
       <h2 className="text-lg font-semibold">Meine Struktur</h2>
       <span className="text-sm text-color-text-subtle">

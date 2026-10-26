@@ -181,3 +181,38 @@ export function useLeadFunnel(from: string | null, to: string | null, scope: "me
     queryFn: async () => (await call("rpc_lead_funnel", { p_from: from, p_to: to, p_scope: scope })) as unknown as LeadFunnel,
   });
 }
+
+export type SourceTrendRow = {
+  source_id: string; name: string; month: string; leads: number; contacted: number; won: number;
+  points: number; commission: number; cost: number | null; cost_per_lead: number | null; cost_per_sale: number | null;
+};
+
+/** Per source and receipt month (admins). */
+export function useSourceTrends(enabled: boolean, months = 12) {
+  return useQuery({
+    queryKey: ["source-trends", months], enabled,
+    queryFn: async () => (await call("rpc_source_trends", { p_months: months })) as unknown as SourceTrendRow[],
+  });
+}
+
+export function useTeamSignals(enabled: boolean) {
+  return useQuery({
+    queryKey: ["team-signals"], enabled,
+    queryFn: async () => (await call("rpc_team_signals", {})) as unknown as import("../../domain/signals").Signal[],
+    staleTime: 10 * 60_000,
+  });
+}
+
+export function useAutoAssign(enabled: boolean) {
+  const queryClient = useQueryClient();
+  const query = useQuery({
+    queryKey: ["lead-auto-assign"], enabled,
+    queryFn: async () => (await call("rpc_lead_auto_assign_settings", {})) as unknown as { enabled: boolean; max_open_per_person: number } | null,
+  });
+  const save = useMutation({
+    mutationFn: (a: { enabled: boolean; maxOpen: number; reason: string }) =>
+      call("rpc_set_lead_auto_assign", { p_enabled: a.enabled, p_max_open: a.maxOpen, p_reason: a.reason }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["lead-auto-assign"] }),
+  });
+  return { ...query, save };
+}
