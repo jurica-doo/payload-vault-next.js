@@ -6,11 +6,11 @@ import { SALES_MODULES, type FeatureFlagKey } from "../../data/salesModules";
  * visible when an admin switches the module's flag on early (e.g. staging).
  */
 export const ModulePlaceholder = ({ moduleKey }: { moduleKey: FeatureFlagKey }) => {
-  const module = SALES_MODULES.find((m) => m.key === moduleKey);
+  const entry = SALES_MODULES.find((m) => m.key === moduleKey);
   return (
     <EmptyState
-      message={`${module?.label ?? "Modul"} – in Vorbereitung`}
-      hint={module ? `${module.description} Umsetzung in Phase ${module.phase}.` : undefined}
+      message={`${entry?.label ?? "Modul"} – in Vorbereitung`}
+      hint={entry ? `${entry.description} Umsetzung in Phase ${entry.phase}.` : undefined}
     />
   );
 };

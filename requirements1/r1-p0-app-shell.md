@@ -63,6 +63,7 @@ Manual:
 - **`rpc_my_context` shape is a contract.** When `identity-roles` replaces it, keep all keys (`user_id`, `aal`, `employee{id, first_name, last_name, status, level_code}`, `roles[]`, `descendant_count`, `feature_flags`). `permissions.test.ts` documents what the frontend relies on.
 - **Cache invalidation.** After an admin changes flags or roles, users see the change within 5 minutes or on reload. Mutations that change the current user's roles must invalidate `myContextQueryKey(userId)`.
 - **Next route types.** When new route folders are added while an older `.next/types` exists, `tsc` can report `Type '"/vertrieb"' is not assignable to type '"/"'`. Run `npx next typegen`. CI isn't affected (clean checkout).
+- **Lint before pushing, and read the summary line.** The first push of this branch failed CI on `@next/next/no-assign-module-variable` (a local variable named `module` in `ModulePlaceholder`). Fixed in a follow-up commit; `npm run lint` must end with `0 errors`.
 - `HeaderHome` is still the vault header (logo, theme toggle, profile menu). Sales-specific header content (e.g. a notification bell) comes with `r1/p4/task-engine`.
 
 ## Edge cases covered by tests
