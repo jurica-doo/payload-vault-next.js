@@ -1270,6 +1270,175 @@ export type Database = {
         }
         Relationships: []
       }
+      email_campaigns: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          name: string
+          send_on: string | null
+          status: string
+          template_id: string
+          template_version_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: string
+          name: string
+          send_on?: string | null
+          status?: string
+          template_id: string
+          template_version_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          send_on?: string | null
+          status?: string
+          template_id?: string
+          template_version_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_campaigns_template_version_id_fkey"
+            columns: ["template_version_id"]
+            isOneToOne: false
+            referencedRelation: "email_template_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_send_log: {
+        Row: {
+          attempts: number
+          campaign_id: string | null
+          claimed_at: string | null
+          created_at: string
+          customer_id: string | null
+          id: string
+          last_error: string | null
+          legal_basis: string | null
+          mode: string
+          occasion_date: string
+          provider_message_id: string | null
+          recipient: string | null
+          requested_by: string | null
+          sent_at: string | null
+          status: string
+          suppression_reason: string | null
+          template_version_id: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          campaign_id?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          last_error?: string | null
+          legal_basis?: string | null
+          mode?: string
+          occasion_date: string
+          provider_message_id?: string | null
+          recipient?: string | null
+          requested_by?: string | null
+          sent_at?: string | null
+          status: string
+          suppression_reason?: string | null
+          template_version_id: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          campaign_id?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          last_error?: string | null
+          legal_basis?: string | null
+          mode?: string
+          occasion_date?: string
+          provider_message_id?: string | null
+          recipient?: string | null
+          requested_by?: string | null
+          sent_at?: string | null
+          status?: string
+          suppression_reason?: string | null
+          template_version_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_send_log_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_send_log_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_send_log_template_version_id_fkey"
+            columns: ["template_version_id"]
+            isOneToOne: false
+            referencedRelation: "email_template_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_suppressions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string
+          note: string | null
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email: string
+          note?: string | null
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          note?: string | null
+          reason?: string
+        }
+        Relationships: []
+      }
       email_template_versions: {
         Row: {
           body: string
@@ -3449,6 +3618,7 @@ export type Database = {
         Returns: undefined
       }
       rpc_career_progress: { Args: { p_employee_id?: string }; Returns: Json }
+      rpc_claim_email_sends: { Args: { p_limit?: number }; Returns: Json }
       rpc_close_privacy_request: {
         Args: { p_id: string; p_outcome: string; p_status: string }
         Returns: undefined
@@ -3538,6 +3708,7 @@ export type Database = {
         Args: { p_id: string; p_reason: string }
         Returns: undefined
       }
+      rpc_email_status: { Args: never; Returns: Json }
       rpc_erase_subject: { Args: { p_request_id: string }; Returns: undefined }
       rpc_export_subject_data: { Args: { p_request_id: string }; Returns: Json }
       rpc_find_customer_duplicates: {
@@ -3679,6 +3850,19 @@ export type Database = {
         }
         Returns: number
       }
+      rpc_record_email_event: {
+        Args: { p_event: string; p_provider_message_id: string }
+        Returns: undefined
+      }
+      rpc_report_email_result: {
+        Args: {
+          p_error?: string
+          p_id: string
+          p_ok: boolean
+          p_provider_message_id?: string
+        }
+        Returns: undefined
+      }
       rpc_retention_candidates: { Args: never; Returns: Json }
       rpc_retry_commission: {
         Args: { p_calculation_id: string }
@@ -3706,6 +3890,16 @@ export type Database = {
       }
       rpc_rules_at: { Args: { p_date?: string }; Returns: Json }
       rpc_run_task_generators: { Args: never; Returns: Json }
+      rpc_save_campaign: {
+        Args: {
+          p_id: string
+          p_kind: string
+          p_name: string
+          p_send_on: string
+          p_template_id: string
+        }
+        Returns: string
+      }
       rpc_save_contract_link: {
         Args: {
           p_customer_id: string
@@ -3771,12 +3965,31 @@ export type Database = {
         Args: { p_body: string; p_subject: string; p_template_id: string }
         Returns: string
       }
+      rpc_send_test_email: { Args: { p_version_id: string }; Returns: string }
       rpc_set_appointment_outcome: {
         Args: { p_activity_id: string; p_notes?: string; p_outcome: string }
         Returns: undefined
       }
+      rpc_set_campaign_status: {
+        Args: { p_action: string; p_id: string; p_reason?: string }
+        Returns: undefined
+      }
       rpc_set_coaching_action_status: {
         Args: { p_action_id: string; p_status: string }
+        Returns: undefined
+      }
+      rpc_set_email_enabled: {
+        Args: { p_enabled: boolean; p_reason: string }
+        Returns: undefined
+      }
+      rpc_set_email_window: {
+        Args: {
+          p_daily_limit: number
+          p_days: number[]
+          p_end: string
+          p_reason: string
+          p_start: string
+        }
         Returns: undefined
       }
       rpc_set_employee_active: {
@@ -3843,6 +4056,15 @@ export type Database = {
           p_reason: string
         }
         Returns: string
+      }
+      rpc_set_suppression: {
+        Args: {
+          p_email: string
+          p_note?: string
+          p_reason?: string
+          p_suppressed: boolean
+        }
+        Returns: undefined
       }
       rpc_set_task_status: {
         Args: { p_note?: string; p_status: string; p_task_id: string }
