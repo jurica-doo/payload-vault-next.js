@@ -160,3 +160,24 @@ export function useLeadSourceCosts(enabled: boolean) {
     },
   });
 }
+
+export type LeadFunnel = {
+  window: { from: string; to: string };
+  scope: "me" | "team" | "all";
+  totals: import("../../domain/funnel").FunnelTotals;
+  first_contact: { contacted: number; avg_hours: number | null; median_hours: number | null; within_sla: number; overdue_open: number };
+  by_source: { source_id: string; name: string; leads: number; contacted: number; booked: number; won: number; points: number; commission: number | null; cost: number | null; cost_per_lead: number | null; cost_per_sale: number | null }[];
+  by_owner: { owner_id: string | null; name: string | null; leads: number; contacted: number; booked: number; won: number; avg_first_contact_hours: number | null }[];
+  by_stage: { stage: string; name: string; leads: number; avg_age_days: number }[];
+  loss_reasons: { reason: string; leads: number }[];
+  by_month: { month: string; leads: number; won: number }[];
+};
+
+/** Lead cohort analytics for [from, to) (§9.4). */
+export function useLeadFunnel(from: string | null, to: string | null, scope: "me" | "team" | "all") {
+  return useQuery({
+    queryKey: ["lead-funnel", from, to, scope],
+    enabled: Boolean(from && to),
+    queryFn: async () => (await call("rpc_lead_funnel", { p_from: from, p_to: to, p_scope: scope })) as unknown as LeadFunnel,
+  });
+}

@@ -41,7 +41,7 @@ Spec: §8.2 (consistent funnel definitions), §9.1 (activities on leads), §13 (
 ## Tests
 - pgTAP `supabase/tests/160_activities.test.sql` (16): constraints (appointment needs a time, outcome must fit the type, link pair), future dates, outcome rules, summary counts, manager visibility, manager logging for a report, peers see nothing and get no summary.
 - Vitest: `ActivityPanel.test.tsx` (appointment state, month window, Berlin date across New Year and summer midnight) and a new dashboard test (activity tiles vs goal).
-- Totals: 523 pgTAP assertions (17 files), 316 unit tests, 40 golden IDs, lint 0 errors, build OK.
+- Totals: 505 pgTAP assertions (17 files), 316 unit tests, 40 golden IDs, lint 0 errors, build OK.
 
 ## What to look at when testing
 1. Log a contact attempt with "nicht erreicht", then one with "erreicht": the reach rate tile shows 50 %, with "erreicht ÷ Versuche" written next to it.

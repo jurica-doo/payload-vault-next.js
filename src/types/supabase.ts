@@ -2688,6 +2688,10 @@ export type Database = {
       }
       rpc_issue_invite: { Args: { p_employee_id: string }; Returns: Json }
       rpc_lead_config: { Args: never; Returns: Json }
+      rpc_lead_funnel: {
+        Args: { p_from: string; p_scope?: string; p_to: string }
+        Returns: Json
+      }
       rpc_log_activity: {
         Args: {
           p_linked_id?: string

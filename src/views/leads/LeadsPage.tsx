@@ -84,7 +84,7 @@ export const LeadsPage = () => {
           ))}
         </div>
         <span className="flex items-center gap-3">
-          {(permissions.isLeader || permissions.isAdmin) && <Link href="/vertrieb/leads/analyse" className="text-sm font-semibold">Auswertung</Link>}
+          <Link href="/vertrieb/leads/analyse" className="text-sm font-semibold">Auswertung</Link>
           <Button text="Lead anlegen" onClick={() => openModal({
             title: "Lead anlegen", size: "large",
             children: <LeadForm onDone={(id) => { closeModal(); router.push(`/vertrieb/leads/${id}`); }} />,
