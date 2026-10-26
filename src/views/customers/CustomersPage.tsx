@@ -59,6 +59,7 @@ export const CustomersPage = () => {
           ))}
         </div>
         <span className="flex items-center gap-3">
+        {(permissions.isCompliance || permissions.isAdmin) && <Link href="/vertrieb/kunden/kommunikation" className="text-sm font-semibold">Kommunikation</Link>}
         {(permissions.isCompliance || permissions.isAdmin) && <Link href="/vertrieb/kunden/datenschutz" className="text-sm font-semibold">Datenschutz</Link>}
         {me && (
           <Button text="Kunde anlegen" onClick={() => openModal({

@@ -1270,6 +1270,106 @@ export type Database = {
         }
         Relationships: []
       }
+      email_template_versions: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          id: string
+          status: string
+          subject: string
+          submitted_at: string | null
+          template_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          status?: string
+          subject: string
+          submitted_at?: string | null
+          template_id: string
+          updated_at?: string
+          version: number
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          id?: string
+          status?: string
+          subject?: string
+          submitted_at?: string | null
+          template_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          active_version_id: string | null
+          allowed_bases: string[]
+          archived_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          purpose: string
+          updated_at: string
+        }
+        Insert: {
+          active_version_id?: string | null
+          allowed_bases?: string[]
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          purpose: string
+          updated_at?: string
+        }
+        Update: {
+          active_version_id?: string | null
+          allowed_bases?: string[]
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          purpose?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_active_version_fk"
+            columns: ["active_version_id"]
+            isOneToOne: false
+            referencedRelation: "email_template_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_invites: {
         Row: {
           accepted_at: string | null
@@ -3422,6 +3522,10 @@ export type Database = {
       rpc_dashboard_admin: { Args: never; Returns: Json }
       rpc_dashboard_me: { Args: { p_month?: string }; Returns: Json }
       rpc_dashboard_team: { Args: { p_month?: string }; Returns: Json }
+      rpc_decide_template_version: {
+        Args: { p_approve: boolean; p_note?: string; p_version_id: string }
+        Returns: undefined
+      }
       rpc_delete_production_draft: {
         Args: { p_id: string }
         Returns: undefined
@@ -3550,6 +3654,10 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_preview_template: {
+        Args: { p_customer_id?: string; p_version_id: string }
+        Returns: Json
+      }
       rpc_promotion_queue: { Args: never; Returns: Json[] }
       rpc_publish_rule_version: {
         Args: { p_reason: string; p_version_id: string }
@@ -3607,6 +3715,15 @@ export type Database = {
         }
         Returns: string
       }
+      rpc_save_email_template: {
+        Args: {
+          p_allowed_bases: string[]
+          p_id: string
+          p_name: string
+          p_purpose: string
+        }
+        Returns: string
+      }
       rpc_save_goal_draft: {
         Args: { p_month: string; p_targets: Json }
         Returns: string
@@ -3648,6 +3765,10 @@ export type Database = {
           p_recurrence?: string
           p_title: string
         }
+        Returns: string
+      }
+      rpc_save_template_draft: {
+        Args: { p_body: string; p_subject: string; p_template_id: string }
         Returns: string
       }
       rpc_set_appointment_outcome: {
@@ -3753,6 +3874,10 @@ export type Database = {
         Returns: number
       }
       rpc_submit_production: { Args: { p_id: string }; Returns: undefined }
+      rpc_submit_template_version: {
+        Args: { p_version_id: string }
+        Returns: undefined
+      }
       rpc_update_conversion_draft: {
         Args: {
           p_ae_per_point: number
