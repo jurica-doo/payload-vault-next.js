@@ -156,3 +156,8 @@ export function berlinLocalToUtcIso(date: string, time = "00:00"): string {
   const first = guess - offsetAt(guess);
   return new Date(guess - offsetAt(first)).toISOString();
 }
+
+/** Today's business date in Europe/Berlin as "YYYY-MM-DD". */
+export function berlinToday(now = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}
