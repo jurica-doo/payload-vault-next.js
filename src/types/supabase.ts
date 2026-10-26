@@ -680,6 +680,142 @@ export type Database = {
           },
         ]
       }
+      contract_links: {
+        Row: {
+          archived_at: string | null
+          category_code: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          date_source: string | null
+          dates_confirmed_by: string | null
+          deep_link: string | null
+          end_date: string | null
+          external_contract_id: string
+          id: string
+          insurer: string | null
+          last_synced_at: string | null
+          product_name: string | null
+          production_id: string | null
+          renewal_date: string | null
+          source_system: string
+          start_date: string | null
+          status: string
+          sync_run_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          category_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          date_source?: string | null
+          dates_confirmed_by?: string | null
+          deep_link?: string | null
+          end_date?: string | null
+          external_contract_id: string
+          id?: string
+          insurer?: string | null
+          last_synced_at?: string | null
+          product_name?: string | null
+          production_id?: string | null
+          renewal_date?: string | null
+          source_system: string
+          start_date?: string | null
+          status?: string
+          sync_run_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          category_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          date_source?: string | null
+          dates_confirmed_by?: string | null
+          deep_link?: string | null
+          end_date?: string | null
+          external_contract_id?: string
+          id?: string
+          insurer?: string | null
+          last_synced_at?: string | null
+          product_name?: string | null
+          production_id?: string | null
+          renewal_date?: string | null
+          source_system?: string
+          start_date?: string | null
+          status?: string
+          sync_run_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_links_category_code_fkey"
+            columns: ["category_code"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "contract_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "contract_links_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_links_dates_confirmed_by_fkey"
+            columns: ["dates_confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_links_dates_confirmed_by_fkey"
+            columns: ["dates_confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "contract_links_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_links_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "v_production"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_links_sync_run_id_fkey"
+            columns: ["sync_run_id"]
+            isOneToOne: false
+            referencedRelation: "sync_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversion_rules: {
         Row: {
           category_code: string
@@ -725,6 +861,394 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "rule_versions"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          customer_id: string
+          from_owner: string | null
+          id: number
+          reason: string | null
+          to_owner: string | null
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          customer_id: string
+          from_owner?: string | null
+          id?: never
+          reason?: string | null
+          to_owner?: string | null
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          customer_id?: string
+          from_owner?: string | null
+          id?: never
+          reason?: string | null
+          to_owner?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "customer_assignments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_assignments_from_owner_fkey"
+            columns: ["from_owner"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_assignments_from_owner_fkey"
+            columns: ["from_owner"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "customer_assignments_to_owner_fkey"
+            columns: ["to_owner"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_assignments_to_owner_fkey"
+            columns: ["to_owner"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      customer_consents: {
+        Row: {
+          action: string
+          customer_id: string
+          effective_at: string
+          evidence: string | null
+          id: number
+          legal_basis: string | null
+          purpose: string
+          recorded_at: string
+          recorded_by: string | null
+          source: string
+        }
+        Insert: {
+          action: string
+          customer_id: string
+          effective_at?: string
+          evidence?: string | null
+          id?: never
+          legal_basis?: string | null
+          purpose: string
+          recorded_at?: string
+          recorded_by?: string | null
+          source: string
+        }
+        Update: {
+          action?: string
+          customer_id?: string
+          effective_at?: string
+          evidence?: string | null
+          id?: never
+          legal_basis?: string | null
+          purpose?: string
+          recorded_at?: string
+          recorded_by?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_consents_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_consents_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_consents_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      customer_service_items: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          contract_link_id: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          due_on: string
+          id: string
+          kind: string
+          note: string | null
+          owner_id: string
+          previous_id: string | null
+          recurrence: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          contract_link_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          due_on: string
+          id?: string
+          kind: string
+          note?: string | null
+          owner_id: string
+          previous_id?: string | null
+          recurrence?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          contract_link_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          due_on?: string
+          id?: string
+          kind?: string
+          note?: string | null
+          owner_id?: string
+          previous_id?: string | null
+          recurrence?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_service_items_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_contract_link_id_fkey"
+            columns: ["contract_link_id"]
+            isOneToOne: false
+            referencedRelation: "contract_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "customer_service_items_previous_id_fkey"
+            columns: ["previous_id"]
+            isOneToOne: false
+            referencedRelation: "customer_service_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          archived_at: string | null
+          city: string | null
+          company: string | null
+          created_at: string
+          created_by: string | null
+          customer_no: number
+          date_of_birth: string | null
+          email: string | null
+          erased_at: string | null
+          external_id: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          last_synced_at: string | null
+          lead_id: string | null
+          next_follow_up_at: string | null
+          notes: string | null
+          owner_id: string
+          phone: string | null
+          postal_code: string | null
+          preferred_channel: string
+          preferred_name: string | null
+          search_name: string | null
+          source_system: string | null
+          status: string
+          street: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          city?: string | null
+          company?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_no?: never
+          date_of_birth?: string | null
+          email?: string | null
+          erased_at?: string | null
+          external_id?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          last_synced_at?: string | null
+          lead_id?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          owner_id: string
+          phone?: string | null
+          postal_code?: string | null
+          preferred_channel?: string
+          preferred_name?: string | null
+          search_name?: string | null
+          source_system?: string | null
+          status?: string
+          street?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          city?: string | null
+          company?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_no?: never
+          date_of_birth?: string | null
+          email?: string | null
+          erased_at?: string | null
+          external_id?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          last_synced_at?: string | null
+          lead_id?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          owner_id?: string
+          phone?: string | null
+          postal_code?: string | null
+          preferred_channel?: string
+          preferred_name?: string | null
+          search_name?: string | null
+          source_system?: string | null
+          status?: string
+          street?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "customers_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: true
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
           },
         ]
       }
@@ -928,6 +1452,47 @@ export type Database = {
           vendor_name?: string | null
         }
         Relationships: []
+      }
+      export_log: {
+        Row: {
+          actor_id: string | null
+          at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: number
+          kind: string
+          request_id: string | null
+          row_count: number | null
+        }
+        Insert: {
+          actor_id?: string | null
+          at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: never
+          kind: string
+          request_id?: string | null
+          row_count?: number | null
+        }
+        Update: {
+          actor_id?: string | null
+          at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: never
+          kind?: string
+          request_id?: string | null
+          row_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "export_log_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "privacy_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       goal_reviews: {
         Row: {
@@ -1425,6 +1990,7 @@ export type Database = {
           created_by: string | null
           customer_id: string | null
           email: string | null
+          erased_at: string | null
           first_contact_at: string | null
           first_name: string | null
           id: string
@@ -1463,6 +2029,7 @@ export type Database = {
           created_by?: string | null
           customer_id?: string | null
           email?: string | null
+          erased_at?: string | null
           first_contact_at?: string | null
           first_name?: string | null
           id?: string
@@ -1501,6 +2068,7 @@ export type Database = {
           created_by?: string | null
           customer_id?: string | null
           email?: string | null
+          erased_at?: string | null
           first_contact_at?: string | null
           first_name?: string | null
           id?: string
@@ -1555,6 +2123,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_current_hierarchy"
             referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "leads_customer_fk"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "leads_merged_into_fkey"
@@ -1903,6 +2478,63 @@ export type Database = {
           },
         ]
       }
+      privacy_requests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          due_at: string
+          handled_by: string | null
+          id: string
+          kind: string
+          note: string | null
+          outcome_note: string | null
+          received_at: string
+          received_via: string
+          request_no: number
+          status: string
+          subject_id: string
+          subject_type: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_at: string
+          handled_by?: string | null
+          id?: string
+          kind: string
+          note?: string | null
+          outcome_note?: string | null
+          received_at?: string
+          received_via: string
+          request_no?: never
+          status?: string
+          subject_id: string
+          subject_type: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_at?: string
+          handled_by?: string | null
+          id?: string
+          kind?: string
+          note?: string | null
+          outcome_note?: string | null
+          received_at?: string
+          received_via?: string
+          request_no?: never
+          status?: string
+          subject_id?: string
+          subject_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_categories: {
         Row: {
           active: boolean
@@ -2172,6 +2804,77 @@ export type Database = {
           },
         ]
       }
+      sync_errors: {
+        Row: {
+          created_at: string
+          error_code: string
+          external_contract_id: string | null
+          external_customer_id: string | null
+          id: number
+          row_no: number
+          run_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_code: string
+          external_contract_id?: string | null
+          external_customer_id?: string | null
+          id?: never
+          row_no: number
+          run_id: string
+        }
+        Update: {
+          created_at?: string
+          error_code?: string
+          external_contract_id?: string | null
+          external_customer_id?: string | null
+          id?: never
+          row_no?: number
+          run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_errors_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "sync_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_runs: {
+        Row: {
+          finished_at: string | null
+          id: string
+          rows_failed: number
+          rows_ok: number
+          rows_total: number
+          source_system: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          finished_at?: string | null
+          id?: string
+          rows_failed?: number
+          rows_ok?: number
+          rows_total?: number
+          source_system: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          finished_at?: string | null
+          id?: string
+          rows_failed?: number
+          rows_ok?: number
+          rows_total?: number
+          source_system?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           completed_at: string | null
@@ -2434,6 +3137,42 @@ export type Database = {
           },
         ]
       }
+      v_customer_consent_state: {
+        Row: {
+          action: string | null
+          customer_id: string | null
+          effective_at: string | null
+          event_id: number | null
+          evidence: string | null
+          legal_basis: string | null
+          purpose: string | null
+          recorded_by: string | null
+          source: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_consents_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_consents_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_consents_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       v_goals: {
         Row: {
           created_at: string | null
@@ -2562,6 +3301,18 @@ export type Database = {
         Args: { p_employee_id: string; p_reason: string }
         Returns: string
       }
+      rpc_archive_contract_link: {
+        Args: { p_id: string; p_reason: string }
+        Returns: undefined
+      }
+      rpc_archive_customer: {
+        Args: { p_archived: boolean; p_customer_id: string; p_reason: string }
+        Returns: undefined
+      }
+      rpc_assign_customer: {
+        Args: { p_customer_id: string; p_owner_id: string; p_reason: string }
+        Returns: undefined
+      }
       rpc_assign_lead: {
         Args: { p_lead_id: string; p_owner_id: string; p_reason?: string }
         Returns: Json
@@ -2598,9 +3349,18 @@ export type Database = {
         Returns: undefined
       }
       rpc_career_progress: { Args: { p_employee_id?: string }; Returns: Json }
+      rpc_close_privacy_request: {
+        Args: { p_id: string; p_outcome: string; p_status: string }
+        Returns: undefined
+      }
       rpc_commit_production_import: {
         Args: { p_batch_id: string }
         Returns: number
+      }
+      rpc_consent_report: { Args: never; Returns: Json }
+      rpc_convert_lead: {
+        Args: { p_confirm_duplicates?: boolean; p_lead_id: string }
+        Returns: string
       }
       rpc_correct_production: {
         Args: {
@@ -2613,6 +3373,14 @@ export type Database = {
           p_term_years: number
         }
         Returns: undefined
+      }
+      rpc_create_customer: {
+        Args: {
+          p_confirm_duplicates?: boolean
+          p_data: Json
+          p_owner_id?: string
+        }
+        Returns: string
       }
       rpc_create_employee: {
         Args: {
@@ -2666,6 +3434,19 @@ export type Database = {
         Args: { p_id: string; p_reason: string }
         Returns: undefined
       }
+      rpc_erase_subject: { Args: { p_request_id: string }; Returns: undefined }
+      rpc_export_subject_data: { Args: { p_request_id: string }; Returns: Json }
+      rpc_find_customer_duplicates: {
+        Args: {
+          p_company: string
+          p_email: string
+          p_exclude?: string
+          p_first_name: string
+          p_last_name: string
+          p_phone: string
+        }
+        Returns: Json
+      }
       rpc_find_lead_duplicates: {
         Args: {
           p_company: string
@@ -2677,6 +3458,10 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_find_privacy_subject: {
+        Args: { p_number: number; p_subject_type: string }
+        Returns: Json
+      }
       rpc_generate_all_periods: { Args: never; Returns: number }
       rpc_grant_role: {
         Args: {
@@ -2686,11 +3471,23 @@ export type Database = {
         }
         Returns: undefined
       }
+      rpc_ingest_contracts: {
+        Args: { p_rows: Json; p_source_system: string }
+        Returns: Json
+      }
       rpc_issue_invite: { Args: { p_employee_id: string }; Returns: Json }
       rpc_lead_config: { Args: never; Returns: Json }
       rpc_lead_funnel: {
         Args: { p_from: string; p_scope?: string; p_to: string }
         Returns: Json
+      }
+      rpc_link_customer_external: {
+        Args: {
+          p_customer_id: string
+          p_external_id: string
+          p_source_system: string
+        }
+        Returns: undefined
       }
       rpc_log_activity: {
         Args: {
@@ -2717,11 +3514,26 @@ export type Database = {
         Args: { p_id: string }
         Returns: undefined
       }
+      rpc_may_contact: {
+        Args: { p_customer_id: string; p_purpose: string }
+        Returns: Json
+      }
       rpc_merge_leads: {
         Args: { p_keep_id: string; p_merge_id: string; p_reason: string }
         Returns: undefined
       }
       rpc_my_context: { Args: never; Returns: Json }
+      rpc_open_privacy_request: {
+        Args: {
+          p_kind: string
+          p_note?: string
+          p_received_at?: string
+          p_received_via: string
+          p_subject_id: string
+          p_subject_type: string
+        }
+        Returns: string
+      }
       rpc_performance_profile: {
         Args: { p_employee_id: string }
         Returns: Json
@@ -2747,6 +3559,19 @@ export type Database = {
         Args: { p_new_owner: string; p_reason: string; p_task_id: string }
         Returns: undefined
       }
+      rpc_record_consent: {
+        Args: {
+          p_action: string
+          p_customer_id: string
+          p_effective_at?: string
+          p_evidence?: string
+          p_legal_basis: string
+          p_purpose: string
+          p_source: string
+        }
+        Returns: number
+      }
+      rpc_retention_candidates: { Args: never; Returns: Json }
       rpc_retry_commission: {
         Args: { p_calculation_id: string }
         Returns: number
@@ -2773,6 +3598,15 @@ export type Database = {
       }
       rpc_rules_at: { Args: { p_date?: string }; Returns: Json }
       rpc_run_task_generators: { Args: never; Returns: Json }
+      rpc_save_contract_link: {
+        Args: {
+          p_customer_id: string
+          p_data: Json
+          p_dates_confirmed?: boolean
+          p_id: string
+        }
+        Returns: string
+      }
       rpc_save_goal_draft: {
         Args: { p_month: string; p_targets: Json }
         Returns: string
@@ -2799,6 +3633,20 @@ export type Database = {
           p_product_reference?: string
           p_production_date: string
           p_term_years: number
+        }
+        Returns: string
+      }
+      rpc_save_service_item: {
+        Args: {
+          p_contract_link_id?: string
+          p_customer_id: string
+          p_due_on: string
+          p_id: string
+          p_kind: string
+          p_note?: string
+          p_owner_id?: string
+          p_recurrence?: string
+          p_title: string
         }
         Returns: string
       }
@@ -2856,6 +3704,10 @@ export type Database = {
         Args: { p_kinds: string[] }
         Returns: string[]
       }
+      rpc_set_service_item_status: {
+        Args: { p_id: string; p_note?: string; p_status: string }
+        Returns: string
+      }
       rpc_set_statement_status: {
         Args: { p_month: string; p_reason: string; p_status: string }
         Returns: undefined
@@ -2909,6 +3761,10 @@ export type Database = {
           p_max_term_years: number
           p_version_id: string
         }
+        Returns: undefined
+      }
+      rpc_update_customer: {
+        Args: { p_customer_id: string; p_data: Json }
         Returns: undefined
       }
       rpc_update_employee: {

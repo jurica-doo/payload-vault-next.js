@@ -436,10 +436,10 @@ Each slice lists: **Scope → DB → UI → Edge cases → Tests → Done when**
 | OD-10 | Reserve release/clawback | Withheld only; release/clawback manual, audited | p2/ledger |
 | OD-11 | Email provider (EU hosting, DPA) | none — engine disabled | p6 |
 | OD-12 | Which rule version applies (production vs approval date) | Production date | p1, p2 |
-| OD-13 | Customer visibility scope | Own + descendants | p5 |
-| OD-14 | Contract portal identity & integration path | Manual `contract_links` only | p5/contract-links |
+| OD-13 | Customer visibility scope | Own + descendants; admins and compliance read all (compliance read-only); finance none | p5 |
+| OD-14 | Contract portal identity & integration path | Manual `contract_links`; service-role intake `rpc_ingest_contracts` ready for an adapter | p5/contract-links |
 | OD-15 | Promotion: automatic or approved | Approved by admin from the "ready" queue | p1/career-engine |
-| OD-16 | Retention periods per data class | None deleted automatically | p5/privacy-ops |
+| OD-16 | Retention periods per data class | None deleted automatically; `app_settings.retention` empty, candidates report only | p5/privacy-ops |
 | OD-17 | May leaders see descendants' commission amounts | Off by default (`app_settings`) | p2/finance-ui |
 | OD-18 | Remuneration for Strom/Gas/Kfz | Out of scope; 0 P / 0 AE | — |
 | OD-19 | Lead SLA: first-contact hours, working day, holiday region (§9.3) | 8 business hours, Mon–Fri 09:00–17:00 Berlin, nationwide holidays; counted from receipt; manager notified on breach. Admin can change it at /admin/leads | p4/leads |

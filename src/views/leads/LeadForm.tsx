@@ -5,6 +5,7 @@ import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
 import { InputField } from "../../components/inputField/InputField";
 import { EmployeePicker } from "../../components/employeePicker/EmployeePicker";
+import { DuplicateWarning } from "../../components/duplicateWarning/DuplicateWarning";
 import { useBanner } from "../../context/banner/BannerContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useRules } from "../../hooks/useRules/useRules";
@@ -27,8 +28,6 @@ export const Select = ({ label, value, onChange, options }: {
     </select>
   </label>
 );
-
-const REASON_LABEL = { phone: "gleiche Telefonnummer", email: "gleiche E-Mail", name: "ähnlicher Name" } as const;
 
 /**
  * Lead intake (§9.1, §9.3, §9.5). Before saving, the form asks the database
@@ -137,25 +136,11 @@ export const LeadForm = ({ onDone }: { onDone: (id: string) => void }) => {
       {noContact && <p className="text-xs text-color-secondary">Ohne Telefon und E-Mail kann der Lead nicht kontaktiert werden und Duplikate werden nur über den Namen erkannt.</p>}
 
       {dupes && dupes.length > 0 && (
-        <div role="alert" className="flex flex-col gap-2 rounded-radius-md border border-color-secondary/50 bg-color-bg-dark p-3 text-sm">
-          <p className="font-semibold">Mögliche Duplikate gefunden</p>
-          <ul className="flex flex-col gap-1">
-            {dupes.map((d, i) => (
-              <li key={d.id ?? i}>
-                {d.visible && d.id ? (
-                  <a href={`/vertrieb/leads/${d.id}`} target="_blank" rel="noreferrer" className="font-semibold">{leadNo(d.lead_no ?? 0)} {d.name}</a>
-                ) : (
-                  <span className="font-semibold">Lead einer anderen Person</span>
-                )}
-                <span className="text-color-text-subtle"> · {REASON_LABEL[d.reason]}{d.owner ? ` · zuständig: ${d.owner}` : " · im Pool"}</span>
-              </li>
-            ))}
-          </ul>
-          <label className="flex items-center gap-2">
-            <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
-            Geprüft: Das ist eine andere Person, trotzdem anlegen.
-          </label>
-        </div>
+        <DuplicateWarning confirmed={confirmed} onConfirmedChange={setConfirmed} hiddenLabel="Lead einer anderen Person"
+          items={dupes.map((d, i) => ({
+            key: d.id ?? String(i), reason: d.reason, owner: d.owner,
+            ...(d.visible && d.id ? { href: `/vertrieb/leads/${d.id}`, label: `${leadNo(d.lead_no ?? 0)} ${d.name}` } : {}),
+          }))} />
       )}
       <div>
         <Button type="submit" text={dupes && dupes.length > 0 ? "Trotzdem anlegen" : "Lead anlegen"} isLoading={create.isPending}

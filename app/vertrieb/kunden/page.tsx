@@ -1,5 +1,5 @@
-import { ModulePlaceholder } from "@/views/sales/ModulePlaceholder";
+import { CustomersPage } from "@/views/customers/CustomersPage";
 
 export default function Page() {
-  return <ModulePlaceholder moduleKey="customers" />;
+  return <CustomersPage />;
 }

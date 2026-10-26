@@ -84,6 +84,8 @@ const meetsAudience = (perms: Permissions, audience: Audience): boolean => {
       return perms.isAdmin;
     case "finance":
       return perms.isFinance;
+    case "compliance":
+      return perms.isCompliance;
   }
 };
 

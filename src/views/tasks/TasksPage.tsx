@@ -26,6 +26,7 @@ export const TASK_TYPE_LABEL: Record<string, string> = {
   lead_next_action: "Nächster Schritt",
   lead_unassigned: "Lead zuweisen",
   customer_service: "Kundenservice",
+  customer_follow_up: "Kunde nachfassen",
   subsidy_review: "Zuschuss",
 };
 
@@ -35,6 +36,7 @@ const LINK_FOR: Record<string, (id: string) => string> = {
   employee: (id) => `/vertrieb/team/${id}`,
   exception: () => "/vertrieb/provisionen/abrechnung",
   lead: (id) => `/vertrieb/leads/${id}`,
+  customer: (id) => `/vertrieb/kunden/${id}`,
 };
 
 const priority: StatusMap<"low" | "normal" | "high"> = {
