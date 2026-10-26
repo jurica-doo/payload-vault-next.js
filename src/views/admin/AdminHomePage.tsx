@@ -11,6 +11,11 @@ const AREAS = [
     title: "Mitarbeitende",
     description: "Anlegen, einladen, deaktivieren und Rollen vergeben.",
   },
+  {
+    href: "/admin/hierarchie",
+    title: "Struktur",
+    description: "Führungskräfte zuordnen und Wechsel mit Stichtag planen.",
+  },
 ];
 
 export const AdminHomePage = () => {
