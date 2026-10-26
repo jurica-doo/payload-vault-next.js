@@ -14,8 +14,9 @@ import { MERGE_FIELDS, MERGE_FIELD_LABEL, SAMPLE_VALUES, checkTemplateText, rend
 import { BASIS_LABEL } from "../../domain/consent";
 import { formatDateTime } from "../../utils/format";
 import { Select } from "../leads/LeadForm";
+import { TestSendButton } from "./SendingSections";
+import { card } from "./emailLabels";
 
-export const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
 const errText = (e: unknown) => (e instanceof Error ? e.message : "");
 
 export const PURPOSE_LABEL: Record<string, string> = {
@@ -116,6 +117,7 @@ const TemplateEditor = ({ template, versions }: { template: EmailTemplate; versi
                 })} />
               </>
             )}
+            {active && <TestSendButton versionId={active.id} />}
             {open?.status === "submitted" && open.created_by === user?.id && <p className="text-xs text-color-text-subtle">Freigabe durch eine zweite Person (Vier-Augen-Prinzip).</p>}
           </div>
         </div>

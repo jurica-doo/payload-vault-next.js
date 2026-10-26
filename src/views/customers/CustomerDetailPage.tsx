@@ -20,6 +20,7 @@ import { CUSTOMER_STATUS_LABEL, CustomerForm } from "./CustomerForm";
 import { ConsentCard } from "./ConsentCard";
 import { ContractsCard } from "./ContractsCard";
 import { ServiceCard } from "./ServiceCard";
+import { EmailHistoryCard } from "./EmailHistoryCard";
 
 export const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
 const errText = (e: unknown) => (e instanceof Error ? e.message : "");
@@ -66,6 +67,7 @@ const CustomerDetail = ({ customerId }: { customerId: string }) => {
         <ContractsCard customer={c} canWork={canWork} />
       </div>
       <ServiceCard customer={c} canWork={canWork} />
+      <EmailHistoryCard customerId={c.id} />
 
       <section className={card}>
         <h2 className="text-base font-semibold">Kontakt- und Beratungshistorie</h2>
