@@ -133,3 +133,40 @@ export function useConsentReport(enabled: boolean) {
     queryFn: async () => (await call("rpc_consent_report", {})) as unknown as ConsentReport,
   });
 }
+
+export type ContractLink = Tables<"contract_links">;
+export type ContractInput = Partial<{
+  source_system: string; external_contract_id: string; category_code: string; product_name: string; insurer: string;
+  status: string; start_date: string | null; end_date: string | null; renewal_date: string | null; deep_link: string | null;
+}>;
+
+/** Contracts linked to a customer (manual or synced from the portal). */
+export function useContracts(customerId: string) {
+  const queryClient = useQueryClient();
+  const query = useQuery({
+    queryKey: ["contracts", customerId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("contract_links").select("*").eq("customer_id", customerId).order("created_at");
+      if (error) throwDbError(error);
+      return (data ?? []) as ContractLink[];
+    },
+  });
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["contracts", customerId] });
+    queryClient.invalidateQueries({ queryKey: ["customer", customerId] });
+  };
+  return {
+    ...query,
+    save: useMutation({
+      mutationFn: (a: { id: string | null; data: ContractInput; datesConfirmed: boolean }) =>
+        call("rpc_save_contract_link", { p_id: a.id, p_customer_id: customerId, p_data: a.data, p_dates_confirmed: a.datesConfirmed }),
+      onSuccess: invalidate,
+    }),
+    archive: useMutation({ mutationFn: (a: { id: string; reason: string }) => call("rpc_archive_contract_link", { p_id: a.id, p_reason: a.reason }), onSuccess: invalidate }),
+    linkExternal: useMutation({
+      mutationFn: (a: { sourceSystem: string; externalId: string }) =>
+        call("rpc_link_customer_external", { p_customer_id: customerId, p_source_system: a.sourceSystem, p_external_id: a.externalId || null }),
+      onSuccess: invalidate,
+    }),
+  };
+}

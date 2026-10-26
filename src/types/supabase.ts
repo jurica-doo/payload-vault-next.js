@@ -680,6 +680,142 @@ export type Database = {
           },
         ]
       }
+      contract_links: {
+        Row: {
+          archived_at: string | null
+          category_code: string | null
+          created_at: string
+          created_by: string | null
+          customer_id: string
+          date_source: string | null
+          dates_confirmed_by: string | null
+          deep_link: string | null
+          end_date: string | null
+          external_contract_id: string
+          id: string
+          insurer: string | null
+          last_synced_at: string | null
+          product_name: string | null
+          production_id: string | null
+          renewal_date: string | null
+          source_system: string
+          start_date: string | null
+          status: string
+          sync_run_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          category_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id: string
+          date_source?: string | null
+          dates_confirmed_by?: string | null
+          deep_link?: string | null
+          end_date?: string | null
+          external_contract_id: string
+          id?: string
+          insurer?: string | null
+          last_synced_at?: string | null
+          product_name?: string | null
+          production_id?: string | null
+          renewal_date?: string | null
+          source_system: string
+          start_date?: string | null
+          status?: string
+          sync_run_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          category_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_id?: string
+          date_source?: string | null
+          dates_confirmed_by?: string | null
+          deep_link?: string | null
+          end_date?: string | null
+          external_contract_id?: string
+          id?: string
+          insurer?: string | null
+          last_synced_at?: string | null
+          product_name?: string | null
+          production_id?: string | null
+          renewal_date?: string | null
+          source_system?: string
+          start_date?: string | null
+          status?: string
+          sync_run_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_links_category_code_fkey"
+            columns: ["category_code"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "contract_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "contract_links_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_links_dates_confirmed_by_fkey"
+            columns: ["dates_confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_links_dates_confirmed_by_fkey"
+            columns: ["dates_confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "contract_links_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_links_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "v_production"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_links_sync_run_id_fkey"
+            columns: ["sync_run_id"]
+            isOneToOne: false
+            referencedRelation: "sync_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversion_rules: {
         Row: {
           category_code: string
@@ -2446,6 +2582,77 @@ export type Database = {
           },
         ]
       }
+      sync_errors: {
+        Row: {
+          created_at: string
+          error_code: string
+          external_contract_id: string | null
+          external_customer_id: string | null
+          id: number
+          row_no: number
+          run_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_code: string
+          external_contract_id?: string | null
+          external_customer_id?: string | null
+          id?: never
+          row_no: number
+          run_id: string
+        }
+        Update: {
+          created_at?: string
+          error_code?: string
+          external_contract_id?: string | null
+          external_customer_id?: string | null
+          id?: never
+          row_no?: number
+          run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_errors_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "sync_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_runs: {
+        Row: {
+          finished_at: string | null
+          id: string
+          rows_failed: number
+          rows_ok: number
+          rows_total: number
+          source_system: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          finished_at?: string | null
+          id?: string
+          rows_failed?: number
+          rows_ok?: number
+          rows_total?: number
+          source_system: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          finished_at?: string | null
+          id?: string
+          rows_failed?: number
+          rows_ok?: number
+          rows_total?: number
+          source_system?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           completed_at: string | null
@@ -2872,6 +3079,10 @@ export type Database = {
         Args: { p_employee_id: string; p_reason: string }
         Returns: string
       }
+      rpc_archive_contract_link: {
+        Args: { p_id: string; p_reason: string }
+        Returns: undefined
+      }
       rpc_archive_customer: {
         Args: { p_archived: boolean; p_customer_id: string; p_reason: string }
         Returns: undefined
@@ -3028,11 +3239,23 @@ export type Database = {
         }
         Returns: undefined
       }
+      rpc_ingest_contracts: {
+        Args: { p_rows: Json; p_source_system: string }
+        Returns: Json
+      }
       rpc_issue_invite: { Args: { p_employee_id: string }; Returns: Json }
       rpc_lead_config: { Args: never; Returns: Json }
       rpc_lead_funnel: {
         Args: { p_from: string; p_scope?: string; p_to: string }
         Returns: Json
+      }
+      rpc_link_customer_external: {
+        Args: {
+          p_customer_id: string
+          p_external_id: string
+          p_source_system: string
+        }
+        Returns: undefined
       }
       rpc_log_activity: {
         Args: {
@@ -3131,6 +3354,15 @@ export type Database = {
       }
       rpc_rules_at: { Args: { p_date?: string }; Returns: Json }
       rpc_run_task_generators: { Args: never; Returns: Json }
+      rpc_save_contract_link: {
+        Args: {
+          p_customer_id: string
+          p_data: Json
+          p_dates_confirmed?: boolean
+          p_id: string
+        }
+        Returns: string
+      }
       rpc_save_goal_draft: {
         Args: { p_month: string; p_targets: Json }
         Returns: string

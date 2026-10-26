@@ -105,6 +105,14 @@ const MESSAGES: Record<string, string> = {
   lead_unassigned: "Der Lead muss zuerst einer Person zugewiesen werden.",
   consent_evidence_required: "Bitte angeben, wo und wie die Einwilligung erteilt wurde.",
 
+  // contracts
+  contract_exists: "Diese Vertragsnummer ist bereits verknüpft.",
+  dates_unconfirmed: "Vertragsdaten bitte nur nach Prüfung der Unterlagen eintragen und bestätigen.",
+  invalid_deep_link: "Der Link muss mit https:// beginnen und auf das Vertragsportal zeigen.",
+  unknown_source_system: "Unbekanntes Quellsystem.",
+  synced_read_only: "Synchronisierte Verträge werden im Vertragsportal gepflegt.",
+  external_id_taken: "Diese Kundennummer ist bereits einem anderen Kunden zugeordnet.",
+
   // production
   no_rules_for_date: "Für dieses Datum gibt es keine gültigen Umrechnungsregeln.",
   premium_must_be_positive: "Der Beitrag muss größer als 0 sein.",
