@@ -808,6 +808,67 @@ export type Database = {
           },
         ]
       }
+      customer_consents: {
+        Row: {
+          action: string
+          customer_id: string
+          effective_at: string
+          evidence: string | null
+          id: number
+          legal_basis: string | null
+          purpose: string
+          recorded_at: string
+          recorded_by: string | null
+          source: string
+        }
+        Insert: {
+          action: string
+          customer_id: string
+          effective_at?: string
+          evidence?: string | null
+          id?: never
+          legal_basis?: string | null
+          purpose: string
+          recorded_at?: string
+          recorded_by?: string | null
+          source: string
+        }
+        Update: {
+          action?: string
+          customer_id?: string
+          effective_at?: string
+          evidence?: string | null
+          id?: never
+          legal_basis?: string | null
+          purpose?: string
+          recorded_at?: string
+          recorded_by?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_consents_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_consents_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_consents_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           archived_at: string | null
@@ -2647,6 +2708,42 @@ export type Database = {
           },
         ]
       }
+      v_customer_consent_state: {
+        Row: {
+          action: string | null
+          customer_id: string | null
+          effective_at: string | null
+          event_id: number | null
+          evidence: string | null
+          legal_basis: string | null
+          purpose: string | null
+          recorded_by: string | null
+          source: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_consents_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_consents_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_consents_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       v_goals: {
         Row: {
           created_at: string | null
@@ -2823,6 +2920,7 @@ export type Database = {
         Args: { p_batch_id: string }
         Returns: number
       }
+      rpc_consent_report: { Args: never; Returns: Json }
       rpc_convert_lead: {
         Args: { p_confirm_duplicates?: boolean; p_lead_id: string }
         Returns: string
@@ -2961,6 +3059,10 @@ export type Database = {
         Args: { p_id: string }
         Returns: undefined
       }
+      rpc_may_contact: {
+        Args: { p_customer_id: string; p_purpose: string }
+        Returns: Json
+      }
       rpc_merge_leads: {
         Args: { p_keep_id: string; p_merge_id: string; p_reason: string }
         Returns: undefined
@@ -2990,6 +3092,18 @@ export type Database = {
       rpc_reassign_task: {
         Args: { p_new_owner: string; p_reason: string; p_task_id: string }
         Returns: undefined
+      }
+      rpc_record_consent: {
+        Args: {
+          p_action: string
+          p_customer_id: string
+          p_effective_at?: string
+          p_evidence?: string
+          p_legal_basis: string
+          p_purpose: string
+          p_source: string
+        }
+        Returns: number
       }
       rpc_retry_commission: {
         Args: { p_calculation_id: string }

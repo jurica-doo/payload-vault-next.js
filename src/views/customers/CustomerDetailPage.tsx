@@ -17,6 +17,7 @@ import { CHANNEL_LABEL } from "../../domain/leads";
 import { berlinLocalToUtcIso, formatDate, formatDateTime } from "../../utils/format";
 import { ActivityPanel } from "../activities/ActivityPanel";
 import { CUSTOMER_STATUS_LABEL, CustomerForm } from "./CustomerForm";
+import { ConsentCard } from "./ConsentCard";
 
 export const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
 const errText = (e: unknown) => (e instanceof Error ? e.message : "");
@@ -57,6 +58,8 @@ const CustomerDetail = ({ customerId }: { customerId: string }) => {
           <AdviserCard c={c} name={name} history={data.assignments} canWork={canWork} />
         </div>
       </div>
+
+      <ConsentCard customer={c} canWork={canWork} />
 
       <section className={card}>
         <h2 className="text-base font-semibold">Kontakt- und Beratungshistorie</h2>

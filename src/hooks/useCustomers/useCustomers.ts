@@ -95,3 +95,41 @@ export function useCustomerMutations() {
     }),
   };
 }
+
+export type ConsentRow = Tables<"customer_consents">;
+
+/** Consent history of one customer (append-only; current state is derived). */
+export function useConsents(customerId: string) {
+  const queryClient = useQueryClient();
+  const query = useQuery({
+    queryKey: ["consents", customerId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("customer_consents").select("*").eq("customer_id", customerId)
+        .order("effective_at", { ascending: false }).order("id", { ascending: false });
+      if (error) throwDbError(error);
+      return (data ?? []) as ConsentRow[];
+    },
+  });
+  const record = useMutation({
+    mutationFn: (a: { purpose: string; action: string; legalBasis: string | null; source: string; evidence: string; effectiveAt: string | null }) =>
+      call("rpc_record_consent", {
+        p_customer_id: customerId, p_purpose: a.purpose, p_action: a.action, p_legal_basis: a.legalBasis,
+        p_source: a.source, p_evidence: a.evidence || null, p_effective_at: a.effectiveAt,
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["consents", customerId] }),
+  });
+  return { ...query, record };
+}
+
+export type ConsentReport = {
+  customers: number; opt_outs: number; recent_withdrawals: number;
+  by_purpose: { purpose: string; granted: number; withdrawn: number; by_consent: number }[];
+};
+
+export function useConsentReport(enabled: boolean) {
+  return useQuery({
+    queryKey: ["consent-report"],
+    enabled,
+    queryFn: async () => (await call("rpc_consent_report", {})) as unknown as ConsentReport,
+  });
+}
