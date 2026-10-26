@@ -1479,6 +1479,10 @@ export type Database = {
         Returns: undefined
       }
       rpc_issue_invite: { Args: { p_employee_id: string }; Returns: Json }
+      rpc_log_export: {
+        Args: { p_kind: string; p_row_count: number; p_scope: Json }
+        Returns: undefined
+      }
       rpc_mark_production_eligible: {
         Args: { p_id: string }
         Returns: undefined
@@ -1547,9 +1551,29 @@ export type Database = {
         }
         Returns: string
       }
+      rpc_set_statement_status: {
+        Args: { p_month: string; p_reason: string; p_status: string }
+        Returns: undefined
+      }
       rpc_stage_production_import: {
         Args: { p_file_name: string; p_rows: Json; p_source_system: string }
         Returns: string
+      }
+      rpc_statement: {
+        Args: { p_employee_id?: string; p_month: string }
+        Returns: Json
+      }
+      rpc_statement_overview: {
+        Args: { p_month: string }
+        Returns: {
+          employee_no: string
+          entries: number
+          gross: number
+          net: number
+          recipient_id: string
+          recipient_name: string
+          reserve: number
+        }[]
       }
       rpc_submit_production: { Args: { p_id: string }; Returns: undefined }
       rpc_update_conversion_draft: {
