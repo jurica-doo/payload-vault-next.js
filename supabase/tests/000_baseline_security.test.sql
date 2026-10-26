@@ -2,11 +2,12 @@
 -- Baseline security (pre-requirements1 schema)
 -- ============================================================
 -- Pins down what check.md verified by hand on production on 2026-10-26, so a
--- future migration can't quietly undo it:
+-- future migration can't quietly undo it (the signup assertions were updated
+-- when r1/p1/identity-roles replaced the allowlist with employee invites):
 --   * vault tables are private to their owner (D1 in IMPLEMENTATION_PLAN.md)
 --   * anon has no table privileges
 --   * function EXECUTE rights
---   * signup allowlist trigger rejects uninvited addresses
+--   * the signup gate rejects uninvited addresses
 --   * consume_rate_limit allows `limit` calls per window, then refuses
 -- ============================================================
 BEGIN;
@@ -73,17 +74,17 @@ SELECT ok(has_function_privilege('service_role', 'public.consume_rate_limit(text
 SELECT ok(NOT has_function_privilege('anon', 'public.get_user_report_years()', 'EXECUTE'), 'anon cannot run get_user_report_years');
 SELECT ok(has_function_privilege('authenticated', 'public.get_user_report_years()', 'EXECUTE'), 'authenticated can run get_user_report_years');
 
--- ---------- signup allowlist ----------
+-- ---------- signup gate (allowlist until 20261026150000, invites since) ----------
 SELECT throws_ok(
   $$INSERT INTO auth.users (id, instance_id, aud, role, email)
     VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'stranger@test.local')$$,
-  NULL, NULL, 'uninvited email is rejected by the allowlist trigger');
+  NULL, NULL, 'uninvited email is rejected by the signup gate');
 
-SELECT lives_ok(
-  $$INSERT INTO public.signup_allowlist (email) VALUES ('invited@test.local');
+SELECT throws_ok(
+  $$INSERT INTO public.signup_allowlist (email) VALUES ('legacy@test.local');
     INSERT INTO auth.users (id, instance_id, aud, role, email)
-    VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'Invited@Test.local')$$,
-  'allowlisted email is accepted regardless of case');
+    VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'legacy@test.local')$$,
+  NULL, NULL, 'the deprecated allowlist no longer grants signup');
 
 -- ---------- rate limiter ----------
 SELECT tests.authenticate_as_service_role();

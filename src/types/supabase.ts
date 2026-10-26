@@ -106,6 +106,104 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          employee_id: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          linked_at: string | null
+          revoked_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          employee_id: string
+          expires_at: string
+          id?: string
+          invited_by?: string | null
+          linked_at?: string | null
+          revoked_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          employee_id?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          linked_at?: string | null
+          revoked_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_invites_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employees: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deactivated_at: string | null
+          email: string
+          employee_no: string
+          employment_type: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string | null
+          start_date: string
+          status: string
+          timezone: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deactivated_at?: string | null
+          email: string
+          employee_no?: string
+          employment_type?: string
+          first_name: string
+          id?: string
+          last_name: string
+          phone?: string | null
+          start_date: string
+          status?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deactivated_at?: string | null
+          email?: string
+          employee_no?: string
+          employment_type?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string | null
+          start_date?: string
+          status?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
@@ -232,6 +330,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          id: string
+          revoked_at: string | null
+          revoked_by: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -247,9 +375,73 @@ export type Database = {
           year: number
         }[]
       }
+      rpc_audit_for: {
+        Args: { p_entity_id: string; p_entity_type: string }
+        Returns: {
+          action: string
+          actor_id: string
+          actor_kind: string
+          actor_name: string
+          at: string
+          id: number
+          new_values: Json
+          old_values: Json
+          reason: string
+        }[]
+      }
+      rpc_create_employee: {
+        Args: {
+          p_email: string
+          p_employee_no?: string
+          p_employment_type?: string
+          p_first_name: string
+          p_last_name: string
+          p_phone?: string
+          p_start_date: string
+        }
+        Returns: Json
+      }
+      rpc_grant_role: {
+        Args: {
+          p_reason: string
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      rpc_issue_invite: { Args: { p_employee_id: string }; Returns: Json }
       rpc_my_context: { Args: never; Returns: Json }
+      rpc_revoke_invite: {
+        Args: { p_employee_id: string; p_reason: string }
+        Returns: undefined
+      }
+      rpc_revoke_role: {
+        Args: {
+          p_reason: string
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      rpc_set_employee_active: {
+        Args: { p_active: boolean; p_employee_id: string; p_reason: string }
+        Returns: string
+      }
+      rpc_update_employee: {
+        Args: {
+          p_employee_id: string
+          p_employment_type: string
+          p_first_name: string
+          p_last_name: string
+          p_phone: string
+          p_reason: string
+          p_start_date: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
+      app_role: "admin" | "finance" | "compliance"
       document_category:
         | "Strom & Gas"
         | "Barmenia Abrechnung"
@@ -397,6 +589,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      app_role: ["admin", "finance", "compliance"],
       document_category: [
         "Strom & Gas",
         "Barmenia Abrechnung",

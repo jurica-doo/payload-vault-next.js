@@ -126,6 +126,19 @@ export const MenuDropdown = ({
         className="w-full px-3 py-2.5 md:px-4 md:py-3 text-xs md:text-sm text-left hover:bg-color-primary/20 cursor-pointer flex items-center gap-2
         hover:text-color-text-main text-color-text-subtle transition-all duration-200 ease-in-out active:bg-color-primary/30"
         onClick={() => {
+          setIsOpen(false);
+          router.push("/profil/sicherheit");
+        }}
+      >
+        <LockIcon className="w-4 h-4" />
+        Zwei-Faktor-Anmeldung
+      </button>
+
+      <button
+        role="menuitem"
+        className="w-full px-3 py-2.5 md:px-4 md:py-3 text-xs md:text-sm text-left hover:bg-color-primary/20 cursor-pointer flex items-center gap-2
+        hover:text-color-text-main text-color-text-subtle transition-all duration-200 ease-in-out active:bg-color-primary/30"
+        onClick={() => {
           toggleTheme();
           setIsOpen(false);
         }}
