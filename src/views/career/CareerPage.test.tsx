@@ -51,11 +51,11 @@ describe("CareerPage", () => {
 
   it("shows where points come from and marks the capped structure", () => {
     render(<CareerPage />);
-    const capped = screen.getByText(/Struktur Fritz Berater/).closest("tr")!;
+    const capped = screen.getByText(/Struktur Fritz Berater/, { selector: "td" }).closest("tr")!;
     expect(capped).toHaveTextContent("begrenzt");
     expect(capped).toHaveTextContent("800,00");
     expect(capped).toHaveTextContent("375,00");
-    expect(screen.getByText(/Struktur Tara Team/).closest("tr")).not.toHaveTextContent("begrenzt");
+    expect(screen.getByText(/Struktur Tara Team/, { selector: "td" }).closest("tr")).not.toHaveTextContent("begrenzt");
   });
 
   it("names the provisional decisions behind the numbers", () => {
@@ -63,6 +63,14 @@ describe("CareerPage", () => {
     const notes = screen.getAllByRole("note").map((n) => n.textContent);
     expect(notes.some((t) => t?.includes("OD-02"))).toBe(true);
     expect(notes.some((t) => t?.includes("OD-03/OD-04"))).toBe(true);
+  });
+
+  it("offers a simulation with the remaining gap and structure headroom", () => {
+    render(<CareerPage />);
+    expect(screen.getByText("Schätzung – wird nicht gespeichert")).toBeInTheDocument();
+    expect(screen.getByText(/Struktur Fritz Berater: Grenze erreicht/)).toBeInTheDocument();
+    expect(screen.getByText(/Struktur Tara Team: noch 75,00 P anrechenbar/)).toBeInTheDocument();
+    expect(screen.getByText(/wäre die Qualifikation für OL erreicht/)).toBeInTheDocument();
   });
 
   it("explains a blocked calculation instead of showing zeros", () => {

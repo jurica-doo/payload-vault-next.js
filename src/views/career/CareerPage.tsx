@@ -12,6 +12,7 @@ import { useStructure } from "../../hooks/useStructure/useStructure";
 import { useCareerProgress, type CareerProgress } from "../../hooks/useCareer/useCareer";
 import { PERIOD_LABELS } from "../../domain/careerPeriods";
 import { formatDate } from "../../utils/format";
+import { CareerSimulator } from "./CareerSimulator";
 
 const LEVEL_NAMES: Record<string, string> = {
   FA: "Finanzassistent", FB: "Fachberater", TL: "Teamleiter", OL: "Organisationsleiter",
@@ -150,6 +151,8 @@ const ProgressView = ({ progress }: { progress: CareerProgress }) => {
           </table>
         </div>
       </section>
+
+      <CareerSimulator base={p} target={p.target} />
 
       <ProvisionalRuleNotice decisionId="OD-02" text="Zeitraumgrenzen, Übergangszeitraum und Neustart der Punkte nach einem Stufenwechsel sind noch nicht von Profina bestätigt." />
       {p.cap_value && (
