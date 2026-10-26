@@ -9,6 +9,7 @@ export const SEEDED_RULES_PAYLOAD = {
     version_id: "v-levels",
     label: "Karrierestufen laut Spezifikation v1.0",
     effective_from: "2026-01-01",
+    reserve_ratio: 0.1,
     rows: [
       { code: "FA", rank: 1, name_de: "Finanzassistent", point_rate: 28.0, max_subsidy: null, threshold_points: 0.0, kv_min_ratio: 0.1, structure_cap_ratio: null },
       { code: "FB", rank: 2, name_de: "Fachberater", point_rate: 56.0, max_subsidy: 500.0, threshold_points: 100.0, kv_min_ratio: 0.1, structure_cap_ratio: null },
