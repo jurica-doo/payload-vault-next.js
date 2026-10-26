@@ -458,6 +458,97 @@ export type Database = {
           },
         ]
       }
+      import_batches: {
+        Row: {
+          committed_at: string | null
+          committed_count: number
+          created_at: string
+          created_by: string | null
+          file_name: string | null
+          id: string
+          kind: string
+          row_count: number
+          source_system: string
+          status: string
+          valid_count: number
+        }
+        Insert: {
+          committed_at?: string | null
+          committed_count?: number
+          created_at?: string
+          created_by?: string | null
+          file_name?: string | null
+          id?: string
+          kind: string
+          row_count?: number
+          source_system: string
+          status?: string
+          valid_count?: number
+        }
+        Update: {
+          committed_at?: string | null
+          committed_count?: number
+          created_at?: string
+          created_by?: string | null
+          file_name?: string | null
+          id?: string
+          kind?: string
+          row_count?: number
+          source_system?: string
+          status?: string
+          valid_count?: number
+        }
+        Relationships: []
+      }
+      import_rows: {
+        Row: {
+          batch_id: string
+          errors: string[]
+          id: string
+          production_id: string | null
+          raw: Json
+          row_number: number
+        }
+        Insert: {
+          batch_id: string
+          errors?: string[]
+          id?: string
+          production_id?: string | null
+          raw: Json
+          row_number: number
+        }
+        Update: {
+          batch_id?: string
+          errors?: string[]
+          id?: string
+          production_id?: string | null
+          raw?: Json
+          row_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_rows_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_rows_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_rows_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "v_production"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       income_goals: {
         Row: {
           created_at: string
@@ -527,6 +618,83 @@ export type Database = {
         }
         Relationships: []
       }
+      point_calculations: {
+        Row: {
+          ae: number
+          calculated_at: string
+          created_by: string | null
+          details: Json
+          id: string
+          kind: string
+          kv_points: number
+          points: number
+          production_id: string
+          reason: string | null
+          reverses_id: string | null
+          rule_version_id: string | null
+          seq: number
+        }
+        Insert: {
+          ae: number
+          calculated_at?: string
+          created_by?: string | null
+          details: Json
+          id?: string
+          kind: string
+          kv_points: number
+          points: number
+          production_id: string
+          reason?: string | null
+          reverses_id?: string | null
+          rule_version_id?: string | null
+          seq?: never
+        }
+        Update: {
+          ae?: number
+          calculated_at?: string
+          created_by?: string | null
+          details?: Json
+          id?: string
+          kind?: string
+          kv_points?: number
+          points?: number
+          production_id?: string
+          reason?: string | null
+          reverses_id?: string | null
+          rule_version_id?: string | null
+          seq?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "point_calculations_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "point_calculations_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "v_production"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "point_calculations_reverses_id_fkey"
+            columns: ["reverses_id"]
+            isOneToOne: false
+            referencedRelation: "point_calculations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "point_calculations_rule_version_id_fkey"
+            columns: ["rule_version_id"]
+            isOneToOne: false
+            referencedRelation: "rule_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_categories: {
         Row: {
           active: boolean
@@ -550,6 +718,107 @@ export type Database = {
           sort?: number
         }
         Relationships: []
+      }
+      production_records: {
+        Row: {
+          cancelled_at: string | null
+          category_code: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          eligible_at: string | null
+          id: string
+          import_batch_id: string | null
+          net_or_gross: string | null
+          notes: string | null
+          premium_amount: number
+          premium_period: string
+          producer_id: string
+          product_reference: string | null
+          production_date: string
+          source: string
+          source_system: string | null
+          source_system_id: string | null
+          status: string
+          term_years: number | null
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          category_code: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          eligible_at?: string | null
+          id?: string
+          import_batch_id?: string | null
+          net_or_gross?: string | null
+          notes?: string | null
+          premium_amount: number
+          premium_period: string
+          producer_id: string
+          product_reference?: string | null
+          production_date: string
+          source?: string
+          source_system?: string | null
+          source_system_id?: string | null
+          status?: string
+          term_years?: number | null
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          category_code?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          eligible_at?: string | null
+          id?: string
+          import_batch_id?: string | null
+          net_or_gross?: string | null
+          notes?: string | null
+          premium_amount?: number
+          premium_period?: string
+          producer_id?: string
+          product_reference?: string | null
+          production_date?: string
+          source?: string
+          source_system?: string | null
+          source_system_id?: string | null
+          status?: string
+          term_years?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_records_category_code_fkey"
+            columns: ["category_code"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "production_records_import_batch_id_fkey"
+            columns: ["import_batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
       }
       rule_versions: {
         Row: {
@@ -670,6 +939,66 @@ export type Database = {
           },
         ]
       }
+      v_production: {
+        Row: {
+          ae: number | null
+          cancelled_at: string | null
+          category_code: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          eligible_at: string | null
+          id: string | null
+          import_batch_id: string | null
+          kv_points: number | null
+          net_or_gross: string | null
+          notes: string | null
+          points: number | null
+          premium_amount: number | null
+          premium_period: string | null
+          producer_first_name: string | null
+          producer_id: string | null
+          producer_last_name: string | null
+          product_reference: string | null
+          production_date: string | null
+          source: string | null
+          source_system: string | null
+          source_system_id: string | null
+          status: string | null
+          term_years: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_records_category_code_fkey"
+            columns: ["category_code"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "production_records_import_batch_id_fkey"
+            columns: ["import_batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "production_records_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
     }
     Functions: {
       consume_rate_limit: {
@@ -709,6 +1038,26 @@ export type Database = {
         Args: { p_assignment_id: string; p_reason: string }
         Returns: undefined
       }
+      rpc_cancel_production: {
+        Args: { p_id: string; p_reason: string }
+        Returns: undefined
+      }
+      rpc_commit_production_import: {
+        Args: { p_batch_id: string }
+        Returns: number
+      }
+      rpc_correct_production: {
+        Args: {
+          p_id: string
+          p_net_or_gross: string
+          p_premium_amount: number
+          p_premium_period: string
+          p_production_date: string
+          p_reason: string
+          p_term_years: number
+        }
+        Returns: undefined
+      }
       rpc_create_employee: {
         Args: {
           p_email: string
@@ -725,6 +1074,10 @@ export type Database = {
         Args: { p_effective_from: string; p_kind: string; p_label: string }
         Returns: string
       }
+      rpc_delete_production_draft: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
       rpc_delete_rule_draft: {
         Args: { p_version_id: string }
         Returns: undefined
@@ -738,7 +1091,23 @@ export type Database = {
         Returns: undefined
       }
       rpc_issue_invite: { Args: { p_employee_id: string }; Returns: Json }
+      rpc_mark_production_eligible: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
       rpc_my_context: { Args: never; Returns: Json }
+      rpc_preview_points: {
+        Args: {
+          p_category: string
+          p_currency: string
+          p_net_or_gross: string
+          p_period: string
+          p_premium: number
+          p_production_date: string
+          p_term_years: number
+        }
+        Returns: Json
+      }
       rpc_publish_rule_version: {
         Args: { p_reason: string; p_version_id: string }
         Returns: undefined
@@ -756,6 +1125,22 @@ export type Database = {
         Returns: undefined
       }
       rpc_rules_at: { Args: { p_date?: string }; Returns: Json }
+      rpc_save_production: {
+        Args: {
+          p_category_code: string
+          p_currency?: string
+          p_id: string
+          p_net_or_gross: string
+          p_notes?: string
+          p_premium_amount: number
+          p_premium_period: string
+          p_producer_id: string
+          p_product_reference?: string
+          p_production_date: string
+          p_term_years: number
+        }
+        Returns: string
+      }
       rpc_set_employee_active: {
         Args: { p_active: boolean; p_employee_id: string; p_reason: string }
         Returns: string
@@ -769,6 +1154,11 @@ export type Database = {
         }
         Returns: string
       }
+      rpc_stage_production_import: {
+        Args: { p_file_name: string; p_rows: Json; p_source_system: string }
+        Returns: string
+      }
+      rpc_submit_production: { Args: { p_id: string }; Returns: undefined }
       rpc_update_conversion_draft: {
         Args: {
           p_ae_per_point: number
