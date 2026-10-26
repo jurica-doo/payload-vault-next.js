@@ -8,7 +8,10 @@ SELECT tests.create_user('shell@test.local') AS uid \gset
 
 -- ---------- app_private is not reachable by API roles ----------
 SELECT ok(NOT has_schema_privilege('anon', 'app_private', 'USAGE'), 'anon has no USAGE on app_private');
-SELECT ok(NOT has_schema_privilege('authenticated', 'app_private', 'USAGE'), 'authenticated has no USAGE on app_private');
+-- authenticated got USAGE in r1/p1/identity-roles (RLS policy helpers run as
+-- the caller); it still may not execute anything that isn't a policy helper.
+SELECT ok(NOT has_function_privilege('authenticated', 'app_private.require_reason(text,integer)', 'EXECUTE'),
+  'authenticated cannot execute non-policy helpers in app_private');
 
 -- ---------- app_settings ----------
 SELECT ok((SELECT relrowsecurity FROM pg_class WHERE oid = 'public.app_settings'::regclass), 'app_settings has RLS on');

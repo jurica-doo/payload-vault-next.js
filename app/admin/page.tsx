@@ -1,5 +1,5 @@
-import { ModulePlaceholder } from "@/views/sales/ModulePlaceholder";
+import { AdminHomePage } from "@/views/admin/AdminHomePage";
 
 export default function Page() {
-  return <ModulePlaceholder moduleKey="admin" />;
+  return <AdminHomePage />;
 }
