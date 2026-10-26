@@ -1699,6 +1699,9 @@ export type Database = {
         Args: { p_effective_from: string; p_kind: string; p_label: string }
         Returns: string
       }
+      rpc_dashboard_admin: { Args: never; Returns: Json }
+      rpc_dashboard_me: { Args: { p_month?: string }; Returns: Json }
+      rpc_dashboard_team: { Args: { p_month?: string }; Returns: Json }
       rpc_delete_production_draft: {
         Args: { p_id: string }
         Returns: undefined
