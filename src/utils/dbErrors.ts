@@ -51,6 +51,16 @@ const MESSAGES: Record<string, string> = {
   not_qualified: "Die Person ist derzeit nicht qualifiziert.",
   level_changed_today: "Die Stufe wurde heute bereits geändert.",
 
+  // commission
+  still_not_bookable: "Noch nicht buchbar – die Ursache (z. B. fehlende Stufe) besteht weiterhin.",
+  already_booked: "Für diese Berechnung wurde bereits Provision gebucht.",
+  already_reversed: "Die Berechnung wurde bereits storniert.",
+  invalid_transition: "Dieser Statuswechsel ist nicht möglich.",
+  month_not_ended: "Der Monat ist noch nicht abgelaufen.",
+  period_locked: "Der Monat ist freigegeben oder ausgezahlt und kann nicht mehr geändert werden.",
+  subsidy_above_maximum: "Über dem Höchstbetrag der Stufe, bei FA oder Teilzeit nur mit Ausnahme-Begründung.",
+  producer_without_level: "Für die Person ist keine Karrierestufe hinterlegt.",
+
   // production
   no_rules_for_date: "Für dieses Datum gibt es keine gültigen Umrechnungsregeln.",
   premium_must_be_positive: "Der Beitrag muss größer als 0 sein.",
