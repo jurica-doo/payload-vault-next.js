@@ -133,3 +133,26 @@ export function parseGermanDecimal(text: string): string | null {
       : trimmed;
   return /^-?\d+(\.\d+)?$/.test(normalized) ? normalized : null;
 }
+
+/**
+ * A Berlin wall-clock time ("2026-07-01", "17:00") as a UTC ISO timestamp,
+ * correct across daylight-saving changes. Used for due dates, which people
+ * mean in local time.
+ */
+export function berlinLocalToUtcIso(date: string, time = "00:00"): string {
+  const [y, m, d] = date.split("-").map(Number);
+  const [hh, mm] = time.split(":").map(Number);
+  const guess = Date.UTC(y, m - 1, d, hh, mm);
+  const offsetAt = (ts: number) => {
+    const parts = Object.fromEntries(
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: "Europe/Berlin", hourCycle: "h23",
+        year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit",
+      }).formatToParts(new Date(ts)).map((p) => [p.type, p.value]),
+    );
+    return Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute) - ts;
+  };
+  // Two passes handle the hour around a DST switch.
+  const first = guess - offsetAt(guess);
+  return new Date(guess - offsetAt(first)).toISOString();
+}

@@ -10,6 +10,7 @@ import { EmptyState } from "../emptyState/EmptyState";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { canSeeModule } from "../../hooks/permissions/permissions";
 import { moduleForPath } from "../../data/salesModules";
+import { NotificationBell } from "../notifications/NotificationBell";
 
 /**
  * Chrome for /vertrieb/* and /admin/*. Every route is checked against the
@@ -40,8 +41,8 @@ export const SalesShell = ({ children }: { children: ReactNode }) => {
       </div>
 
       {allowed && !isAdminArea && tabs.length > 1 && (
-        <nav aria-label="Vertriebsbereiche" className="overflow-x-auto border-b border-color-border-light px-4">
-          <ul className="flex gap-1">
+        <nav aria-label="Vertriebsbereiche" className="flex items-center gap-2 border-b border-color-border-light px-4">
+          <ul className="flex flex-1 gap-1 overflow-x-auto">
             {tabs.map((m) => {
               const active = m.key === current.key;
               return (
@@ -61,6 +62,7 @@ export const SalesShell = ({ children }: { children: ReactNode }) => {
               );
             })}
           </ul>
+          {permissions.employeeId && <NotificationBell />}
         </nav>
       )}
 
