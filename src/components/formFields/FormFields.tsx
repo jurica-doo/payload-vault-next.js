@@ -120,23 +120,8 @@ export const DateInput = ({
   </FieldShell>
 );
 
-/**
- * Normalises German number input to a plain decimal string for the API:
- * "1.234,56" → "1234.56", "10,5" → "10.5". Returns null when the text is not
- * a number, so forms can show an error instead of silently sending 0.
- */
-export function parseGermanDecimal(text: string): string | null {
-  const trimmed = text.trim().replace(/\s/g, "");
-  if (trimmed === "") return null;
-  // Thousands separators are dots, decimal separator is a comma. A dot with
-  // exactly three digits after it and no comma is treated as grouping.
-  const normalized = trimmed.includes(",")
-    ? trimmed.replace(/\./g, "").replace(",", ".")
-    : /^-?\d{1,3}(\.\d{3})+$/.test(trimmed)
-      ? trimmed.replace(/\./g, "")
-      : trimmed;
-  return /^-?\d+(\.\d+)?$/.test(normalized) ? normalized : null;
-}
+// Moved to utils so domain code can use it without importing a component.
+export { parseGermanDecimal } from "../../utils/format";
 
 /**
  * Decimal input that keeps the user's text and reports the parsed value.

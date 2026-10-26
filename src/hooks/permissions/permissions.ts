@@ -22,6 +22,8 @@ export type MyContext = {
 };
 
 export type Permissions = {
+  /** Own employee id while active; null for vault-only, invited or inactive users. */
+  employeeId: string | null;
   isEmployee: boolean;
   isLeader: boolean;
   isAdmin: boolean;
@@ -33,6 +35,7 @@ export type Permissions = {
 };
 
 export const NO_PERMISSIONS: Permissions = {
+  employeeId: null,
   isEmployee: false,
   isLeader: false,
   isAdmin: false,
@@ -60,6 +63,7 @@ export function derivePermissions(ctx: unknown): Permissions {
   const isEmployee = !!c.employee && c.employee.status === "active";
 
   return {
+    employeeId: isEmployee && typeof c.employee?.id === "string" ? c.employee.id : null,
     isEmployee,
     isLeader: isEmployee && typeof c.descendant_count === "number" && c.descendant_count > 0,
     isAdmin: roles.includes("admin"),

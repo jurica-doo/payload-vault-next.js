@@ -23,6 +23,45 @@ const MESSAGES: Record<string, string> = {
   user_exists: "Für diese E-Mail-Adresse existiert bereits ein Konto.",
   invite_send_failed: "Die Einladung konnte nicht versendet werden. Bitte erneut versuchen.",
   unauthorized: "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+
+  // hierarchy
+  hierarchy_cycle: "Diese Zuordnung würde einen Kreis in der Struktur erzeugen.",
+  future_assignment_exists: "Es gibt bereits einen geplanten Wechsel. Bitte diesen zuerst absagen.",
+  before_current_assignment: "Das Datum liegt vor der aktuellen Zuordnung. Die Historie kann nicht rückwirkend geändert werden.",
+  before_start_date: "Das Datum liegt vor dem Eintrittsdatum.",
+  manager_inactive: "Die gewählte Führungskraft ist inaktiv.",
+  no_change: "Das entspricht bereits dem aktuellen Stand.",
+  already_effective: "Dieser Wechsel ist bereits wirksam und kann nicht mehr abgesagt werden.",
+  not_latest: "Nur der letzte geplante Wechsel kann abgesagt werden.",
+  date_required: "Bitte ein Datum angeben.",
+
+  // rules and levels
+  draft_exists: "Es gibt bereits einen Entwurf. Bitte diesen bearbeiten oder verwerfen.",
+  rule_version_immutable: "Veröffentlichte Versionen sind unveränderlich.",
+  effective_date_not_future: "Neue Regeln dürfen nur in der Zukunft gelten.",
+  effective_date_not_after_latest: "Das Datum muss nach der neuesten veröffentlichten Version liegen.",
+  levels_incomplete: "Es müssen alle sieben Stufen vorhanden sein.",
+  levels_entry_threshold: "Die Einstiegsstufe muss bei 0 Punkten beginnen.",
+  levels_not_increasing: "Sätze und Schwellen müssen von Stufe zu Stufe steigen.",
+  conversion_incomplete: "Für jede aktive Sparte wird eine Umrechnungsregel benötigt.",
+  invalid_kind: "Unbekannte Regelart.",
+  before_latest_level: "Das Datum liegt vor dem letzten Stufeneintrag.",
+
+  // production
+  no_rules_for_date: "Für dieses Datum gibt es keine gültigen Umrechnungsregeln.",
+  premium_must_be_positive: "Der Beitrag muss größer als 0 sein.",
+  currency_not_supported: "Nur Beiträge in Euro werden unterstützt.",
+  unknown_category: "Unbekannte Sparte.",
+  premium_period_mismatch: "Für diese Sparte passt der Zahlungsrhythmus nicht (z. B. KV und LV monatlich, Sach jährlich).",
+  net_premium_required: "Für Sachversicherungen wird der Jahresnettobeitrag benötigt.",
+  term_required: "Für Lebensversicherungen wird die Laufzeit benötigt.",
+  before_producer_start: "Das Produktionsdatum liegt vor dem Eintritt der Person.",
+  after_producer_deactivation: "Das Produktionsdatum liegt nach der Deaktivierung der Person.",
+  production_date_in_future: "Das Produktionsdatum darf nicht in der Zukunft liegen.",
+  not_editable: "Nur Entwürfe können bearbeitet werden.",
+  unknown_producer: "Unbekannte Person.",
+  invalid_payload: "Die Importdatei konnte nicht gelesen werden.",
+  too_many_rows: "Höchstens 5.000 Zeilen pro Import.",
 };
 
 const CONSTRAINT_MESSAGES: Record<string, string> = {

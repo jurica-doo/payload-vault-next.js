@@ -25,6 +25,11 @@ describe("derivePermissions", () => {
     expect(visibleModules(p)).toEqual([]);
   });
 
+  it("exposes the own employee id only while active", () => {
+    expect(derivePermissions(ctx()).employeeId).toBe("e1");
+    expect(derivePermissions(ctx({ employee: { id: "e1", status: "inactive" } })).employeeId).toBeNull();
+  });
+
   it("treats invited or inactive employees as non-employees", () => {
     for (const status of ["invited", "inactive"]) {
       const p = derivePermissions(ctx({ employee: { id: "e", status } }));
