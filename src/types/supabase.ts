@@ -148,6 +148,13 @@ export type Database = {
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "employee_invites_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
         ]
       }
       employees: {
@@ -242,6 +249,68 @@ export type Database = {
           vendor_name?: string | null
         }
         Relationships: []
+      }
+      hierarchy_assignments: {
+        Row: {
+          approved_by: string | null
+          change_reason: string | null
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          employee_id: string
+          id: string
+          manager_id: string | null
+        }
+        Insert: {
+          approved_by?: string | null
+          change_reason?: string | null
+          created_at?: string
+          effective_from: string
+          effective_to?: string | null
+          employee_id: string
+          id?: string
+          manager_id?: string | null
+        }
+        Update: {
+          approved_by?: string | null
+          change_reason?: string | null
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          employee_id?: string
+          id?: string
+          manager_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hierarchy_assignments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hierarchy_assignments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "hierarchy_assignments_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hierarchy_assignments_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
       }
       income_goals: {
         Row: {
@@ -362,7 +431,33 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_current_hierarchy: {
+        Row: {
+          effective_from: string | null
+          employee_id: string | null
+          employee_no: string | null
+          first_name: string | null
+          last_name: string | null
+          manager_id: string | null
+          status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hierarchy_assignments_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hierarchy_assignments_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
     }
     Functions: {
       consume_rate_limit: {
@@ -374,6 +469,15 @@ export type Database = {
         Returns: {
           year: number
         }[]
+      }
+      rpc_assign_manager: {
+        Args: {
+          p_effective_from: string
+          p_employee_id: string
+          p_manager_id: string
+          p_reason: string
+        }
+        Returns: string
       }
       rpc_audit_for: {
         Args: { p_entity_id: string; p_entity_type: string }
@@ -388,6 +492,10 @@ export type Database = {
           old_values: Json
           reason: string
         }[]
+      }
+      rpc_cancel_future_assignment: {
+        Args: { p_assignment_id: string; p_reason: string }
+        Returns: undefined
       }
       rpc_create_employee: {
         Args: {
