@@ -13,6 +13,7 @@ vi.mock("../header/HeaderHome", () => ({
   HeaderHome: ({ pageTitle }: { pageTitle?: string }) => <header>{pageTitle}</header>,
 }));
 vi.mock("../footer/MiniFooter", () => ({ MiniFooter: () => null }));
+vi.mock("../notifications/NotificationBell", () => ({ NotificationBell: () => null }));
 vi.mock("../loadingScreen/LoadingScreen", () => ({ LoadingScreen: () => <p>lädt</p> }));
 vi.mock("../../hooks/permissions/usePermissions", () => ({
   usePermissions: () => {

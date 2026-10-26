@@ -72,6 +72,9 @@ const MESSAGES: Record<string, string> = {
   unknown_target: "Unbekanntes Zielfeld.",
   reviewer_not_employee: "Nur aktive Führungskräfte können Ziele freigeben.",
 
+  // tasks
+  owner_inactive: "Die Person ist inaktiv.",
+
   // production
   no_rules_for_date: "Für dieses Datum gibt es keine gültigen Umrechnungsregeln.",
   premium_must_be_positive: "Der Beitrag muss größer als 0 sein.",

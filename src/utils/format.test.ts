@@ -1,6 +1,7 @@
 import Decimal from "decimal.js";
 import { describe, expect, it } from "vitest";
 import {
+  berlinLocalToUtcIso,
   EMPTY_VALUE,
   formatAe,
   formatDate,
@@ -91,5 +92,17 @@ describe("formatDate / formatDateTime", () => {
     expect(formatDateTime("2026-07-01T10:00:00Z")).toBe("01.07.2026, 12:00");
     expect(formatDateTime("2026-12-01T10:00:00Z")).toBe("01.12.2026, 11:00");
     expect(formatDateTime("nope")).toBe(EMPTY_VALUE);
+  });
+});
+
+describe("berlinLocalToUtcIso", () => {
+  it("handles winter (CET) and summer (CEST)", () => {
+    expect(berlinLocalToUtcIso("2026-12-01", "17:00")).toBe("2026-12-01T16:00:00.000Z");
+    expect(berlinLocalToUtcIso("2026-07-01", "17:00")).toBe("2026-07-01T15:00:00.000Z");
+  });
+
+  it("is correct on the switch days", () => {
+    expect(berlinLocalToUtcIso("2026-03-29", "12:00")).toBe("2026-03-29T10:00:00.000Z");
+    expect(berlinLocalToUtcIso("2026-10-25", "12:00")).toBe("2026-10-25T11:00:00.000Z");
   });
 });

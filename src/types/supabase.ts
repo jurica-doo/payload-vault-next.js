@@ -1158,6 +1158,90 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          employee_id: string
+          muted_kinds: string[]
+          updated_at: string
+        }
+        Insert: {
+          employee_id: string
+          muted_kinds?: string[]
+          updated_at?: string
+        }
+        Update: {
+          employee_id?: string
+          muted_kinds?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_preferences_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          critical: boolean
+          id: string
+          kind: string
+          link: string | null
+          read_at: string | null
+          recipient_id: string
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          critical?: boolean
+          id?: string
+          kind: string
+          link?: string | null
+          read_at?: string | null
+          recipient_id: string
+          title: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          critical?: boolean
+          id?: string
+          kind?: string
+          link?: string | null
+          read_at?: string | null
+          recipient_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       pdf_records: {
         Row: {
           category: Database["public"]["Enums"]["document_category"]
@@ -1543,6 +1627,92 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          completion_note: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          linked_id: string | null
+          linked_type: string | null
+          owner_id: string
+          priority: string
+          source: string
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completion_note?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          linked_id?: string | null
+          linked_type?: string | null
+          owner_id: string
+          priority?: string
+          source?: string
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completion_note?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          linked_id?: string | null
+          linked_type?: string | null
+          owner_id?: string
+          priority?: string
+          source?: string
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "tasks_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           granted_at: string
@@ -1907,6 +2077,18 @@ export type Database = {
         Args: { p_effective_from: string; p_kind: string; p_label: string }
         Returns: string
       }
+      rpc_create_task: {
+        Args: {
+          p_description?: string
+          p_due_at?: string
+          p_linked_id?: string
+          p_linked_type?: string
+          p_owner_id: string
+          p_priority?: string
+          p_title: string
+        }
+        Returns: string
+      }
       rpc_dashboard_admin: { Args: never; Returns: Json }
       rpc_dashboard_me: { Args: { p_month?: string }; Returns: Json }
       rpc_dashboard_team: { Args: { p_month?: string }; Returns: Json }
@@ -1936,6 +2118,10 @@ export type Database = {
         Args: { p_kind: string; p_row_count: number; p_scope: Json }
         Returns: undefined
       }
+      rpc_mark_notifications_read: {
+        Args: { p_ids?: string[] }
+        Returns: number
+      }
       rpc_mark_production_eligible: {
         Args: { p_id: string }
         Returns: undefined
@@ -1960,6 +2146,10 @@ export type Database = {
       rpc_promotion_queue: { Args: never; Returns: Json[] }
       rpc_publish_rule_version: {
         Args: { p_reason: string; p_version_id: string }
+        Returns: undefined
+      }
+      rpc_reassign_task: {
+        Args: { p_new_owner: string; p_reason: string; p_task_id: string }
         Returns: undefined
       }
       rpc_retry_commission: {
@@ -1987,6 +2177,7 @@ export type Database = {
         Returns: undefined
       }
       rpc_rules_at: { Args: { p_date?: string }; Returns: Json }
+      rpc_run_task_generators: { Args: never; Returns: Json }
       rpc_save_goal_draft: {
         Args: { p_month: string; p_targets: Json }
         Returns: string
@@ -2024,6 +2215,10 @@ export type Database = {
         }
         Returns: string
       }
+      rpc_set_muted_notifications: {
+        Args: { p_kinds: string[] }
+        Returns: string[]
+      }
       rpc_set_statement_status: {
         Args: { p_month: string; p_reason: string; p_status: string }
         Returns: undefined
@@ -2038,6 +2233,10 @@ export type Database = {
           p_reason: string
         }
         Returns: string
+      }
+      rpc_set_task_status: {
+        Args: { p_note?: string; p_status: string; p_task_id: string }
+        Returns: undefined
       }
       rpc_stage_production_import: {
         Args: { p_file_name: string; p_rows: Json; p_source_system: string }
