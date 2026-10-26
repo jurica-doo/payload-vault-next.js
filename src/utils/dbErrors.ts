@@ -112,6 +112,8 @@ const MESSAGES: Record<string, string> = {
   unknown_source_system: "Unbekanntes Quellsystem.",
   synced_read_only: "Synchronisierte Verträge werden im Vertragsportal gepflegt.",
   external_id_taken: "Diese Kundennummer ist bereits einem anderen Kunden zugeordnet.",
+  wrong_request_kind: "Diese Aktion passt nicht zur Art der Anfrage.",
+  use_dedicated_action: "Auskunft und Löschung werden durch Export bzw. Pseudonymisierung abgeschlossen.",
   renewal_date_unconfirmed: "Für diesen Vertrag ist keine bestätigte Hauptfälligkeit hinterlegt.",
 
   // production

@@ -1453,6 +1453,47 @@ export type Database = {
         }
         Relationships: []
       }
+      export_log: {
+        Row: {
+          actor_id: string | null
+          at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: number
+          kind: string
+          request_id: string | null
+          row_count: number | null
+        }
+        Insert: {
+          actor_id?: string | null
+          at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: never
+          kind: string
+          request_id?: string | null
+          row_count?: number | null
+        }
+        Update: {
+          actor_id?: string | null
+          at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: never
+          kind?: string
+          request_id?: string | null
+          row_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "export_log_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "privacy_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goal_reviews: {
         Row: {
           comment: string | null
@@ -1949,6 +1990,7 @@ export type Database = {
           created_by: string | null
           customer_id: string | null
           email: string | null
+          erased_at: string | null
           first_contact_at: string | null
           first_name: string | null
           id: string
@@ -1987,6 +2029,7 @@ export type Database = {
           created_by?: string | null
           customer_id?: string | null
           email?: string | null
+          erased_at?: string | null
           first_contact_at?: string | null
           first_name?: string | null
           id?: string
@@ -2025,6 +2068,7 @@ export type Database = {
           created_by?: string | null
           customer_id?: string | null
           email?: string | null
+          erased_at?: string | null
           first_contact_at?: string | null
           first_name?: string | null
           id?: string
@@ -2433,6 +2477,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      privacy_requests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          due_at: string
+          handled_by: string | null
+          id: string
+          kind: string
+          note: string | null
+          outcome_note: string | null
+          received_at: string
+          received_via: string
+          request_no: number
+          status: string
+          subject_id: string
+          subject_type: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_at: string
+          handled_by?: string | null
+          id?: string
+          kind: string
+          note?: string | null
+          outcome_note?: string | null
+          received_at?: string
+          received_via: string
+          request_no?: never
+          status?: string
+          subject_id: string
+          subject_type: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_at?: string
+          handled_by?: string | null
+          id?: string
+          kind?: string
+          note?: string | null
+          outcome_note?: string | null
+          received_at?: string
+          received_via?: string
+          request_no?: never
+          status?: string
+          subject_id?: string
+          subject_type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       product_categories: {
         Row: {
@@ -3248,6 +3349,10 @@ export type Database = {
         Returns: undefined
       }
       rpc_career_progress: { Args: { p_employee_id?: string }; Returns: Json }
+      rpc_close_privacy_request: {
+        Args: { p_id: string; p_outcome: string; p_status: string }
+        Returns: undefined
+      }
       rpc_commit_production_import: {
         Args: { p_batch_id: string }
         Returns: number
@@ -3329,6 +3434,8 @@ export type Database = {
         Args: { p_id: string; p_reason: string }
         Returns: undefined
       }
+      rpc_erase_subject: { Args: { p_request_id: string }; Returns: undefined }
+      rpc_export_subject_data: { Args: { p_request_id: string }; Returns: Json }
       rpc_find_customer_duplicates: {
         Args: {
           p_company: string
@@ -3349,6 +3456,10 @@ export type Database = {
           p_last_name: string
           p_phone: string
         }
+        Returns: Json
+      }
+      rpc_find_privacy_subject: {
+        Args: { p_number: number; p_subject_type: string }
         Returns: Json
       }
       rpc_generate_all_periods: { Args: never; Returns: number }
@@ -3412,6 +3523,17 @@ export type Database = {
         Returns: undefined
       }
       rpc_my_context: { Args: never; Returns: Json }
+      rpc_open_privacy_request: {
+        Args: {
+          p_kind: string
+          p_note?: string
+          p_received_at?: string
+          p_received_via: string
+          p_subject_id: string
+          p_subject_type: string
+        }
+        Returns: string
+      }
       rpc_performance_profile: {
         Args: { p_employee_id: string }
         Returns: Json
@@ -3449,6 +3571,7 @@ export type Database = {
         }
         Returns: number
       }
+      rpc_retention_candidates: { Args: never; Returns: Json }
       rpc_retry_commission: {
         Args: { p_calculation_id: string }
         Returns: number

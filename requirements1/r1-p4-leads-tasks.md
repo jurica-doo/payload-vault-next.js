@@ -24,7 +24,7 @@
 | Dashboard actuals from validated records without double counting | Activity counts come from one SQL definition (`rpc_activity_summary`); production stays ledger-based (Phase 3) |
 
 ## Numbers at the end of the phase
-- **582 pgTAP assertions** in 19 files; 38 migrations apply cleanly.
+- **582 pgTAP assertions** in 19 files; 36 migrations apply cleanly.
   - These totals were recounted from each file's `plan()`. The Phase 3 note says 479, but the correct figure is **461**, and the per-slice notes in this phase now use the corrected running totals.
 - **341 unit tests** in 37 files.
 - **47 shared golden IDs** (+7 GC-SLA).
