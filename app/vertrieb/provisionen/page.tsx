@@ -1,5 +1,5 @@
-import { ModulePlaceholder } from "@/views/sales/ModulePlaceholder";
+import { CommissionPage } from "@/views/commission/CommissionPage";
 
 export default function Page() {
-  return <ModulePlaceholder moduleKey="commission" />;
+  return <CommissionPage />;
 }

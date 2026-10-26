@@ -36,7 +36,7 @@ export type ConversionRule = {
 
 export type RulesSnapshot = {
   date: string;
-  levels: { versionId: string; label: string; effectiveFrom: string; rows: CareerLevel[] } | null;
+  levels: { versionId: string; label: string; effectiveFrom: string; reserveRatio: Decimal; rows: CareerLevel[] } | null;
   conversion: {
     versionId: string;
     label: string;
@@ -68,6 +68,7 @@ export function parseRules(payload: unknown): RulesSnapshot {
           versionId: String(levels.version_id),
           label: String(levels.label),
           effectiveFrom: String(levels.effective_from),
+          reserveRatio: dec(levels.reserve_ratio),
           rows: ((levels.rows as Json[]) ?? []).map((r) => ({
             code: r.code as LevelCode,
             rank: Number(r.rank),
