@@ -34,6 +34,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          description: string | null
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       budget_targets: {
         Row: {
           budget_amount: number
@@ -223,6 +247,7 @@ export type Database = {
           year: number
         }[]
       }
+      rpc_my_context: { Args: never; Returns: Json }
     }
     Enums: {
       document_category:

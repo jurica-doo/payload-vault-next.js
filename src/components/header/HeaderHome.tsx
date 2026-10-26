@@ -15,6 +15,8 @@ type HeaderHomeProps = {
   pageTitle?: string;
   pageSubtitle?: string;
   scrollContainerRef?: RefObject<HTMLElement | null>;
+  /** The year filter belongs to the private vault; sales pages hide it. */
+  showYearSelector?: boolean;
 };
 
 export const HeaderHome = ({
@@ -23,6 +25,7 @@ export const HeaderHome = ({
   pageTitle,
   pageSubtitle,
   scrollContainerRef,
+  showYearSelector = true,
 }: HeaderHomeProps) => {
   const { user } = useAuth();
   const { year, setYear, availableYears } = useYear();
@@ -178,13 +181,15 @@ export const HeaderHome = ({
 
   const controlsBlock = (
     <>
-      <div className="w-28 sm:w-40 md:w-36 lg:w-40">
-        <Dropdown
-          options={options}
-          value={selectedYear}
-          onSelect={handleYearChange}
-        />
-      </div>
+      {showYearSelector && (
+        <div className="w-28 sm:w-40 md:w-36 lg:w-40">
+          <Dropdown
+            options={options}
+            value={selectedYear}
+            onSelect={handleYearChange}
+          />
+        </div>
+      )}
 
       <div className="relative shrink-0" data-nav-wrapper ref={navigationRef}>
         <button
