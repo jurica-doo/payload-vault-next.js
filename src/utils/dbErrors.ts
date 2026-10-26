@@ -75,6 +75,11 @@ const MESSAGES: Record<string, string> = {
   // tasks
   owner_inactive: "Die Person ist inaktiv.",
 
+  // activities
+  date_in_future: "Das Datum darf nicht in der Zukunft liegen.",
+  appointment_in_future: "Der Termin liegt noch in der Zukunft. Er kann erst danach als durchgeführt oder nicht erschienen markiert werden.",
+  not_an_appointment: "Das ist kein Termin.",
+
   // production
   no_rules_for_date: "Für dieses Datum gibt es keine gültigen Umrechnungsregeln.",
   premium_must_be_positive: "Der Beitrag muss größer als 0 sein.",

@@ -21,6 +21,8 @@ import { formatDate, formatPoints, safeRatio, toDecimal } from "../../utils/form
 import { goalStatus } from "../goals/GoalsPage";
 import { useCoaching } from "../../hooks/useCoaching/useCoaching";
 import { historicalAverage, projectCareer, projectMonthEnd } from "../../domain/forecast";
+import { useActivitySummary } from "../../hooks/useActivities/useActivities";
+import { monthWindow } from "../activities/ActivitiesPage";
 
 const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
 const monthShort = (iso: string) => MONTHS[Number(iso.slice(5, 7)) - 1];
@@ -48,6 +50,25 @@ const delta = (actual: unknown, target: unknown) => {
   return r === null ? null : r.minus(1);
 };
 
+/** Activity counts for the dashboard month against the goal's activity targets. */
+const MyActivities = ({ d }: { d: MyDashboard }) => {
+  const { permissions } = usePermissions();
+  const { from, to } = monthWindow(d.month);
+  const { data: s } = useActivitySummary(permissions.employeeId, from, to);
+  if (!s) return null;
+  const t = d.goal?.targets;
+  const vsGoal = (actual: number, key: "appointments_booked" | "appointments_held" | "offers" | "followups") =>
+    t?.[key] !== undefined ? { ratio: delta(actual, t[key]), comparedTo: `ggü. Ziel ${t[key]}` } : undefined;
+  return (
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <KpiTile label="Termine vereinbart" value={s.appointments_booked} delta={vsGoal(s.appointments_booked, "appointments_booked")} />
+      <KpiTile label="Termine durchgeführt" value={s.appointments_held} delta={vsGoal(s.appointments_held, "appointments_held")} hint={`${s.no_shows} nicht erschienen`} />
+      <KpiTile label="Angebote" value={s.offers} delta={vsGoal(s.offers, "offers")} />
+      <KpiTile label="Nachfassen" value={s.followups} delta={vsGoal(s.followups, "followups")} hint={<Link href="/vertrieb/aufgaben/aktivitaeten">Aktivitäten erfassen</Link>} />
+    </div>
+  );
+};
+
 const MySection = ({ d }: { d: MyDashboard }) => {
   const target = d.goal?.targets.points;
   const c = d.career;
@@ -72,6 +93,8 @@ const MySection = ({ d }: { d: MyDashboard }) => {
         <KpiTile label="AE" value={<AeValue value={d.production.ae} />} hint={`Jahr: ${formatPoints(d.year.points)} P`} />
         <KpiTile label="Provision nach Reserve" value={<MoneyValue value={d.commission.net} />} hint="In diesem Monat gebucht" />
       </div>
+
+      <MyActivities d={d} />
 
       {monthEnd && (
         <div className="grid gap-3 sm:grid-cols-2">

@@ -108,7 +108,10 @@ export const TasksPage = () => {
             ))}
           </div>
         ) : <span />}
-        <Button text="Aufgabe anlegen" onClick={() => openModal({ title: "Aufgabe anlegen", children: <TaskForm onDone={closeModal} /> })} />
+        <span className="flex items-center gap-3">
+          <Link href="/vertrieb/aufgaben/aktivitaeten" className="text-sm font-semibold">Aktivitäten &amp; Termine</Link>
+          <Button text="Aufgabe anlegen" onClick={() => openModal({ title: "Aufgabe anlegen", children: <TaskForm onDone={closeModal} /> })} />
+        </span>
       </div>
 
       {isLoading ? <p className="text-sm">Lädt…</p> : (

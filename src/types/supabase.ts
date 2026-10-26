@@ -34,6 +34,97 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          linked_id: string | null
+          linked_type: string | null
+          notes: string | null
+          occurred_at: string
+          outcome: string | null
+          owner_id: string
+          production_id: string | null
+          scheduled_at: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          linked_id?: string | null
+          linked_type?: string | null
+          notes?: string | null
+          occurred_at?: string
+          outcome?: string | null
+          owner_id: string
+          production_id?: string | null
+          scheduled_at?: string | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          linked_id?: string | null
+          linked_type?: string | null
+          notes?: string | null
+          occurred_at?: string
+          outcome?: string | null
+          owner_id?: string
+          production_id?: string | null
+          scheduled_at?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "activities_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "activities_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "production_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_production_id_fkey"
+            columns: ["production_id"]
+            isOneToOne: false
+            referencedRelation: "v_production"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           description: string | null
@@ -1994,6 +2085,10 @@ export type Database = {
           year: number
         }[]
       }
+      rpc_activity_summary: {
+        Args: { p_employee_id: string; p_from: string; p_to: string }
+        Returns: Json
+      }
       rpc_add_coaching_note: {
         Args: { p_body: string; p_employee_id: string; p_visibility: string }
         Returns: string
@@ -2114,6 +2209,19 @@ export type Database = {
         Returns: undefined
       }
       rpc_issue_invite: { Args: { p_employee_id: string }; Returns: Json }
+      rpc_log_activity: {
+        Args: {
+          p_linked_id?: string
+          p_linked_type?: string
+          p_notes?: string
+          p_occurred_at?: string
+          p_outcome?: string
+          p_owner_id?: string
+          p_scheduled_at?: string
+          p_type: string
+        }
+        Returns: string
+      }
       rpc_log_export: {
         Args: { p_kind: string; p_row_count: number; p_scope: Json }
         Returns: undefined
@@ -2197,6 +2305,10 @@ export type Database = {
           p_term_years: number
         }
         Returns: string
+      }
+      rpc_set_appointment_outcome: {
+        Args: { p_activity_id: string; p_notes?: string; p_outcome: string }
+        Returns: undefined
       }
       rpc_set_coaching_action_status: {
         Args: { p_action_id: string; p_status: string }
