@@ -110,3 +110,13 @@ GRANT ALL ON supabase_migrations.schema_migrations TO postgres;
 GRANT USAGE ON SCHEMA auth TO postgres;
 GRANT ALL ON auth.users TO postgres;
 GRANT TRIGGER ON auth.users TO postgres;
+
+-- ------------------------------------------------------------
+-- auth.users columns the image's older GoTrue schema lacks but hosted
+-- projects have (our triggers react to email_confirmed_at).
+-- ------------------------------------------------------------
+ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS email_confirmed_at timestamptz;
+ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS phone text;
+ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS banned_until timestamptz;
+ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS deleted_at timestamptz;
+ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS is_anonymous boolean NOT NULL DEFAULT false;

@@ -387,3 +387,10 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/extract-data-from-expense-image/deno.json"
 entrypoint = "./functions/extract-data-from-expense-image/index.ts"
+# JWT is verified inside the function (it needs the caller's token for the
+# user-scoped RPC anyway), matching extract-data-from-expense-image.
+[functions.invite-employee]
+enabled = true
+verify_jwt = false
+import_map = "./functions/invite-employee/deno.json"
+entrypoint = "./functions/invite-employee/index.ts"
