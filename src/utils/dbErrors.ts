@@ -97,6 +97,13 @@ const MESSAGES: Record<string, string> = {
   invalid_input: "Bitte prüfen Sie Ihre Eingaben.",
   append_only: "Verlaufseinträge können nicht geändert werden.",
 
+  // customers
+  customer_name_required: "Bitte einen Nachnamen oder eine Firma angeben.",
+  invalid_date_of_birth: "Das Geburtsdatum ist ungültig.",
+  customer_erased: "Die Daten dieses Kunden wurden gelöscht (pseudonymisiert).",
+  already_converted: "Dieser Lead wurde bereits in einen Kunden umgewandelt.",
+  lead_unassigned: "Der Lead muss zuerst einer Person zugewiesen werden.",
+
   // production
   no_rules_for_date: "Für dieses Datum gibt es keine gültigen Umrechnungsregeln.",
   premium_must_be_positive: "Der Beitrag muss größer als 0 sein.",
