@@ -4,7 +4,7 @@
 |---|---|
 | Branch | `r1/p4/task-engine` → merged into `r1/p4-leads-tasks` |
 | Plan section | IMPLEMENTATION_PLAN.md §3.6, §6 Phase 4 · `r1/p4/task-engine`; spec §11 |
-| Status | Done; 28 new pgTAP assertions (507 total), 5 new unit tests (312 total) |
+| Status | Done; 28 new pgTAP assertions (489 total), 5 new unit tests (312 total) |
 | Date | 2026-10-28 |
 
 ## What was done
