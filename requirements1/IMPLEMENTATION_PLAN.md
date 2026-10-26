@@ -442,6 +442,7 @@ Each slice lists: **Scope → DB → UI → Edge cases → Tests → Done when**
 | OD-16 | Retention periods per data class | None deleted automatically | p5/privacy-ops |
 | OD-17 | May leaders see descendants' commission amounts | Off by default (`app_settings`) | p2/finance-ui |
 | OD-18 | Remuneration for Strom/Gas/Kfz | Out of scope; 0 P / 0 AE | — |
+| OD-19 | Lead SLA: first-contact hours, working day, holiday region (§9.3) | 8 business hours, Mon–Fri 09:00–17:00 Berlin, nationwide holidays; counted from receipt; manager notified on breach. Admin can change it at /admin/leads | p4/leads |
 
 ---
 

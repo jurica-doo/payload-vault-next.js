@@ -47,7 +47,7 @@ Spec: §8.2 (consistent funnel definitions), §9.1 (activities on leads), §13 (
 1. Log a contact attempt with "nicht erreicht", then one with "erreicht": the reach rate tile shows 50 %, with "erreicht ÷ Versuche" written next to it.
 2. Book an appointment for tomorrow: it shows **vereinbart** and only offers "abgesagt"/"verschoben". Try "durchgeführt" through the API → rejected.
 3. Book one for an hour ago (date today, earlier time): it shows **Ergebnis fehlt** with all four outcomes.
-4. As a team leader, open a report's profile/team views: their activities are visible; as a peer they are not.
+4. As a team leader, the reports' activities are readable (RLS; the lead detail in `r1/p4/leads` shows them per lead); as a peer they are not.
 5. The dashboard tiles compare with the goal only when the goal has that target; otherwise no delta is shown.
 
 ## Edge cases & decisions
