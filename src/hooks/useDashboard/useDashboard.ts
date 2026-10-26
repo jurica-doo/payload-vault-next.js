@@ -18,7 +18,7 @@ export type MyDashboard = {
   career: {
     status: string; reason: string | null; level: string | null; target: string | null;
     eligible: Num | null; required: Num | null; eligible_kv: Num | null; kv_required: Num | null;
-    expected_now: Num | null; period_end: string | null;
+    expected_now: Num | null; period_end: string | null; window_start: string | null;
   };
   commission: { gross: Num; net: Num };
   todo: { drafts: number; goal_missing: boolean; goals_to_review: number };
