@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -57,12 +58,15 @@ export const CustomersPage = () => {
             </button>
           ))}
         </div>
+        <span className="flex items-center gap-3">
+        {(permissions.isCompliance || permissions.isAdmin) && <Link href="/vertrieb/kunden/datenschutz" className="text-sm font-semibold">Datenschutz</Link>}
         {me && (
           <Button text="Kunde anlegen" onClick={() => openModal({
             title: "Kunde anlegen", size: "large",
             children: <CustomerForm onDone={(id) => { closeModal(); router.push(`/vertrieb/kunden/${id}`); }} />,
           })} />
         )}
+        </span>
       </div>
       <input type="search" aria-label="Suche" placeholder="Name, Firma, K-Nummer, Telefon, E-Mail, PLZ" value={query} onChange={(e) => setQuery(e.target.value)}
         className="rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-2 text-sm" />
