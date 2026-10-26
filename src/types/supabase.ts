@@ -88,6 +88,152 @@ export type Database = {
         }
         Relationships: []
       }
+      career_level_history: {
+        Row: {
+          approved_by: string | null
+          created_at: string
+          effective_from: string
+          employee_id: string
+          evidence: Json | null
+          id: string
+          level_code: string
+          reason: string | null
+          source: string
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string
+          effective_from: string
+          employee_id: string
+          evidence?: Json | null
+          id?: string
+          level_code: string
+          reason?: string | null
+          source: string
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string
+          effective_from?: string
+          employee_id?: string
+          evidence?: Json | null
+          id?: string
+          level_code?: string
+          reason?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "career_level_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "career_level_history_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      career_levels: {
+        Row: {
+          code: string
+          id: string
+          kv_min_ratio: number
+          max_subsidy: number | null
+          name_de: string
+          point_rate: number
+          rank: number
+          rule_version_id: string
+          structure_cap_ratio: number | null
+          threshold_points: number
+        }
+        Insert: {
+          code: string
+          id?: string
+          kv_min_ratio?: number
+          max_subsidy?: number | null
+          name_de: string
+          point_rate: number
+          rank: number
+          rule_version_id: string
+          structure_cap_ratio?: number | null
+          threshold_points: number
+        }
+        Update: {
+          code?: string
+          id?: string
+          kv_min_ratio?: number
+          max_subsidy?: number | null
+          name_de?: string
+          point_rate?: number
+          rank?: number
+          rule_version_id?: string
+          structure_cap_ratio?: number | null
+          threshold_points?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "career_levels_rule_version_id_fkey"
+            columns: ["rule_version_id"]
+            isOneToOne: false
+            referencedRelation: "rule_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversion_rules: {
+        Row: {
+          category_code: string
+          divisor: number | null
+          formula_kind: string
+          id: string
+          max_term_years: number | null
+          required_net_gross: string | null
+          required_premium_period: string | null
+          rule_version_id: string
+        }
+        Insert: {
+          category_code: string
+          divisor?: number | null
+          formula_kind: string
+          id?: string
+          max_term_years?: number | null
+          required_net_gross?: string | null
+          required_premium_period?: string | null
+          rule_version_id: string
+        }
+        Update: {
+          category_code?: string
+          divisor?: number | null
+          formula_kind?: string
+          id?: string
+          max_term_years?: number | null
+          required_net_gross?: string | null
+          required_premium_period?: string | null
+          rule_version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversion_rules_category_code_fkey"
+            columns: ["category_code"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "conversion_rules_rule_version_id_fkey"
+            columns: ["rule_version_id"]
+            isOneToOne: false
+            referencedRelation: "rule_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       edge_rate_limits: {
         Row: {
           count: number
@@ -381,6 +527,72 @@ export type Database = {
         }
         Relationships: []
       }
+      product_categories: {
+        Row: {
+          active: boolean
+          code: string
+          is_kv: boolean
+          name_de: string
+          sort: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          is_kv?: boolean
+          name_de: string
+          sort?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          is_kv?: boolean
+          name_de?: string
+          sort?: number
+        }
+        Relationships: []
+      }
+      rule_versions: {
+        Row: {
+          ae_per_point: number | null
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          id: string
+          kind: string
+          label: string
+          notes: string | null
+          published_at: string | null
+          published_by: string | null
+          status: string
+        }
+        Insert: {
+          ae_per_point?: number | null
+          created_at?: string
+          created_by?: string | null
+          effective_from: string
+          id?: string
+          kind: string
+          label: string
+          notes?: string | null
+          published_at?: string | null
+          published_by?: string | null
+          status?: string
+        }
+        Update: {
+          ae_per_point?: number | null
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          id?: string
+          kind?: string
+          label?: string
+          notes?: string | null
+          published_at?: string | null
+          published_by?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       signup_allowlist: {
         Row: {
           created_at: string
@@ -509,6 +721,14 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_create_rule_draft: {
+        Args: { p_effective_from: string; p_kind: string; p_label: string }
+        Returns: string
+      }
+      rpc_delete_rule_draft: {
+        Args: { p_version_id: string }
+        Returns: undefined
+      }
       rpc_grant_role: {
         Args: {
           p_reason: string
@@ -519,6 +739,10 @@ export type Database = {
       }
       rpc_issue_invite: { Args: { p_employee_id: string }; Returns: Json }
       rpc_my_context: { Args: never; Returns: Json }
+      rpc_publish_rule_version: {
+        Args: { p_reason: string; p_version_id: string }
+        Returns: undefined
+      }
       rpc_revoke_invite: {
         Args: { p_employee_id: string; p_reason: string }
         Returns: undefined
@@ -531,9 +755,29 @@ export type Database = {
         }
         Returns: undefined
       }
+      rpc_rules_at: { Args: { p_date?: string }; Returns: Json }
       rpc_set_employee_active: {
         Args: { p_active: boolean; p_employee_id: string; p_reason: string }
         Returns: string
+      }
+      rpc_set_employee_level: {
+        Args: {
+          p_effective_from: string
+          p_employee_id: string
+          p_level_code: string
+          p_reason: string
+        }
+        Returns: string
+      }
+      rpc_update_conversion_draft: {
+        Args: {
+          p_ae_per_point: number
+          p_category_code: string
+          p_divisor: number
+          p_max_term_years: number
+          p_version_id: string
+        }
+        Returns: undefined
       }
       rpc_update_employee: {
         Args: {
@@ -544,6 +788,18 @@ export type Database = {
           p_phone: string
           p_reason: string
           p_start_date: string
+        }
+        Returns: undefined
+      }
+      rpc_update_level_draft: {
+        Args: {
+          p_code: string
+          p_kv_min_ratio: number
+          p_max_subsidy: number
+          p_point_rate: number
+          p_structure_cap_ratio: number
+          p_threshold_points: number
+          p_version_id: string
         }
         Returns: undefined
       }
