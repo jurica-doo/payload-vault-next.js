@@ -1141,6 +1141,60 @@ export type Database = {
         }
         Relationships: []
       }
+      subsidy_records: {
+        Row: {
+          approved_amount: number
+          approved_by: string | null
+          coverage_note: string
+          created_at: string
+          employee_id: string
+          id: string
+          max_amount_snapshot: number | null
+          month: string
+          override_reason: string | null
+          status: string
+        }
+        Insert: {
+          approved_amount: number
+          approved_by?: string | null
+          coverage_note: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          max_amount_snapshot?: number | null
+          month: string
+          override_reason?: string | null
+          status?: string
+        }
+        Update: {
+          approved_amount?: number
+          approved_by?: string | null
+          coverage_note?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          max_amount_snapshot?: number | null
+          month?: string
+          override_reason?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subsidy_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subsidy_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           granted_at: string
@@ -1521,6 +1575,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      rpc_revoke_subsidy: {
+        Args: { p_employee_id: string; p_month: string; p_reason: string }
+        Returns: undefined
+      }
       rpc_rules_at: { Args: { p_date?: string }; Returns: Json }
       rpc_save_production: {
         Args: {
@@ -1555,6 +1613,17 @@ export type Database = {
         Args: { p_month: string; p_reason: string; p_status: string }
         Returns: undefined
       }
+      rpc_set_subsidy: {
+        Args: {
+          p_amount: number
+          p_coverage_note: string
+          p_employee_id: string
+          p_month: string
+          p_override_reason?: string
+          p_reason: string
+        }
+        Returns: string
+      }
       rpc_stage_production_import: {
         Args: { p_file_name: string; p_rows: Json; p_source_system: string }
         Returns: string
@@ -1573,6 +1642,7 @@ export type Database = {
           recipient_id: string
           recipient_name: string
           reserve: number
+          subsidy: number
         }[]
       }
       rpc_submit_production: { Args: { p_id: string }; Returns: undefined }
