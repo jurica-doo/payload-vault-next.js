@@ -19,6 +19,7 @@ const funnel = (scope: string) => ({
 
 vi.mock("../../hooks/permissions/usePermissions", () => ({ usePermissions: () => ({ permissions: state.perms }) }));
 vi.mock("../../hooks/useLeads/useLeads", () => ({
+  useSourceTrends: () => ({ data: [] }),
   useLeadFunnel: (_f: string, _t: string, scope: string) => { state.lastScope = scope; return { data: funnel(scope), isLoading: false, error: null }; },
 }));
 
