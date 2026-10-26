@@ -627,6 +627,65 @@ export type Database = {
         }
         Relationships: []
       }
+      goal_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          decision: string
+          goal_id: string
+          id: string
+          reviewer_id: string
+          version: number
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          decision: string
+          goal_id: string
+          id?: string
+          reviewer_id: string
+          version: number
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          decision?: string
+          goal_id?: string
+          id?: string
+          reviewer_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_reviews_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_reviews_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "v_goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       hierarchy_assignments: {
         Row: {
           approved_by: string | null
@@ -809,6 +868,102 @@ export type Database = {
           year?: number
         }
         Relationships: []
+      }
+      monthly_goal_versions: {
+        Row: {
+          employee_comment: string | null
+          goal_id: string
+          id: string
+          submitted_at: string
+          submitted_by: string | null
+          targets: Json
+          version: number
+        }
+        Insert: {
+          employee_comment?: string | null
+          goal_id: string
+          id?: string
+          submitted_at?: string
+          submitted_by?: string | null
+          targets: Json
+          version: number
+        }
+        Update: {
+          employee_comment?: string | null
+          goal_id?: string
+          id?: string
+          submitted_at?: string
+          submitted_by?: string | null
+          targets?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_goal_versions_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_goal_versions_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "v_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_goals: {
+        Row: {
+          created_at: string
+          current_version: number
+          draft: Json
+          employee_id: string
+          id: string
+          late: boolean
+          month: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_version?: number
+          draft?: Json
+          employee_id: string
+          id?: string
+          late?: boolean
+          month: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_version?: number
+          draft?: Json
+          employee_id?: string
+          id?: string
+          late?: boolean
+          month?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_goals_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_goals_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
       }
       pdf_records: {
         Row: {
@@ -1371,6 +1526,39 @@ export type Database = {
           },
         ]
       }
+      v_goals: {
+        Row: {
+          created_at: string | null
+          current_version: number | null
+          draft: Json | null
+          employee_id: string | null
+          employee_name: string | null
+          id: string | null
+          last_review_comment: string | null
+          late: boolean | null
+          month: string | null
+          reviewer_id: string | null
+          status: string | null
+          submitted_targets: Json | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_goals_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_goals_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       v_production: {
         Row: {
           ae: number | null
@@ -1563,6 +1751,10 @@ export type Database = {
         Args: { p_calculation_id: string }
         Returns: number
       }
+      rpc_review_goal: {
+        Args: { p_comment?: string; p_decision: string; p_goal_id: string }
+        Returns: undefined
+      }
       rpc_revoke_invite: {
         Args: { p_employee_id: string; p_reason: string }
         Returns: undefined
@@ -1580,6 +1772,10 @@ export type Database = {
         Returns: undefined
       }
       rpc_rules_at: { Args: { p_date?: string }; Returns: Json }
+      rpc_save_goal_draft: {
+        Args: { p_month: string; p_targets: Json }
+        Returns: string
+      }
       rpc_save_production: {
         Args: {
           p_category_code: string
@@ -1644,6 +1840,10 @@ export type Database = {
           reserve: number
           subsidy: number
         }[]
+      }
+      rpc_submit_goal: {
+        Args: { p_comment?: string; p_goal_id: string }
+        Returns: number
       }
       rpc_submit_production: { Args: { p_id: string }; Returns: undefined }
       rpc_update_conversion_draft: {

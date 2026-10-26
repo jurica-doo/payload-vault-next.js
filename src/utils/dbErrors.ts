@@ -61,6 +61,17 @@ const MESSAGES: Record<string, string> = {
   subsidy_above_maximum: "Über dem Höchstbetrag der Stufe, bei FA oder Teilzeit nur mit Ausnahme-Begründung.",
   producer_without_level: "Für die Person ist keine Karrierestufe hinterlegt.",
 
+  // goals
+  month_closed: "Vergangene Monate können nicht mehr geändert werden.",
+  month_too_far: "Ziele können höchstens zwei Monate im Voraus geplant werden.",
+  awaiting_review: "Das Ziel wartet auf Freigabe und kann gerade nicht geändert werden.",
+  goal_empty: "Bitte mindestens einen Zielwert eintragen.",
+  cannot_review_own: "Eigene Ziele können nicht selbst freigegeben werden.",
+  kv_above_points: "Das KV-Ziel darf nicht größer als das Punkteziel sein.",
+  invalid_target_value: "Bitte nur positive Zahlen eintragen (Anzahlen ohne Nachkommastellen).",
+  unknown_target: "Unbekanntes Zielfeld.",
+  reviewer_not_employee: "Nur aktive Führungskräfte können Ziele freigeben.",
+
   // production
   no_rules_for_date: "Für dieses Datum gibt es keine gültigen Umrechnungsregeln.",
   premium_must_be_positive: "Der Beitrag muss größer als 0 sein.",
