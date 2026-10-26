@@ -12,7 +12,7 @@ const me = {
   year: { points: "120", kv_points: "20", ae: "3360" },
   trend: [{ month: "2026-05-01", points: 0 }, { month: "2026-10-01", points: 15 }],
   goal: { status: "approved", targets: { points: 20 } },
-  career: { status: "in_progress", reason: null, level: "FA", target: "FB", eligible: "80", required: "100", eligible_kv: "5", kv_required: "10", expected_now: "82", period_end: "2027-01-01" },
+  career: { status: "in_progress", reason: null, level: "FA", target: "FB", eligible: "80", required: "100", eligible_kv: "5", kv_required: "10", expected_now: "82", period_end: "2027-01-01", window_start: "2026-01-01" },
   commission: { gross: "420", net: "378" },
   todo: { drafts: 2, goal_missing: false, goals_to_review: 0 },
 };
@@ -53,6 +53,13 @@ describe("DashboardPage", () => {
     render(<DashboardPage />);
     expect(screen.getByText("Vereinbarte Maßnahmen")).toBeInTheDocument();
     expect(screen.getByText("Zwei KV-Termine")).toBeInTheDocument();
+  });
+
+  it("labels forecasts as estimates and states the method (§7.5)", () => {
+    render(<DashboardPage />);
+    expect(screen.getByText("Prognose Monatsende")).toBeInTheDocument();
+    expect(screen.getByText(/Hochrechnung: bisheriges Tempo \(26 von 31 Tagen\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Lineare Hochrechnung bis Periodenende/)).toBeInTheDocument();
   });
 
   it("lists open to-dos with links", () => {

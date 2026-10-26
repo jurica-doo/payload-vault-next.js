@@ -2,7 +2,7 @@
 -- r1/p3/dashboards
 -- ============================================================
 BEGIN;
-SELECT plan(18);
+SELECT plan(19);
 
 SELECT tests.create_user('admin@test.local', true) AS admin \gset
 SELECT tests.grant_role(:'admin', 'admin');
@@ -49,6 +49,7 @@ SELECT is((:'d'::jsonb -> 'trend' -> 5 ->> 'points')::numeric, 10::numeric, 'tre
 SELECT is(:'d'::jsonb -> 'goal' ->> 'status', 'draft', 'goal status included');
 SELECT is((:'d'::jsonb -> 'goal' -> 'targets' ->> 'points')::numeric, 20::numeric, 'goal targets included');
 SELECT is(:'d'::jsonb -> 'career' ->> 'target', 'FB', 'career summary included');
+SELECT is(:'d'::jsonb -> 'career' ->> 'window_start', '2026-01-01', 'career window start for the forecast');
 SELECT is((:'d'::jsonb -> 'commission' ->> 'gross')::numeric, 420.00::numeric, 'commission booked this month (280 + 140)');
 SELECT is((:'d'::jsonb -> 'todo' ->> 'drafts')::int, 1, 'open drafts counted');
 
