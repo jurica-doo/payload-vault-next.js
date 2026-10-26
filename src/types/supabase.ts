@@ -186,6 +186,48 @@ export type Database = {
           },
         ]
       }
+      career_periods: {
+        Row: {
+          created_at: string
+          employee_id: string
+          end_date: string
+          id: string
+          period_type: string
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          end_date: string
+          id?: string
+          period_type: string
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          end_date?: string
+          id?: string
+          period_type?: string
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "career_periods_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "career_periods_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       conversion_rules: {
         Row: {
           category_code: string
@@ -1011,6 +1053,10 @@ export type Database = {
           year: number
         }[]
       }
+      rpc_approve_promotion: {
+        Args: { p_employee_id: string; p_reason: string }
+        Returns: string
+      }
       rpc_assign_manager: {
         Args: {
           p_effective_from: string
@@ -1042,6 +1088,7 @@ export type Database = {
         Args: { p_id: string; p_reason: string }
         Returns: undefined
       }
+      rpc_career_progress: { Args: { p_employee_id?: string }; Returns: Json }
       rpc_commit_production_import: {
         Args: { p_batch_id: string }
         Returns: number
@@ -1082,6 +1129,7 @@ export type Database = {
         Args: { p_version_id: string }
         Returns: undefined
       }
+      rpc_generate_all_periods: { Args: never; Returns: number }
       rpc_grant_role: {
         Args: {
           p_reason: string
@@ -1108,6 +1156,7 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_promotion_queue: { Args: never; Returns: Json[] }
       rpc_publish_rule_version: {
         Args: { p_reason: string; p_version_id: string }
         Returns: undefined

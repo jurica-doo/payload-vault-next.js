@@ -21,6 +21,11 @@ const AREAS = [
     title: "Regeln",
     description: "Karrierestufen, Sätze und Punkteumrechnung – versioniert mit Stichtag.",
   },
+  {
+    href: "/admin/befoerderungen",
+    title: "Beförderungen",
+    description: "Qualifizierte Mitarbeitende prüfen und befördern.",
+  },
 ];
 
 export const AdminHomePage = () => {

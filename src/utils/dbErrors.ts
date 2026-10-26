@@ -47,6 +47,10 @@ const MESSAGES: Record<string, string> = {
   invalid_kind: "Unbekannte Regelart.",
   before_latest_level: "Das Datum liegt vor dem letzten Stufeneintrag.",
 
+  // career
+  not_qualified: "Die Person ist derzeit nicht qualifiziert.",
+  level_changed_today: "Die Stufe wurde heute bereits geändert.",
+
   // production
   no_rules_for_date: "Für dieses Datum gibt es keine gültigen Umrechnungsregeln.",
   premium_must_be_positive: "Der Beitrag muss größer als 0 sein.",
