@@ -728,6 +728,212 @@ export type Database = {
           },
         ]
       }
+      customer_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          customer_id: string
+          from_owner: string | null
+          id: number
+          reason: string | null
+          to_owner: string | null
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          customer_id: string
+          from_owner?: string | null
+          id?: never
+          reason?: string | null
+          to_owner?: string | null
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          customer_id?: string
+          from_owner?: string | null
+          id?: never
+          reason?: string | null
+          to_owner?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "customer_assignments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_assignments_from_owner_fkey"
+            columns: ["from_owner"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_assignments_from_owner_fkey"
+            columns: ["from_owner"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "customer_assignments_to_owner_fkey"
+            columns: ["to_owner"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_assignments_to_owner_fkey"
+            columns: ["to_owner"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          archived_at: string | null
+          city: string | null
+          company: string | null
+          created_at: string
+          created_by: string | null
+          customer_no: number
+          date_of_birth: string | null
+          email: string | null
+          erased_at: string | null
+          external_id: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          last_synced_at: string | null
+          lead_id: string | null
+          next_follow_up_at: string | null
+          notes: string | null
+          owner_id: string
+          phone: string | null
+          postal_code: string | null
+          preferred_channel: string
+          preferred_name: string | null
+          search_name: string | null
+          source_system: string | null
+          status: string
+          street: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          city?: string | null
+          company?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_no?: never
+          date_of_birth?: string | null
+          email?: string | null
+          erased_at?: string | null
+          external_id?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          last_synced_at?: string | null
+          lead_id?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          owner_id: string
+          phone?: string | null
+          postal_code?: string | null
+          preferred_channel?: string
+          preferred_name?: string | null
+          search_name?: string | null
+          source_system?: string | null
+          status?: string
+          street?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          city?: string | null
+          company?: string | null
+          created_at?: string
+          created_by?: string | null
+          customer_no?: never
+          date_of_birth?: string | null
+          email?: string | null
+          erased_at?: string | null
+          external_id?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          last_synced_at?: string | null
+          lead_id?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          owner_id?: string
+          phone?: string | null
+          postal_code?: string | null
+          preferred_channel?: string
+          preferred_name?: string | null
+          search_name?: string | null
+          source_system?: string | null
+          status?: string
+          street?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "customers_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: true
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customers_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+        ]
+      }
       edge_rate_limits: {
         Row: {
           count: number
@@ -1555,6 +1761,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_current_hierarchy"
             referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "leads_customer_fk"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "leads_merged_into_fkey"
@@ -2562,6 +2775,14 @@ export type Database = {
         Args: { p_employee_id: string; p_reason: string }
         Returns: string
       }
+      rpc_archive_customer: {
+        Args: { p_archived: boolean; p_customer_id: string; p_reason: string }
+        Returns: undefined
+      }
+      rpc_assign_customer: {
+        Args: { p_customer_id: string; p_owner_id: string; p_reason: string }
+        Returns: undefined
+      }
       rpc_assign_lead: {
         Args: { p_lead_id: string; p_owner_id: string; p_reason?: string }
         Returns: Json
@@ -2602,6 +2823,10 @@ export type Database = {
         Args: { p_batch_id: string }
         Returns: number
       }
+      rpc_convert_lead: {
+        Args: { p_confirm_duplicates?: boolean; p_lead_id: string }
+        Returns: string
+      }
       rpc_correct_production: {
         Args: {
           p_id: string
@@ -2613,6 +2838,14 @@ export type Database = {
           p_term_years: number
         }
         Returns: undefined
+      }
+      rpc_create_customer: {
+        Args: {
+          p_confirm_duplicates?: boolean
+          p_data: Json
+          p_owner_id?: string
+        }
+        Returns: string
       }
       rpc_create_employee: {
         Args: {
@@ -2665,6 +2898,17 @@ export type Database = {
       rpc_dismiss_exception: {
         Args: { p_id: string; p_reason: string }
         Returns: undefined
+      }
+      rpc_find_customer_duplicates: {
+        Args: {
+          p_company: string
+          p_email: string
+          p_exclude?: string
+          p_first_name: string
+          p_last_name: string
+          p_phone: string
+        }
+        Returns: Json
       }
       rpc_find_lead_duplicates: {
         Args: {
@@ -2909,6 +3153,10 @@ export type Database = {
           p_max_term_years: number
           p_version_id: string
         }
+        Returns: undefined
+      }
+      rpc_update_customer: {
+        Args: { p_customer_id: string; p_data: Json }
         Returns: undefined
       }
       rpc_update_employee: {

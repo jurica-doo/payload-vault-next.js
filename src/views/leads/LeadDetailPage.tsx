@@ -27,6 +27,7 @@ import { normalizeEmail, normalizePhone } from "../../domain/normalize";
 import { berlinLocalToUtcIso, formatDateTime } from "../../utils/format";
 import { ActivityPanel } from "../activities/ActivityPanel";
 import { Select } from "./LeadForm";
+import { ConvertLead } from "./ConvertLead";
 import { SLA_BADGE } from "./LeadsPage";
 
 const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
@@ -68,6 +69,7 @@ const LeadDetail = ({ leadId }: { leadId: string }) => {
       <Link href="/vertrieb/leads" className="text-sm font-semibold">← Leads</Link>
       <header className="flex flex-col gap-2">
         <h1 className="text-xl font-semibold">{leadName(lead)} <span className="text-sm font-normal text-color-text-subtle">{leadNo(lead.lead_no)}</span></h1>
+        <ConvertLead lead={lead} />
         <StageStepper stages={mainPath} currentId={current?.kind === "open" ? lead.stage : lastOpen} outcome={outcome} />
       </header>
 

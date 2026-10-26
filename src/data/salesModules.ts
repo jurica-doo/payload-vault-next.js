@@ -22,7 +22,8 @@ export type Audience =
   | "employee" // any active employee
   | "leader" // has at least one descendant in the hierarchy
   | "admin"
-  | "finance";
+  | "finance"
+  | "compliance"; // read-only consent/communication review (§12.1)
 
 export type SalesModule = {
   key: FeatureFlagKey;
@@ -103,7 +104,7 @@ export const SALES_MODULES: SalesModule[] = [
     key: "customers",
     label: "Kunden",
     href: "/vertrieb/kunden",
-    audience: ["employee"],
+    audience: ["employee", "compliance"],
     phase: 5,
     description: "Kundenübersicht und Betreuungshistorie.",
   },

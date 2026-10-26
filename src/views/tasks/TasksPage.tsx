@@ -35,6 +35,7 @@ const LINK_FOR: Record<string, (id: string) => string> = {
   employee: (id) => `/vertrieb/team/${id}`,
   exception: () => "/vertrieb/provisionen/abrechnung",
   lead: (id) => `/vertrieb/leads/${id}`,
+  customer: (id) => `/vertrieb/kunden/${id}`,
 };
 
 const priority: StatusMap<"low" | "normal" | "high"> = {
