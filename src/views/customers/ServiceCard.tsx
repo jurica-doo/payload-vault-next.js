@@ -1,5 +1,6 @@
 "use client";
 
+import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput } from "../../components/formFields/FormFields";
@@ -13,7 +14,7 @@ import { nextAnniversary } from "../../domain/serviceDates";
 import { berlinToday, formatDate } from "../../utils/format";
 import { Select } from "../leads/LeadForm";
 
-const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
+const card = cardClass;
 
 export const SERVICE_KIND_LABEL: Record<string, string> = {
   annual_review: "Jahresgespräch",

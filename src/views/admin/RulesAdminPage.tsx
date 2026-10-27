@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { InputField } from "../../components/inputField/InputField";
@@ -46,7 +47,7 @@ export const RulesAdminPage = () => {
   const { data, isLoading, error } = useRuleAdmin();
   const canWrite = permissions.isAdmin && permissions.hasMfa;
 
-  if (isLoading) return <p className="text-sm">Regeln werden geladen…</p>;
+  if (isLoading) return <LoadingState label="Regeln werden geladen…" />;
   if (error || !data) return <p className="text-sm text-color-error-text">{error?.message ?? "Fehler beim Laden."}</p>;
 
   return (
@@ -101,7 +102,7 @@ const RuleSection = ({ kind, title, data, canWrite }: { kind: Kind; title: strin
     });
 
   return (
-    <section className="flex flex-col gap-4 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+    <section className="flex flex-col gap-4 ui-card p-4 sm:p-5">
       <header className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-semibold">{title}</h2>
         {active && (

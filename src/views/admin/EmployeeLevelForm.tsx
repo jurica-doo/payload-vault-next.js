@@ -56,7 +56,7 @@ export const EmployeeLevelForm = ({
       <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
         Stufe
         <select
-          className="rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-3 font-medium text-color-text-main"
+          className="ui-input"
           value={level}
           onChange={(e) => setLevel(e.target.value)}
         >

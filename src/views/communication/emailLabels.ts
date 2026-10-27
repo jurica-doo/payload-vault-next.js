@@ -1,3 +1,4 @@
+import { cardClass } from "../../components/card/card.const";
 import type { StatusMap } from "../../components/statusBadge/StatusBadge";
 
 export const SEND_STATUS: StatusMap<string> = {
@@ -26,4 +27,4 @@ export const SUPPRESSION_REASON: Record<string, string> = {
   occasion_passed: "Anlass vorbei",
 };
 
-export const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
+export const card = cardClass;

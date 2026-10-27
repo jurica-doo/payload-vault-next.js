@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { ButtonLink } from "../../components/button/ButtonLink";
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DataTable } from "../../components/dataTable/DataTable";
@@ -89,13 +90,13 @@ export const CommissionPage = () => {
             type="month"
             value={month.slice(0, 7)}
             onChange={(e) => e.target.value && setMonth(`${e.target.value}-01`)}
-            className="rounded-radius-md border border-color-border-light bg-color-bg-dark px-3 py-2 text-color-text-main"
+            className="ui-input"
           />
         </label>
         <div className="flex flex-wrap items-center gap-3">
           {statement && <StatusBadge status={statement.period_status} map={periodStatus} />}
           {(permissions.isFinance || permissions.isAdmin) && (
-            <Link href="/vertrieb/provisionen/abrechnung" className="text-sm font-semibold">Abrechnung (Finanzen)</Link>
+            <ButtonLink href="/vertrieb/provisionen/abrechnung" text="Abrechnung (Finanzen)" />
           )}
           <Button text="CSV" variant="secondary" onClick={exportCsv} isDisabled={entries.length === 0} />
         </div>
@@ -104,7 +105,7 @@ export const CommissionPage = () => {
       {!permissions.employeeId ? (
         <EmptyState message="Persönliche Abrechnungen gibt es nur für aktive Mitarbeitende." />
       ) : isLoading ? (
-        <p className="text-sm">Abrechnung wird geladen…</p>
+        <LoadingState label="Abrechnung wird geladen…" />
       ) : error || !statement ? (
         <EmptyState message="Die Abrechnung konnte nicht geladen werden." hint={error?.message} />
       ) : (
@@ -120,7 +121,7 @@ export const CommissionPage = () => {
             />
           </div>
 
-          <section className="rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+          <section className="ui-card p-4 sm:p-5">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-color-border-light text-left text-color-text-secondary">

@@ -1,6 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { ChartBarIcon, PlusIcon } from "../../components/icons";
+import { ButtonLink } from "../../components/button/ButtonLink";
+import { PageActions } from "../../components/pageHeader/PageActions";
+import { Tabs } from "../../components/tabs/Tabs";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -75,27 +78,22 @@ export const LeadsPage = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div role="tablist" className="flex flex-wrap gap-2">
-          {scopes.map((s) => (
-            <button key={s.id} role="tab" aria-selected={scope === s.id} onClick={() => setScope(s.id)}
-              className={`cursor-pointer rounded-full border px-3 py-1 text-sm ${scope === s.id ? "border-color-primary text-color-primary" : "border-color-border-light text-color-text-subtle"}`}>
-              {s.label}
-            </button>
-          ))}
-        </div>
-        <span className="flex items-center gap-3">
-          <Link href="/vertrieb/leads/analyse" className="text-sm font-semibold">Auswertung</Link>
-          <Button text="Lead anlegen" onClick={() => openModal({
+        <Tabs ariaLabel="Lead-Ansicht" value={scope} onChange={setScope} items={scopes.map((s) => ({ value: s.id, label: s.label }))} />
+        <PageActions>
+          {(permissions.isLeader || permissions.isAdmin) && (
+            <ButtonLink href="/vertrieb/leads/analyse" text="Auswertung" icon={ChartBarIcon} />
+          )}
+          <Button text="Lead anlegen" icon={PlusIcon} onClick={() => openModal({
             title: "Lead anlegen", size: "large",
             children: <LeadForm onDone={(id) => { closeModal(); router.push(`/vertrieb/leads/${id}`); }} />,
           })} />
-        </span>
+        </PageActions>
       </div>
       <div className="flex flex-wrap gap-3">
         <input type="search" aria-label="Suche" placeholder="Name, Firma, L-Nummer, Telefon" value={query} onChange={(e) => setQuery(e.target.value)}
-          className="min-w-60 flex-1 rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-2 text-sm" />
+          className="min-w-60 flex-1 ui-input" />
         <select aria-label="Phase" value={stage} onChange={(e) => setStage(e.target.value)}
-          className="rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-2 text-sm">
+          className="ui-input">
           <option value="">Alle Phasen</option>
           {(config?.stages ?? []).map((s) => <option key={s.code} value={s.code}>{s.name_de}</option>)}
         </select>

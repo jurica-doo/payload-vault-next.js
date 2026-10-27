@@ -24,7 +24,7 @@ export const PageHeader = ({
 }: PageHeaderProps) => (
   <div className="flex flex-col gap-4 animate-fade-in">
     {breadcrumbs && breadcrumbs.length > 0 && (
-      <nav aria-label="Brotkrumen" className="-mb-2">
+      <nav aria-label="Brotkrumen" className={title ? "-mb-2" : ""}>
         <ol className="flex flex-wrap items-center gap-1 text-[0.8125rem] text-color-text-subtle">
           {breadcrumbs.map((c, i) => (
             <li key={`${c.label}-${i}`} className="flex items-center gap-1">
@@ -46,21 +46,25 @@ export const PageHeader = ({
         </ol>
       </nav>
     )}
-    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-      <div className="flex min-w-0 flex-col gap-1">
-        <h1 className="text-[1.5rem] font-semibold tracking-tight text-color-text-main sm:text-[1.625rem]">
-          {title}
-        </h1>
-        {description && (
-          <p className="max-w-2xl text-sm text-color-text-subtle">
-            {description}
-          </p>
+    {(title || actions) && (
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+        <div className="flex min-w-0 flex-col gap-1">
+          {title && (
+            <h1 className="text-[1.5rem] font-semibold tracking-tight text-color-text-main sm:text-[1.625rem]">
+              {title}
+            </h1>
+          )}
+          {description && (
+            <p className="max-w-2xl text-sm text-color-text-subtle">
+              {description}
+            </p>
+          )}
+        </div>
+        {actions && (
+          <div className="flex flex-wrap items-center gap-2">{actions}</div>
         )}
       </div>
-      {actions && (
-        <div className="flex flex-wrap items-center gap-2">{actions}</div>
-      )}
-    </div>
+    )}
     {children}
   </div>
 );

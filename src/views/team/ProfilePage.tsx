@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
@@ -46,13 +46,12 @@ const Profile = ({ employeeId }: { employeeId: string }) => {
   const coaching = useCoaching(employeeId);
   const isManager = permissions.employeeId !== employeeId && permissions.isLeader;
 
-  if (isLoading) return <p className="text-sm">Profil wird geladen…</p>;
+  if (isLoading) return <LoadingState label="Profil wird geladen…" />;
   if (error || !p) return <EmptyState message="Profil nicht verfügbar." hint={error?.message} />;
 
   const last3 = p.trend.slice(-3).reduce((s, t) => s + Number(t.points), 0);
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/vertrieb/team" className="text-sm">← Struktur</Link>
       <header className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-xl font-semibold">{p.employee.name}</h2>
         <span className="text-sm text-color-text-subtle">
@@ -76,11 +75,11 @@ const Profile = ({ employeeId }: { employeeId: string }) => {
         <KpiTile label="Produktmix (12 Monate)" value={p.product_mix.map((m) => m.category).join(" · ") || "–"} />
       </div>
 
-      <section className="rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+      <section className="ui-card p-4 sm:p-5">
         <TrendChart caption="Anrechenbare Punkte je Monat, letzte 12 Monate" data={p.trend.map((t) => ({ label: MONTHS[Number(t.month.slice(5, 7)) - 1], value: Number(t.points) }))} />
       </section>
 
-      <section className="rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+      <section className="ui-card p-4 sm:p-5">
         <h3 className="mb-2 text-base font-semibold">Ziele</h3>
         {p.goals.length === 0 ? <p className="text-sm text-color-text-subtle">Keine Ziele erfasst.</p> : (
           <ul className="flex flex-col gap-1 text-sm">
@@ -127,7 +126,7 @@ const CoachingSection = ({ coaching, isManager }: { coaching: CoachingHook; isMa
   };
 
   return (
-    <section className="flex flex-col gap-4 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+    <section className="flex flex-col gap-4 ui-card p-4 sm:p-5">
       <h3 className="text-base font-semibold">Coaching</h3>
 
       <div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { LoadingState } from "../../components/loadingState/LoadingState";
+import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { CurrencyInput, DateInput } from "../../components/formFields/FormFields";
@@ -15,7 +17,7 @@ import { REQUIRED_FIELD_LABEL } from "../../domain/leads";
 import { berlinToday, formatDate, formatMoney } from "../../utils/format";
 import { Select } from "../leads/LeadForm";
 
-const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
+const card = cardClass;
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 const errText = (e: unknown) => (e instanceof Error ? e.message : "");
 
@@ -24,7 +26,7 @@ export const LeadsAdminPage = () => {
   const { permissions } = usePermissions();
   const { data: config } = useLeadConfig();
   if (!permissions.isAdmin) return <p className="text-sm">Nur für Administratoren.</p>;
-  if (!config) return <p className="text-sm">Lädt…</p>;
+  if (!config) return <LoadingState />;
   return (
     <div className="flex flex-col gap-4">
       {!permissions.hasMfa && <MfaRequiredNotice />}

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { EmptyState } from "../../components/emptyState/EmptyState";
 import { KpiTile } from "../../components/kpiTile/KpiTile";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
@@ -26,7 +25,6 @@ export const ActivitiesPage = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/vertrieb/aufgaben" className="text-sm font-semibold">← Aufgaben</Link>
       <section aria-label="Dieser Monat" className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <KpiTile label="Kontaktversuche" value={s?.contact_attempts ?? 0} isLoading={isLoading}
           hint={s ? `Erreichbarkeit ${formatPercent(safeRatio(s.reached, s.contact_attempts))} (erreicht ÷ Versuche)` : undefined} />
@@ -38,7 +36,7 @@ export const ActivitiesPage = () => {
       <p className="text-xs text-color-text-subtle">
         Zeitraum: aktueller Kalendermonat (Europe/Berlin). Vereinbart = im Monat angelegt, durchgeführt = Termin im Monat mit Ergebnis „durchgeführt“.
       </p>
-      <section className="rounded-radius-lg bg-color-bg-card p-3 shadow-shadow-soft">
+      <section className="ui-card p-3">
         <h2 className="mb-2 text-sm font-semibold">Aktivitäten</h2>
         <ActivityPanel filter={{ ownerId: me }} />
       </section>

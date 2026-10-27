@@ -1,5 +1,8 @@
 "use client";
 
+import { PlusIcon } from "../../components/icons";
+import { PageActions } from "../../components/pageHeader/PageActions";
+import { rowActionClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DataTable } from "../../components/dataTable/DataTable";
@@ -28,8 +31,7 @@ const ROLE_LABELS: Record<AppRole, string> = {
   compliance: "Datenschutz/Compliance",
 };
 
-const actionClass =
-  "cursor-pointer rounded-radius-sm px-2 py-1 text-xs font-semibold text-color-text-accent hover:bg-color-primary/15 disabled:cursor-not-allowed disabled:opacity-40";
+const actionClass = rowActionClass;
 
 export const EmployeesAdminPage = () => {
   const { openModal, closeModal } = useModal();
@@ -152,7 +154,9 @@ export const EmployeesAdminPage = () => {
         <div className="w-full sm:w-80">
           <SearchBar value={search} onChange={setSearch} placeholder="Name, E-Mail oder Personalnummer" />
         </div>
-        <Button text="Mitarbeitende anlegen" onClick={openCreate} isDisabled={!canWrite} />
+        <PageActions>
+          <Button text="Mitarbeitende anlegen" icon={PlusIcon} onClick={openCreate} isDisabled={!canWrite} />
+        </PageActions>
       </div>
 
       <DataTable

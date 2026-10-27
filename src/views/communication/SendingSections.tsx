@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput } from "../../components/formFields/FormFields";
@@ -31,7 +32,7 @@ export const SwitchSection = () => {
   const { openModal, closeModal } = useModal();
   const s = ops.status.data;
   const [w, setW] = useState<{ start: string; end: string; limit: string; days: number[] } | null>(null);
-  if (!s) return <section className={card}><p className="text-sm">Lädt…</p></section>;
+  if (!s) return <section className={card}><LoadingState /></section>;
   const form = w ?? { start: s.window_start, end: s.window_end, limit: String(s.daily_limit), days: s.window_days };
   const confirm = (title: string, message: string, run: (reason: string) => Promise<unknown>) => openModal({
     title, children: <ReasonConfirmForm message={message} onCancel={closeModal} onConfirm={async (r) => { await run(r); closeModal(); }} />,

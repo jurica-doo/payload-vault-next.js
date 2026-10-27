@@ -27,7 +27,7 @@ export const CareerSimulator = ({ base, target }: { base: ProgressBase; target: 
   });
 
   return (
-    <section className="flex flex-col gap-4 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+    <section className="flex flex-col gap-4 ui-card p-4 sm:p-5">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-base font-semibold">Simulation</h3>
         <span className="rounded-full border border-color-secondary/40 px-2 text-xs text-color-secondary">Schätzung – wird nicht gespeichert</span>

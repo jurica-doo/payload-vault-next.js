@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DataTable } from "../../components/dataTable/DataTable";
@@ -115,17 +114,16 @@ export const FinancePage = () => {
   return (
     <RoleGate when={allowed} fallback={<EmptyState message="Nur für Finanzen und Verwaltung." />}>
       <div className="flex flex-col gap-4">
-        <Link href="/vertrieb/provisionen" className="text-sm">← Eigene Abrechnung</Link>
         {!permissions.hasMfa && <MfaRequiredNotice />}
 
-        <section className="flex flex-wrap items-end justify-between gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+        <section className="flex flex-wrap items-end justify-between gap-3 ui-card p-4 sm:p-5">
           <label className="flex flex-col gap-1 text-sm font-semibold text-color-text-secondary">
             Abrechnungsmonat
             <input
               type="month"
               value={month.slice(0, 7)}
               onChange={(e) => e.target.value && setMonth(`${e.target.value}-01`)}
-              className="rounded-radius-md border border-color-border-light bg-color-bg-dark px-3 py-2 text-color-text-main"
+              className="ui-input"
             />
           </label>
           <div className="flex flex-wrap items-center gap-2">
@@ -155,7 +153,7 @@ export const FinancePage = () => {
           ]}
         />
 
-        <section className="flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+        <section className="flex flex-col gap-3 ui-card p-4 sm:p-5">
           <h2 className="text-base font-semibold">Zuschuss für {month.slice(5, 7)}/{month.slice(0, 4)}</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <EmployeePicker label="Person" employees={employees.filter((e) => e.status === "active")} value={subEmployee} onChange={setSubEmployee} />
@@ -170,7 +168,7 @@ export const FinancePage = () => {
           <div><Button text="Zuschuss speichern" onClick={saveSubsidy} isDisabled={!canWrite} isLoading={setSubsidy.isPending} /></div>
         </section>
 
-        <section className="rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+        <section className="ui-card p-4 sm:p-5">
           <h2 className="mb-3 text-base font-semibold">Prüfwarteschlange ({exceptions.data?.length ?? 0})</h2>
           {(exceptions.data ?? []).length === 0 ? (
             <p className="text-sm text-color-text-subtle">Keine offenen Fälle.</p>

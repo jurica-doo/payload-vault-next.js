@@ -1,5 +1,7 @@
 "use client";
 
+import { LoadingState } from "../../components/loadingState/LoadingState";
+import { cardClass } from "../../components/card/card.const";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -18,7 +20,7 @@ import { PURPOSE_LABEL } from "../../domain/consent";
 import { berlinLocalToUtcIso, berlinToday, formatDate, formatDateTime } from "../../utils/format";
 import { Select } from "../leads/LeadForm";
 
-const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
+const card = cardClass;
 const KIND_LABEL: Record<string, string> = { access: "Auskunft", rectification: "Berichtigung", erasure: "Löschung", objection: "Widerspruch" };
 const VIA_LABEL: Record<string, string> = { email: "E-Mail", letter: "Brief", phone: "Telefon", in_person: "persönlich", portal: "Portal" };
 const errText = (e: unknown) => (e instanceof Error ? e.message : "");
@@ -51,7 +53,6 @@ export const PrivacyPage = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/vertrieb/kunden" className="text-sm font-semibold">← Kunden</Link>
       {!permissions.hasMfa && <MfaRequiredNotice />}
 
       <section className={card}>
@@ -87,7 +88,7 @@ export const PrivacyPage = () => {
                 </tbody>
               </table>
             </>
-          ) : <p className="text-sm">Lädt…</p>}
+          ) : <LoadingState />}
         </section>
 
         <section className={card}>

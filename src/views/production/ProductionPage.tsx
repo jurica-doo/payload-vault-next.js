@@ -1,6 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { PlusIcon, UploadIcon } from "../../components/icons";
+import { ButtonLink } from "../../components/button/ButtonLink";
+import { PageActions } from "../../components/pageHeader/PageActions";
+import { rowActionClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DataTable } from "../../components/dataTable/DataTable";
@@ -25,8 +28,7 @@ export const productionStatus: StatusMap<"draft" | "submitted" | "eligible" | "c
 
 const PERIOD = { monthly: "mtl.", annual: "jährl.", one_off: "einm." } as const;
 
-const action =
-  "cursor-pointer rounded-radius-sm px-2 py-1 text-xs font-semibold text-color-text-accent hover:bg-color-primary/15 disabled:cursor-not-allowed disabled:opacity-40";
+const action = rowActionClass;
 
 export const ProductionPage = () => {
   const { permissions } = usePermissions();
@@ -104,14 +106,12 @@ export const ProductionPage = () => {
         <p className="text-sm text-color-text-subtle">
           Punkte zählen, sobald ein Eintrag als anrechenbar bestätigt ist.
         </p>
-        <div className="flex flex-wrap gap-2">
+        <PageActions>
           {permissions.isAdmin && (
-            <Link href="/vertrieb/produktion/import" className="self-center text-sm font-semibold">
-              CSV-Import
-            </Link>
+            <ButtonLink href="/vertrieb/produktion/import" text="CSV-Import" icon={UploadIcon} />
           )}
-          <Button text="Produktion erfassen" onClick={openCreate} isDisabled={!permissions.employeeId && !(permissions.isAdmin && permissions.hasMfa)} />
-        </div>
+          <Button text="Produktion erfassen" icon={PlusIcon} onClick={openCreate} isDisabled={!permissions.employeeId && !(permissions.isAdmin && permissions.hasMfa)} />
+        </PageActions>
       </div>
 
       <DataTable

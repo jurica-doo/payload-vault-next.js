@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import Link from "next/link";
 import { DataTable } from "../../components/dataTable/DataTable";
 import { KpiTile } from "../../components/kpiTile/KpiTile";
@@ -40,7 +41,7 @@ export const DashboardPage = () => {
   return (
     <div className="flex flex-col gap-6">
       {isEmployee && <MyActions employeeId={permissions.employeeId!} />}
-      {isEmployee && (me.data ? <MySection d={me.data} /> : me.isLoading ? <p className="text-sm">Lädt…</p> : <EmptyState message="Dashboard nicht verfügbar." hint={me.error?.message} />)}
+      {isEmployee && (me.data ? <MySection d={me.data} /> : me.isLoading ? <LoadingState /> : <EmptyState message="Dashboard nicht verfügbar." hint={me.error?.message} />)}
       {permissions.isLeader && team.data && <TeamSection d={team.data} />}
       {(permissions.isAdmin || permissions.isFinance) && admin.data && <AdminSection d={admin.data} />}
     </div>
@@ -111,7 +112,7 @@ const MySection = ({ d }: { d: MyDashboard }) => {
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+        <div className="flex flex-col gap-3 ui-card p-4 sm:p-5">
           <h3 className="text-base font-semibold">Karriere</h3>
           {c.status === "in_progress" || c.status === "ready" ? (
             <>
@@ -139,7 +140,7 @@ const MySection = ({ d }: { d: MyDashboard }) => {
             <p className="text-sm text-color-text-subtle">Noch nicht berechenbar ({c.reason ?? c.status}).</p>
           )}
         </div>
-        <div className="rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+        <div className="ui-card p-4 sm:p-5">
           <TrendChart
             caption="Anrechenbare Punkte je Monat (eigene Produktion, nach Produktionsdatum)"
             data={d.trend.map((t) => ({ label: monthShort(t.month), value: Number(t.points) }))}

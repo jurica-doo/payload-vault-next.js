@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "../../components/button/Button";
@@ -121,10 +122,10 @@ export const SecurityPage = () => {
   );
 
   return (
-    <section className="flex flex-col gap-4 rounded-radius-lg bg-color-bg-card p-5 shadow-shadow-soft">
+    <section className="flex flex-col gap-4 ui-card p-4 sm:p-5">
       <h2 className="text-lg font-semibold">Zwei-Faktor-Anmeldung</h2>
 
-      {state.kind === "loading" && <p className="text-sm">Status wird geladen…</p>}
+      {state.kind === "loading" && <LoadingState label="Status wird geladen…" />}
       {state.kind === "error" && <p className="text-sm text-color-error-text">{state.message}</p>}
 
       {state.kind === "none" && (

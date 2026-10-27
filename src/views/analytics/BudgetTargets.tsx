@@ -106,7 +106,7 @@ export const BudgetTargets = ({
   };
 
   return (
-    <div className="bg-color-bg-card border border-color-border-light rounded-radius-lg p-4 sm:p-6 animate-fade-in">
+    <div className="ui-card p-4 sm:p-6 animate-fade-in">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
           <h4 className="text-base sm:text-lg font-semibold text-color-text-main">

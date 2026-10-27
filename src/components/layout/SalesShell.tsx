@@ -10,6 +10,9 @@ import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { canSeeModule } from "../../hooks/permissions/permissions";
 import { moduleForPath } from "../../data/salesModules";
 import { NotificationBell } from "../notifications/NotificationBell";
+import { PageHeader } from "../pageHeader/PageHeader";
+import { PageActionsProvider, PageActionsSlot } from "../pageHeader/PageActions";
+import { pageMetaFor } from "../../data/pageMeta";
 
 /**
  * Access gate for /vertrieb/* and /admin/* inside the app shell. Every route is checked against the
@@ -23,16 +26,33 @@ export const SalesShell = ({ children }: { children: ReactNode }) => {
   const { permissions, isLoading, isError } = usePermissions();
   const current = moduleForPath(pathname);
   const allowed = !!current && canSeeModule(permissions, current);
+  const meta = allowed ? pageMetaFor(pathname) : undefined;
 
   if (isLoading) return <LoadingScreen />;
 
   return (
     <AppShell
-      title={allowed ? current.label : "Vertrieb"}
+      title={meta?.title ?? (allowed ? current.label : "Vertrieb")}
       actions={permissions.employeeId ? <NotificationBell /> : undefined}
     >
       {allowed ? (
-        children
+        <PageActionsProvider>
+          <div className="flex flex-col gap-6">
+            {meta?.title ? (
+              <PageHeader
+                title={meta.title}
+                description={meta.description}
+                breadcrumbs={meta.breadcrumbs}
+                actions={<PageActionsSlot />}
+              />
+            ) : (
+              meta?.breadcrumbs && (
+                <PageHeader title={null} breadcrumbs={meta.breadcrumbs} />
+              )
+            )}
+            {children}
+          </div>
+        </PageActionsProvider>
       ) : (
         <div className="ui-card mx-auto mt-6 max-w-lg">
           <EmptyState

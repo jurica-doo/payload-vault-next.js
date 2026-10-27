@@ -1,5 +1,7 @@
 "use client";
 
+import { LoadingState } from "../../components/loadingState/LoadingState";
+import { cardClass } from "../../components/card/card.const";
 import Link from "next/link";
 import { Fragment, useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -22,7 +24,7 @@ import { ContractsCard } from "./ContractsCard";
 import { ServiceCard } from "./ServiceCard";
 import { EmailHistoryCard } from "./EmailHistoryCard";
 
-export const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
+export const card = cardClass;
 const errText = (e: unknown) => (e instanceof Error ? e.message : "");
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -34,7 +36,7 @@ const CustomerDetail = ({ customerId }: { customerId: string }) => {
   const { data, isLoading } = useCustomer(customerId);
   const { permissions } = usePermissions();
   const { data: structure } = useStructure();
-  if (isLoading) return <p className="text-sm">Lädt…</p>;
+  if (isLoading) return <LoadingState />;
   const c = data?.customer;
   if (!c) return <EmptyState message="Kunde nicht gefunden oder keine Berechtigung." />;
   const name = (id: string | null) => {
@@ -47,7 +49,6 @@ const CustomerDetail = ({ customerId }: { customerId: string }) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/vertrieb/kunden" className="text-sm font-semibold">← Kunden</Link>
       <header className="flex flex-wrap items-baseline gap-2">
         <h1 className="text-xl font-semibold">{c.erased_at ? "Gelöscht (pseudonymisiert)" : customerName(c)}</h1>
         <span className="text-sm text-color-text-subtle">{customerNo(c.customer_no)} · {CUSTOMER_STATUS_LABEL[c.status]}{c.archived_at ? " · archiviert" : ""}</span>

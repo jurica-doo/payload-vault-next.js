@@ -1,5 +1,7 @@
 "use client";
 
+import { LoadingState } from "../../components/loadingState/LoadingState";
+import { cardClass } from "../../components/card/card.const";
 import Link from "next/link";
 import { Fragment, useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -30,7 +32,7 @@ import { Select } from "./LeadForm";
 import { ConvertLead } from "./ConvertLead";
 import { SLA_BADGE } from "./LeadsPage";
 
-const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
+const card = cardClass;
 const errText = (e: unknown) => (e instanceof Error ? e.message : "");
 
 /** One lead (§9.1): pipeline, details, next step, assignment, activities, history. */
@@ -44,7 +46,7 @@ const LeadDetail = ({ leadId }: { leadId: string }) => {
   const { data: config } = useLeadConfig();
   const { data: structure } = useStructure();
   const { data: activities = [] } = useActivities({ linkedType: "lead", linkedId: leadId });
-  if (isLoading) return <p className="text-sm">Lädt…</p>;
+  if (isLoading) return <LoadingState />;
   const lead = data?.lead;
   if (!lead || !config) return <EmptyState message="Lead nicht gefunden oder keine Berechtigung." />;
 
@@ -66,7 +68,6 @@ const LeadDetail = ({ leadId }: { leadId: string }) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/vertrieb/leads" className="text-sm font-semibold">← Leads</Link>
       <header className="flex flex-col gap-2">
         <h1 className="text-xl font-semibold">{leadName(lead)} <span className="text-sm font-normal text-color-text-subtle">{leadNo(lead.lead_no)}</span></h1>
         <ConvertLead lead={lead} />

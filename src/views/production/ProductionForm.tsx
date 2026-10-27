@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { InputField } from "../../components/inputField/InputField";
@@ -99,7 +100,7 @@ export const ProductionForm = ({
     }
   };
 
-  const select = "rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-3 font-medium text-color-text-main";
+  const select = "ui-input";
 
   return (
     <form className="flex flex-col gap-4 pt-2" onSubmit={(e) => { e.preventDefault(); void submit(false); }}>
@@ -157,7 +158,7 @@ export const ProductionForm = ({
 
       <section aria-live="polite" className="rounded-radius-md bg-color-bg-dark p-3 text-sm">
         {rulesLoading ? (
-          <p>Regeln werden geladen…</p>
+          <LoadingState label="Regeln werden geladen…" />
         ) : !preview ? (
           <p className="text-color-text-subtle">Vorschau erscheint nach Eingabe des Beitrags.</p>
         ) : !preview.ok ? (

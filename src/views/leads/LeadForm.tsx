@@ -15,7 +15,7 @@ import { normalizeEmail, normalizePhone } from "../../domain/normalize";
 import { CHANNEL_LABEL, CONSENT_LABEL } from "../../domain/leads";
 import { berlinLocalToUtcIso, berlinToday } from "../../utils/format";
 
-const selectClass = "rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-3 text-color-text-main";
+const selectClass = "ui-input";
 
 /** Shared select markup for small option lists. */
 export const Select = ({ label, value, onChange, options }: {

@@ -1,5 +1,6 @@
 "use client";
 
+import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput } from "../../components/formFields/FormFields";
@@ -13,7 +14,7 @@ import { useContracts, type ContractLink, type Customer } from "../../hooks/useC
 import { formatDate, formatDateTime } from "../../utils/format";
 import { Select } from "../leads/LeadForm";
 
-const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
+const card = cardClass;
 
 const STATUS: StatusMap<string> = {
   pending: { label: "in Bearbeitung", tone: "info" },

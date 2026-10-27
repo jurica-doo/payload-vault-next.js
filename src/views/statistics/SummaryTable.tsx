@@ -20,7 +20,7 @@ export const SummaryTable = ({ stats, variant }: SummaryTableProps) => {
   const hasData = rows.some((r) => r.data !== null);
 
   return (
-    <div className="bg-color-bg-card border border-color-border-light rounded-radius-lg p-4 sm:p-6 animate-fade-in">
+    <div className="ui-card p-4 sm:p-6 animate-fade-in">
       <h4 className="text-base sm:text-lg font-semibold text-color-text-main mb-4">
         Zusammenfassung
       </h4>
