@@ -129,8 +129,8 @@ button {
 
   --bg-overlay: linear-gradient(
     160deg,
-    rgba(245, 247, 249, 0.82),
-    rgba(230, 244, 242, 0.92)
+    rgba(245, 247, 249, 0.9),
+    rgba(222, 242, 239, 0.96)
   );
 
   --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -206,8 +206,8 @@ button {
 
   --bg-overlay: linear-gradient(
     160deg,
-    rgba(11, 17, 21, 0.86),
-    rgba(9, 32, 30, 0.94)
+    rgba(11, 17, 21, 0.93),
+    rgba(8, 36, 33, 0.97)
   );
 }
 

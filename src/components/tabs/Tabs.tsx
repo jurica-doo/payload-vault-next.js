@@ -57,7 +57,7 @@ export function Tabs<T extends string>({
       aria-label={ariaLabel}
       className={`${
         segmented
-          ? "inline-flex max-w-full flex-wrap items-center gap-0.5 rounded-radius-md bg-color-bg-alt p-0.5 ring-1 ring-inset ring-color-border-light"
+          ? "inline-flex w-fit max-w-full flex-wrap items-center gap-0.5 rounded-radius-md bg-color-bg-alt p-0.5 ring-1 ring-inset ring-color-border-light"
           : "flex max-w-full gap-1 overflow-x-auto border-b border-color-border-light"
       } ${className}`}
     >

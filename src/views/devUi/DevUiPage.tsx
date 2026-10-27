@@ -37,6 +37,24 @@ import {
 } from "../../components/periodSelector/PeriodSelector";
 import { Button } from "../../components/button/Button";
 import { useModal } from "../../context/modal/ModalContext";
+import { useBanner } from "../../context/banner/BannerContext";
+import { Tabs } from "../../components/tabs/Tabs";
+import { Notice } from "../../components/notice/Notice";
+import { LinkCard } from "../../components/linkCard/LinkCard";
+import { EmptyState } from "../../components/emptyState/EmptyState";
+import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
+import { LoadingState } from "../../components/loadingState/LoadingState";
+import { ActionMenu } from "../../components/actionMenu/ActionMenu";
+import { SectionCard } from "../../components/card/Card";
+import { IconButton } from "../../components/iconButton/IconButton";
+import { ConfirmDialog } from "../../components/modal/ConfirmDialog";
+import {
+  DeleteIcon,
+  DownloadIcon,
+  EditIcon,
+  PlusIcon,
+  WalletIcon,
+} from "../../components/icons";
 
 const ledgerStatus: StatusMap<"calculated" | "approved" | "disputed"> = {
   calculated: { label: "Berechnet", tone: "info" },
@@ -99,14 +117,13 @@ const Section = ({
   title: string;
   children: ReactNode;
 }) => (
-  <section className="flex flex-col gap-3 rounded-radius-lg border border-color-border-light p-4">
-    <h2 className="text-lg font-bold text-color-text-main">{title}</h2>
-    {children}
-  </section>
+  <SectionCard title={title}>{children}</SectionCard>
 );
 
 export const DevUiPage = () => {
   const { openModal, closeModal } = useModal();
+  const { showBanner } = useBanner();
+  const [tab, setTab] = useState<"a" | "b" | "c">("a");
   const [expanded, setExpanded] = useState<Set<string>>(new Set(["dl"]));
   const [selected, setSelected] = useState<string>();
   const [premium, setPremium] = useState("100,00");
@@ -123,9 +140,67 @@ export const DevUiPage = () => {
 
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8">
-      <h1 className="text-2xl font-bold text-color-text-main">
+      <h1 className="text-2xl font-semibold text-color-text-main">
         UI-Kit (nur Entwicklung)
       </h1>
+
+      <Section title="Buttons & Aktionen">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button text="Primär" icon={PlusIcon} />
+          <Button text="Sekundär" variant="secondary" />
+          <Button text="Ghost" variant="ghost" />
+          <Button text="Freigeben" variant="approve" />
+          <Button text="Ablehnen" variant="decline" />
+          <Button text="Löschen" variant="danger" />
+          <Button text="Lädt" isLoading />
+          <Button text="Deaktiviert" isDisabled />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button text="Klein" size="small" variant="secondary" />
+          <Button text="Mittel" size="medium" variant="secondary" />
+          <Button text="Groß" size="large" variant="secondary" />
+          <IconButton icon={EditIcon} label="Bearbeiten" />
+          <IconButton icon={DeleteIcon} label="Löschen" tone="danger" />
+          <ActionMenu
+            items={[
+              { label: "Herunterladen", icon: DownloadIcon, onClick: () => {} },
+              { label: "Bearbeiten", icon: EditIcon, onClick: () => {} },
+              { label: "Löschen", icon: DeleteIcon, danger: true, onClick: () => {} },
+            ]}
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {(["success", "error", "info", "warning"] as const).map((t) => (
+            <Button key={t} variant="secondary" text={`Toast: ${t}`} onClick={() => showBanner(`Toast ${t}`, "Beispieltext für die Meldung.", t)} />
+          ))}
+          <Button
+            variant="secondary"
+            text="Bestätigung"
+            onClick={() =>
+              openModal({
+                title: "Entwurf löschen?",
+                children: <ConfirmDialog message="Dieser Schritt kann nicht rückgängig gemacht werden." confirmText="Löschen" onCancel={closeModal} onConfirm={closeModal} />,
+              })
+            }
+          />
+        </div>
+      </Section>
+
+      <Section title="Navigation & Hinweise">
+        <Tabs value={tab} onChange={setTab} items={[{ value: "a", label: "Meine", count: 12 }, { value: "b", label: "Team", count: 4 }, { value: "c", label: "Abgeschlossen" }]} />
+        <Tabs variant="underline" value={tab} onChange={setTab} items={[{ value: "a", label: "Übersicht" }, { value: "b", label: "Details" }, { value: "c", label: "Verlauf" }]} />
+        <Notice tone="info" title="Hinweis.">Informativer Text.</Notice>
+        <Notice tone="warning" title="Vorläufige Regel (OD-01).">Noch nicht bestätigt.</Notice>
+        <Notice tone="error" title="Fehler.">Etwas ist schiefgelaufen.</Notice>
+        <Notice tone="success" title="Gespeichert.">Alles erledigt.</Notice>
+        <LinkCard href="/einnahmen" icon={WalletIcon} title="Einnahmen" description="Beispiel für eine Navigationskarte" />
+      </Section>
+
+      <Section title="Zustände">
+        <LoadingState />
+        <EmptyState compact message="Keine Einträge" hint="Legen Sie den ersten Eintrag an." action={<Button text="Anlegen" icon={PlusIcon} />} />
+        <ErrorBlock variant="inline" onRetry={() => {}} />
+      </Section>
 
       <Section title="Werte & Status">
         <div className="flex flex-wrap gap-4">

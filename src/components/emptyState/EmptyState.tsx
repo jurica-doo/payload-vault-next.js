@@ -30,7 +30,7 @@ export const EmptyState = ({
           compact ? "h-11 w-11" : "h-14 w-14"
         }`}
       >
-        <Icon size={compact ? 20 : 24} />
+        <Icon size={compact ? 20 : 24} className={compact ? "h-5 w-5" : "h-6 w-6"} />
       </span>
       <p className="text-[0.9375rem] font-semibold text-color-text-main">
         {message}

@@ -137,7 +137,7 @@ export const ActionMenu = ({
                       : "text-color-text-main hover:bg-color-bg-hover focus:bg-color-bg-hover"
                   } focus:outline-none`}
                 >
-                  {Icon && <Icon size={16} className="shrink-0 opacity-80" />}
+                  {Icon && <Icon size={16} className="h-4 w-4 shrink-0 opacity-80" />}
                   {item.label}
                 </button>
               </div>

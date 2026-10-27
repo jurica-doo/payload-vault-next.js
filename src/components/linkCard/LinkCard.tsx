@@ -26,7 +26,7 @@ export const LinkCard = ({
   >
     {Icon && (
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-radius-md bg-color-bg-accent-subtle text-color-text-accent transition-transform duration-200 group-hover:scale-105">
-        <Icon size={20} />
+        <Icon size={20} className="h-5 w-5" />
       </span>
     )}
     <span className="flex min-w-0 flex-1 flex-col gap-0.5">
