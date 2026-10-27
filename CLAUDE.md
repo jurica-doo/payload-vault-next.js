@@ -129,7 +129,7 @@ Patterns: toast titles name what failed ("Löschen fehlgeschlagen"), never just 
 
 ## 12. Status & open items
 - Branches: `main` (prod), `feat/requirements1` (all phase work, merged slices), **`feat/ux-ui-improvements`** (redesign + error messages + navigation; based on requirements1; **not pushed** as of 2026-10-27).
-- Before shipping that branch: **redeploy `extract-data-from-expense-image`** (CHECKLIST §1.3).
+- `extract-data-from-expense-image` with the new error keys is already deployed to production (project ref `mitvsxswoagzixcbrhia`, 2026-10-27).
 - Still open (see `requirements1/CHECKLIST.md`): staging project, migrations to prod, Profina decisions (OD-xx), manual signed-in test pass at 360 px, retire `/signup`, finance/admin dashboard decision, security review (Gate D), email sending (off).
 - Feature flags for all sales modules are **off** by default; email sending is off.
 
