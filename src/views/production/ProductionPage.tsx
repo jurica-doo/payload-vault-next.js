@@ -2,6 +2,9 @@
 
 import { PlusIcon, UploadIcon } from "../../components/icons";
 import { ButtonLink } from "../../components/button/ButtonLink";
+import { ActionMenu } from "../../components/actionMenu/ActionMenu";
+import { ConfirmDialog } from "../../components/modal/ConfirmDialog";
+import { DeleteIcon, FileTextIcon, XIcon } from "../../components/icons";
 import { PageActions } from "../../components/pageHeader/PageActions";
 import { rowActionClass } from "../../components/card/card.const";
 import { useState } from "react";
@@ -100,6 +103,23 @@ export const ProductionPage = () => {
       ),
     });
 
+  // Deleting a draft can't be undone — ask first.
+  const confirmDeleteDraft = (r: ProductionRow) =>
+    openModal({
+      title: "Entwurf löschen?",
+      children: (
+        <ConfirmDialog
+          message="Der Entwurf wird endgültig gelöscht. Dieser Schritt kann nicht rückgängig gemacht werden."
+          confirmText="Entwurf löschen"
+          onCancel={closeModal}
+          onConfirm={async () => {
+            await run(() => removeDraft.mutateAsync(r.id!), "Entwurf gelöscht.");
+            closeModal();
+          }}
+        />
+      ),
+    });
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -153,19 +173,33 @@ export const ProductionPage = () => {
               const canEdit = own || (permissions.isAdmin && permissions.hasMfa);
               return (
                 // Buttons stop the row click so they don't also open the details.
-                <span className="flex flex-wrap justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                <span className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                   {r.status === "draft" && canEdit && (
-                    <>
-                      <button type="button" className={action} onClick={() => run(() => submit.mutateAsync(r.id!), "Eingereicht.")}>Einreichen</button>
-                      <button type="button" className={action} onClick={() => run(() => removeDraft.mutateAsync(r.id!), "Entwurf gelöscht.")}>Löschen</button>
-                    </>
+                    <button type="button" className={action} onClick={() => run(() => submit.mutateAsync(r.id!), "Eingereicht.")}>Einreichen</button>
                   )}
                   {r.status === "submitted" && isApprover && (
                     <button type="button" className={action} onClick={() => run(() => markEligible.mutateAsync(r.id!), "Als anrechenbar bestätigt.")}>Anrechenbar</button>
                   )}
-                  {(r.status === "submitted" ? canEdit : r.status === "eligible" ? isApprover : false) && (
-                    <button type="button" className={action} onClick={() => openCancel(r)}>Stornieren</button>
-                  )}
+                  <ActionMenu
+                    label="Weitere Aktionen"
+                    items={[
+                      { label: "Details anzeigen", icon: FileTextIcon, onClick: () => openDetails(r) },
+                      {
+                        label: "Stornieren",
+                        icon: XIcon,
+                        danger: true,
+                        hidden: !(r.status === "submitted" ? canEdit : r.status === "eligible" ? isApprover : false),
+                        onClick: () => openCancel(r),
+                      },
+                      {
+                        label: "Entwurf löschen",
+                        icon: DeleteIcon,
+                        danger: true,
+                        hidden: !(r.status === "draft" && canEdit),
+                        onClick: () => confirmDeleteDraft(r),
+                      },
+                    ]}
+                  />
                 </span>
               );
             },

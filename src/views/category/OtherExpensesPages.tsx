@@ -171,7 +171,7 @@ export const OtherExpensesPages = ({ title }: CategoryProps) => {
     downloadCsv(csvContent, csvName);
     showBanner(
       "CSV-Export gestartet",
-      "Deine Daten werden als CSV-Datei heruntergeladen.",
+      "Ihre Daten werden als CSV-Datei heruntergeladen.",
       "success",
     );
   };
@@ -237,22 +237,22 @@ export const OtherExpensesPages = ({ title }: CategoryProps) => {
 
       showBanner(
         "Download gestartet",
-        "Deine PDFs werden als ZIP-Datei heruntergeladen.",
+        "Ihre PDFs werden als ZIP-Datei heruntergeladen.",
         "success",
       );
     } catch (error) {
       showBanner(
         "PDF-Download fehlgeschlagen",
-        "Beim Herunterladen der PDFs ist ein Fehler aufgetreten. Bitte versuche es erneut.",
+        "Beim Herunterladen der PDFs ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
         "error",
       );
       console.error(error);
     }
   };
 
-  if (!contentCardData) return <PageSkeletonLoader />;
-
   if (error) return <ErrorBlock />;
+
+  if (!contentCardData) return <PageSkeletonLoader />;
 
   return (
     <div className="flex flex-col gap-6">

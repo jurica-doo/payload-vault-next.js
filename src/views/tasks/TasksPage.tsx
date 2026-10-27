@@ -166,6 +166,7 @@ const TaskForm = ({ onDone }: { onDone: () => void }) => {
       if (!owner || title.trim().length < 3) return;
       try {
         await create.mutateAsync({ ownerId: owner, title, description, dueAt: due ? berlinLocalToUtcIso(due, "17:00") : null, priority: prio });
+        showBanner("Aufgabe angelegt", title, "success");
         onDone();
       } catch (err) {
         showBanner("Nicht gespeichert", err instanceof Error ? err.message : "", "error");

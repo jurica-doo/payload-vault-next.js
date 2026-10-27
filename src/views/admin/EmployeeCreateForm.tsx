@@ -1,5 +1,6 @@
 "use client";
 
+import { ModalActions } from "../../components/modal/ModalActions";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { InputField } from "../../components/inputField/InputField";
@@ -95,10 +96,10 @@ export const EmployeeCreateForm = ({
         </p>
       )}
 
-      <div className="mt-2 flex flex-wrap gap-3 sm:gap-6">
+      <ModalActions>
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} isDisabled={isLoading} />
         <Button type="submit" text="Anlegen & einladen" isLoading={isLoading} />
-      </div>
+      </ModalActions>
     </form>
   );
 };

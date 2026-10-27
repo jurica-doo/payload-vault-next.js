@@ -1,3 +1,4 @@
+import { ModalActions } from "./ModalActions";
 import { useState } from "react";
 import { Button } from "../button/Button";
 import { useBanner } from "../../context/banner/BannerContext";
@@ -37,7 +38,7 @@ export const BulkDeleteConfirmationForm = ({
   };
 
   return (
-    <div className="flex flex-col gap-6 pt-2">
+    <div className="flex flex-col gap-5">
       <p className="text-color-text-secondary w-full sm:w-70">
         Möchten Sie wirklich{" "}
         <span className="font-semibold text-color-text-primary">
@@ -45,7 +46,7 @@ export const BulkDeleteConfirmationForm = ({
         </span>{" "}
         unwiderruflich löschen?
       </p>
-      <div className="mt-6 flex flex-wrap gap-3 sm:gap-6">
+      <ModalActions>
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} />
         <Button
           text={`${count} Dokument${count > 1 ? "e" : ""} löschen`}
@@ -53,7 +54,7 @@ export const BulkDeleteConfirmationForm = ({
           onClick={handleConfirm}
           isLoading={isLoading}
         />
-      </div>
+      </ModalActions>
     </div>
   );
 };

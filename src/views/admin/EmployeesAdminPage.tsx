@@ -1,6 +1,8 @@
 "use client";
 
 import { PlusIcon } from "../../components/icons";
+import { ActionMenu } from "../../components/actionMenu/ActionMenu";
+import { AwardIcon, XIcon } from "../../components/icons";
 import { PageActions } from "../../components/pageHeader/PageActions";
 import { rowActionClass } from "../../components/card/card.const";
 import { useState } from "react";
@@ -217,10 +219,11 @@ export const EmployeesAdminPage = () => {
                       disabled={!canWrite}
                       aria-pressed={e.roles.includes(role)}
                       onClick={() => openRoleChange(e, role)}
-                      className={`cursor-pointer rounded-full border px-2 py-0.5 text-xs disabled:cursor-not-allowed disabled:opacity-60 ${
+                      title={e.roles.includes(role) ? `${ROLE_LABELS[role]} entziehen` : `${ROLE_LABELS[role]} vergeben`}
+                      className={`cursor-pointer rounded-full border px-2 py-0.5 text-xs font-medium transition-all duration-150 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${
                         e.roles.includes(role)
-                          ? "border-color-primary bg-color-bg-accent-subtle text-color-text-accent"
-                          : "border-dashed border-color-border-light text-color-text-subtle"
+                          ? "border-color-primary/40 bg-color-bg-accent-subtle text-color-text-accent hover:border-color-primary"
+                          : "border-dashed border-color-border-strong text-color-text-subtle hover:border-color-text-subtle hover:text-color-text-main"
                       }`}
                     >
                       {ROLE_LABELS[role]}
@@ -235,20 +238,31 @@ export const EmployeesAdminPage = () => {
             id: "actions",
             header: "Aktionen",
             cell: (e) => (
-              <span className="flex flex-wrap justify-end gap-1">
+              <span className="flex items-center justify-end gap-1">
                 {e.status === "invited" && !e.user_id && (
                   <button type="button" className={actionClass} disabled={!canWrite || resendInvite.isPending} onClick={() => resend(e)}>
                     Einladung senden
                   </button>
                 )}
-                <button type="button" className={actionClass} disabled={!canWrite} onClick={() => openLevel(e)}>
-                  Stufe
-                </button>
-                {e.user_id !== user?.id && (
+                {e.status === "inactive" && e.user_id !== user?.id && (
                   <button type="button" className={actionClass} disabled={!canWrite} onClick={() => openStatusChange(e)}>
-                    {e.status === "inactive" ? "Reaktivieren" : "Deaktivieren"}
+                    Reaktivieren
                   </button>
                 )}
+                <ActionMenu
+                  label={`Aktionen für ${e.last_name}, ${e.first_name}`}
+                  items={[
+                    { label: "Stufe ändern", icon: AwardIcon, disabled: !canWrite, onClick: () => openLevel(e) },
+                    {
+                      label: "Deaktivieren",
+                      icon: XIcon,
+                      danger: true,
+                      disabled: !canWrite,
+                      hidden: e.status === "inactive" || e.user_id === user?.id,
+                      onClick: () => openStatusChange(e),
+                    },
+                  ]}
+                />
               </span>
             ),
             align: "right",

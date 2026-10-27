@@ -1,5 +1,6 @@
 "use client";
 
+import { ModalActions } from "../../components/modal/ModalActions";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -193,11 +194,11 @@ export const ProductionForm = ({
 
       {error && <p role="alert" className="text-sm font-medium text-color-error-text">{error}</p>}
 
-      <div className="flex flex-wrap gap-3">
+      <ModalActions>
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} isDisabled={busy} />
         <Button type="submit" variant="secondary" text="Als Entwurf speichern" isLoading={busy} />
         <Button text="Speichern & einreichen" onClick={() => submit(true)} isLoading={busy} />
-      </div>
+      </ModalActions>
     </form>
   );
 };

@@ -1,5 +1,6 @@
 "use client";
 
+import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { cardClass } from "../../components/card/card.const";
 import Link from "next/link";
@@ -33,10 +34,11 @@ export const CustomerDetailPage = ({ customerId }: { customerId: string }) =>
 
 /** One customer (§10.1): profile, follow-up, adviser, activities, history. */
 const CustomerDetail = ({ customerId }: { customerId: string }) => {
-  const { data, isLoading } = useCustomer(customerId);
+  const { data, isLoading, error, refetch } = useCustomer(customerId);
   const { permissions } = usePermissions();
   const { data: structure } = useStructure();
-  if (isLoading) return <LoadingState />;
+  if (isLoading) return <LoadingState rows={6} />;
+  if (error) return <ErrorBlock variant="inline" message="Der Kunde konnte nicht geladen werden." onRetry={() => refetch()} />;
   const c = data?.customer;
   if (!c) return <EmptyState message="Kunde nicht gefunden oder keine Berechtigung." />;
   const name = (id: string | null) => {

@@ -1,5 +1,7 @@
 "use client";
 
+import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
+import { GaugeIcon } from "../../components/icons";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import Link from "next/link";
 import { DataTable } from "../../components/dataTable/DataTable";
@@ -41,9 +43,23 @@ export const DashboardPage = () => {
   return (
     <div className="flex flex-col gap-6">
       {isEmployee && <MyActions employeeId={permissions.employeeId!} />}
-      {isEmployee && (me.data ? <MySection d={me.data} /> : me.isLoading ? <LoadingState /> : <EmptyState message="Dashboard nicht verfügbar." hint={me.error?.message} />)}
-      {permissions.isLeader && team.data && <TeamSection d={team.data} />}
-      {(permissions.isAdmin || permissions.isFinance) && admin.data && <AdminSection d={admin.data} />}
+      {isEmployee && (me.data ? <MySection d={me.data} /> : me.isLoading ? <DashboardSkeleton /> : <ErrorBlock variant="inline" message={me.error?.message ?? "Ihr Dashboard konnte nicht geladen werden."} onRetry={() => me.refetch()} />)}
+      {!isEmployee && (
+        <div className="ui-card">
+          <EmptyState
+            icon={GaugeIcon}
+            compact
+            message="Kein persönliches Vertriebsprofil verknüpft"
+            hint={
+              permissions.isAdmin || permissions.isFinance
+                ? "Persönliche Kennzahlen gibt es nur für Mitarbeitende. Unten sehen Sie die Übersicht für Verwaltung und Finanzen."
+                : "Wenden Sie sich an die Verwaltung, um Ihr Konto mit einem Mitarbeiterprofil zu verknüpfen."
+            }
+          />
+        </div>
+      )}
+      {permissions.isLeader && (team.data ? <TeamSection d={team.data} /> : team.isLoading ? <LoadingState rows={4} label="Teamdaten werden geladen…" /> : team.error ? <ErrorBlock variant="inline" message="Die Teamdaten konnten nicht geladen werden." onRetry={() => team.refetch()} /> : null)}
+      {(permissions.isAdmin || permissions.isFinance) && (admin.data ? <AdminSection d={admin.data} /> : admin.isLoading ? <LoadingState rows={3} label="Übersicht wird geladen…" /> : admin.error ? <ErrorBlock variant="inline" message="Die Verwaltungsübersicht konnte nicht geladen werden." onRetry={() => admin.refetch()} /> : null)}
     </div>
   );
 };
@@ -258,3 +274,14 @@ const MyActions = ({ employeeId }: { employeeId: string }) => {
     </section>
   );
 };
+
+const DashboardSkeleton = () => (
+  <div role="status" aria-label="Dashboard wird geladen" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    {Array.from({ length: 4 }).map((_, i) => (
+      <div key={i} className="ui-card flex flex-col gap-3 p-4 sm:p-5">
+        <span className="skeleton h-3.5 w-24" />
+        <span className="skeleton h-7 w-20" />
+      </div>
+    ))}
+  </div>
+);

@@ -336,7 +336,7 @@ export const BudgetTargets = ({
       {deleteId && (
         <ConfirmDeleteModal
           title="Budget löschen"
-          message={`Möchtest du das Budget für „${deleteName}" wirklich löschen?`}
+          message={`Möchten Sie das Budget für „${deleteName}" wirklich löschen?`}
           onCancel={() => setDeleteId(null)}
           onConfirm={() => {
             onRemove(deleteId);

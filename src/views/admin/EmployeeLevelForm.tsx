@@ -1,5 +1,6 @@
 "use client";
 
+import { ModalActions } from "../../components/modal/ModalActions";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
@@ -67,10 +68,10 @@ export const EmployeeLevelForm = ({
       </label>
       <DateInput label="Gültig ab" value={from} min={startDate} onChange={setFrom} />
       <TextArea label="Begründung" value={reason} onChange={setReason} maxLength={500} isRequired error={error} />
-      <div className="flex flex-wrap gap-3 sm:gap-6">
+      <ModalActions>
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} isDisabled={busy} />
         <Button type="submit" text="Speichern" isLoading={busy} />
-      </div>
+      </ModalActions>
     </form>
   );
 };

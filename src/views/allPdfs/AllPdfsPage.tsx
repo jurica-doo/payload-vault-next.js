@@ -265,7 +265,7 @@ export const AllPdfsPage = () => {
     downloadCsv(csvContent, csvName);
     showBanner(
       "CSV-Export gestartet",
-      "Deine Daten werden als CSV-Datei heruntergeladen.",
+      "Ihre Daten werden als CSV-Datei heruntergeladen.",
       "success",
     );
   };
@@ -331,13 +331,13 @@ export const AllPdfsPage = () => {
 
       showBanner(
         "Download gestartet",
-        "Deine PDFs werden als ZIP-Datei heruntergeladen.",
+        "Ihre PDFs werden als ZIP-Datei heruntergeladen.",
         "success",
       );
     } catch {
       showBanner(
         "PDF-Download fehlgeschlagen",
-        "Beim Herunterladen der PDFs ist ein Fehler aufgetreten. Bitte versuche es erneut.",
+        "Beim Herunterladen der PDFs ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
         "error",
       );
     }

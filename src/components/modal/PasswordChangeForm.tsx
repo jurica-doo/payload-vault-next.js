@@ -1,3 +1,4 @@
+import { ModalActions } from "./ModalActions";
 import { useState } from "react";
 import { Button } from "../button/Button";
 import { PasswordInput } from "../passwordInput/PasswordInput";
@@ -47,7 +48,7 @@ export const PasswordChangeForm = ({
   };
 
   return (
-    <div className="flex flex-col gap-6 pt-2">
+    <div className="flex flex-col gap-5">
       <div className="w-full sm:w-70">
         {error && <Banner bannerType="error" description="" title={error} />}
       </div>
@@ -62,7 +63,7 @@ export const PasswordChangeForm = ({
         onChange={setRepeatPassword}
         isRepeated
       />
-      <div className="mt-6 flex flex-wrap gap-3 sm:gap-6">
+      <ModalActions>
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} />
         <Button
           text="Änderung bestätigen"
@@ -70,7 +71,7 @@ export const PasswordChangeForm = ({
           onClick={handleSave}
           isLoading={isLoading}
         />
-      </div>
+      </ModalActions>
     </div>
   );
 };

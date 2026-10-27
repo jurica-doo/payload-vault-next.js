@@ -1,3 +1,4 @@
+import { ModalActions } from "./ModalActions";
 import { useState } from "react";
 import { Button } from "../button/Button";
 import { UploadIcon } from "../icons";
@@ -82,7 +83,7 @@ export const ImportPdfForm = ({ onCancel, onSave }: ImportPdfFormProps) => {
         </div>
       )}
 
-      <div className="mt-6 flex flex-wrap gap-3 sm:gap-6">
+      <ModalActions>
         <Button
           variant="secondary"
           text="Abbrechen"
@@ -96,7 +97,7 @@ export const ImportPdfForm = ({ onCancel, onSave }: ImportPdfFormProps) => {
           isLoading={isLoading}
           isDisabled={files.length === 0}
         />
-      </div>
+      </ModalActions>
     </div>
   );
 };

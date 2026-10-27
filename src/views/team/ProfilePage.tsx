@@ -198,9 +198,15 @@ const CoachingSection = ({ coaching, isManager }: { coaching: CoachingHook; isMa
             </label>
             <div>
               <Button text="Notiz speichern" variant="secondary" isDisabled={!note.trim()}
+                isLoading={coaching.addNote.isPending}
                 onClick={async () => {
-                  await coaching.addNote.mutateAsync({ visibility: privateNote ? "private_manager" : "shared", body: note });
-                  setNote("");
+                  try {
+                    await coaching.addNote.mutateAsync({ visibility: privateNote ? "private_manager" : "shared", body: note });
+                    setNote("");
+                    showBanner("Notiz gespeichert", "", "success");
+                  } catch (e) {
+                    showBanner("Notiz nicht gespeichert", e instanceof Error ? e.message : "Bitte erneut versuchen.", "error");
+                  }
                 }} />
             </div>
           </div>

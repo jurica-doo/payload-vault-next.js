@@ -1,5 +1,6 @@
 "use client";
 
+import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { cardClass } from "../../components/card/card.const";
 import Link from "next/link";
@@ -42,11 +43,13 @@ export const LeadDetailPage = ({ leadId }: { leadId: string }) =>
   UUID.test(leadId) ? <LeadDetail leadId={leadId} /> : <EmptyState message="Lead nicht gefunden." />;
 
 const LeadDetail = ({ leadId }: { leadId: string }) => {
-  const { data, isLoading } = useLead(leadId);
+  const { data, isLoading, error, refetch } = useLead(leadId);
   const { data: config } = useLeadConfig();
   const { data: structure } = useStructure();
   const { data: activities = [] } = useActivities({ linkedType: "lead", linkedId: leadId });
-  if (isLoading) return <LoadingState />;
+  if (isLoading) return <LoadingState rows={6} />;
+  // A failed request is not the same as "no such lead" — say which it is.
+  if (error) return <ErrorBlock variant="inline" message="Der Lead konnte nicht geladen werden." onRetry={() => refetch()} />;
   const lead = data?.lead;
   if (!lead || !config) return <EmptyState message="Lead nicht gefunden oder keine Berechtigung." />;
 

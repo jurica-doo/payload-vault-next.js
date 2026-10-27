@@ -1,5 +1,6 @@
 "use client";
 
+import { ModalActions } from "../modal/ModalActions";
 import { useState } from "react";
 import { Button } from "../button/Button";
 import { TextArea } from "../formFields/FormFields";
@@ -75,10 +76,10 @@ export const ReasonConfirmForm = ({
         error={error}
         hint={`${reason.trim().length}/${MAX_REASON_LENGTH} Zeichen, mindestens ${minLength}`}
       />
-      <div className="mt-2 flex flex-wrap gap-3 sm:gap-6">
+      <ModalActions>
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} isDisabled={isLoading} />
         <Button type="submit" variant={variant} text={confirmText} isLoading={isLoading} />
-      </div>
+      </ModalActions>
     </form>
   );
 };

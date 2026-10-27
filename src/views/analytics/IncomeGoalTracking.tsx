@@ -299,7 +299,7 @@ export const IncomeGoalTracking = ({
       {deleteId && (
         <ConfirmDeleteModal
           title="Ziel löschen"
-          message={`Möchtest du das Ziel „${deleteName}" wirklich löschen?`}
+          message={`Möchten Sie das Ziel „${deleteName}" wirklich löschen?`}
           onCancel={() => setDeleteId(null)}
           onConfirm={() => {
             onRemove(deleteId);
