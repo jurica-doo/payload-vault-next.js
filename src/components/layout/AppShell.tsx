@@ -125,7 +125,8 @@ export const AppShell = ({
 
         <main id="main-content" className="flex flex-1 flex-col">
           <div
-            className={`mx-auto w-full flex-1 ${widthClasses[width]} ${
+            key={pathname}
+            className={`page-enter mx-auto w-full flex-1 ${widthClasses[width]} ${
               padded ? "px-4 py-6 sm:px-6 lg:px-8 lg:py-8" : ""
             } pb-24 lg:pb-8`}
           >

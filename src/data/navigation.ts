@@ -22,6 +22,7 @@ import {
 } from "../components/icons";
 import type { Permissions } from "../hooks/permissions/permissions";
 import { SALES_MODULES, type FeatureFlagKey, type SalesModule } from "./salesModules";
+import { isKnownRoute, nearestParentRoute } from "./routes";
 
 /**
  * Sidebar navigation, grouped so no group holds more than ~6 entries.
@@ -186,16 +187,20 @@ export function activeNavHref(
     .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 }
 
-/** Parent page for the top-bar back link on detail pages, if any. */
+/**
+ * Parent page for the top-bar back link on detail pages, if any. Only ever
+ * returns a page that exists (see routes.ts): the most specific nav entry
+ * above this path, else the nearest existing ancestor route.
+ */
 export function parentNavHref(
   pathname: string,
   groups: NavGroup[],
 ): string | undefined {
-  const href = activeNavHref(pathname, groups);
-  if (href && href !== pathname) return href;
-  // Fallback: drop the last segment for nested vault pages
-  // (/einnahmen/alle-dokumente → /einnahmen).
-  const segments = pathname.split("/").filter(Boolean);
-  if (segments.length > 1) return `/${segments[0]}`;
-  return undefined;
+  const nav = activeNavHref(pathname, groups);
+  const navParent = nav && nav !== pathname && isKnownRoute(nav) ? nav : undefined;
+  const ancestor = nearestParentRoute(pathname);
+  // The more specific of the two wins (/einnahmen/kategorie/adcuri/x goes
+  // back to the Adcuri page, not to /einnahmen).
+  if (navParent && ancestor) return ancestor.length > navParent.length ? ancestor : navParent;
+  return navParent ?? ancestor;
 }

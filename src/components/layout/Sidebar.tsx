@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
@@ -40,6 +40,17 @@ const Brand = ({ collapsed }: { collapsed: boolean }) => (
     )}
   </Link>
 );
+
+/** Small spinner on the clicked entry while its page loads (Next useLinkStatus). */
+const PendingHint = () => {
+  const { pending } = useLinkStatus();
+  return pending ? (
+    <span
+      aria-hidden
+      className="link-pending ml-auto h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-color-primary/30 border-t-color-primary"
+    />
+  ) : null;
+};
 
 const NavLink = ({
   item,
@@ -92,6 +103,7 @@ const NavLink = ({
         />
       )}
       <span className={collapsed ? "sr-only" : "truncate"}>{item.label}</span>
+      {!collapsed && <PendingHint />}
     </Link>
   );
 };
