@@ -1,5 +1,7 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
+import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput } from "../../components/formFields/FormFields";
@@ -13,7 +15,7 @@ import { nextAnniversary } from "../../domain/serviceDates";
 import { berlinToday, formatDate } from "../../utils/format";
 import { Select } from "../leads/LeadForm";
 
-const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
+const card = cardClass;
 
 export const SERVICE_KIND_LABEL: Record<string, string> = {
   annual_review: "Jahresgespräch",
@@ -48,7 +50,7 @@ export const ServiceCard = ({ customer, canWork }: { customer: Customer; canWork
     : [];
   const valid = f.title.trim().length >= 3 && (isRenewal ? Boolean(contract) : Boolean(f.due));
   const run = async (fn: () => Promise<unknown>) => {
-    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", e instanceof Error ? e.message : "", "error"); }
+    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", errorText(e), "error"); }
   };
 
   return (

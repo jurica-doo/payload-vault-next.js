@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { InputField } from "../../components/inputField/InputField";
@@ -12,7 +11,7 @@ import { useBanner } from "../../context/banner/BannerContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useProductionImport, type ImportRowInput } from "../../hooks/useProduction/useProduction";
 import { mapProductionCsv, parseCsv, REQUIRED_FIELDS } from "../../domain/csvImport";
-import { dbErrorMessage } from "../../utils/dbErrors";
+import { dbErrorMessage, errorText } from "../../utils/dbErrors";
 
 const MAX_BYTES = 2 * 1024 * 1024;
 
@@ -56,7 +55,7 @@ export const ProductionImportPage = () => {
       const result = await stage.mutateAsync({ sourceSystem, fileName: file.name, rows: mapped.rows });
       setStaged(result as { batchId: string; rows: StagedRow[] });
     } catch (e) {
-      setProblem(e instanceof Error ? e.message : undefined);
+      setProblem(errorText(e));
     }
   };
 
@@ -65,10 +64,9 @@ export const ProductionImportPage = () => {
   return (
     <RoleGate when={permissions.isAdmin} fallback={<EmptyState message="Nur für die Verwaltung." />}>
       <div className="flex flex-col gap-4">
-        <Link href="/vertrieb/produktion" className="text-sm">← Zurück zur Produktion</Link>
         {!permissions.hasMfa && <MfaRequiredNotice />}
 
-        <section className="flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+        <section className="flex flex-col gap-3 ui-card p-4 sm:p-5">
           <h2 className="text-base font-semibold">1. Datei prüfen</h2>
           <p className="text-sm">
             Spalten (deutsche Überschriften genügen): Quelle-ID, Pers.-Nr., Sparte, Beitrag, Rhythmus, Datum; optional Netto/Brutto, Laufzeit, Referenz.
@@ -82,7 +80,7 @@ export const ProductionImportPage = () => {
                 type="file"
                 accept=".csv,text/csv"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                className="rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-2 text-sm"
+                className="ui-input"
               />
             </label>
           </div>
@@ -93,7 +91,7 @@ export const ProductionImportPage = () => {
         </section>
 
         {staged && (
-          <section className="flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+          <section className="flex flex-col gap-3 ui-card p-4 sm:p-5">
             <h2 className="text-base font-semibold">2. Ergebnis</h2>
             <p className="text-sm">
               {staged.rows.length} Zeilen, davon <span className="font-semibold text-color-success-text">{valid} gültig</span>
@@ -136,7 +134,7 @@ export const ProductionImportPage = () => {
                     setStaged(null);
                     setFile(null);
                   } catch (e) {
-                    showBanner("Import fehlgeschlagen", e instanceof Error ? e.message : "", "error");
+                    showBanner("Import fehlgeschlagen", errorText(e), "error");
                   }
                 }}
               />

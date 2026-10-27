@@ -9,24 +9,25 @@ export const TitleSide = ({
   searchQuery,
 }: TitleSideProps) => {
   return (
-    <div
-      className={`flex items-center min-w-0
-        transition-colors duration-200 ease-in-out`}
-    >
-      <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-color-icon mr-3 sm:mr-4 shrink-0" />
+    <div className="flex min-w-0 items-center gap-3 sm:gap-3.5">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-radius-md bg-color-bg-accent-subtle text-color-text-accent transition-transform duration-200 group-hover:scale-105">
+        <Icon className="h-5 w-5" />
+      </span>
 
-      <div className="flex flex-col gap-1 sm:gap-2 min-w-0">
-        <h3 className="text-[16px] font-semibold truncate">
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <h3 className="truncate text-[0.9375rem] font-semibold leading-snug text-color-text-main">
           <HighlightText text={title} highlight={searchQuery} />
         </h3>
 
         {subtitle ? (
-          <p className="text-[14px] text-color-text-secondary truncate">
+          <p className="truncate text-[0.8125rem] leading-snug text-color-text-subtle">
             {subtitle}
           </p>
         ) : (
           date && (
-            <p className="text-[14px] text-color-text-secondary">{date}</p>
+            <p className="text-[0.8125rem] leading-snug text-color-text-subtle">
+              {date}
+            </p>
           )
         )}
       </div>

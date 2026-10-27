@@ -1,5 +1,6 @@
 "use client";
 
+import { DocumentToolbar } from "../../components/documentToolbar/DocumentToolbar";
 import { useState, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import {
@@ -19,7 +20,6 @@ import { formatAllPdfs } from "../allPdfs/utils";
 import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { PageSkeletonLoader } from "../../components/skeletonLoader/PageSkeletonLoader";
 import { DocumentSkeletonLoader } from "../../components/skeletonLoader/DocumentSkeletonLoader";
-import { Button } from "../../components/button/Button";
 import { EmptyState } from "../../components/emptyState/EmptyState";
 import JSZip from "jszip";
 import { useBanner } from "../../context/banner/BannerContext";
@@ -117,7 +117,7 @@ export const OtherPages = ({ title }: CategoryProps) => {
     downloadCsv(csvContent, csvName);
     showBanner(
       "CSV-Export gestartet",
-      "Deine Daten werden als CSV-Datei heruntergeladen.",
+      "Ihre Daten werden als CSV-Datei heruntergeladen.",
       "success",
     );
   };
@@ -182,96 +182,72 @@ export const OtherPages = ({ title }: CategoryProps) => {
 
       showBanner(
         "Download gestartet",
-        "Deine PDFs werden als ZIP-Datei heruntergeladen.",
+        "Ihre PDFs werden als ZIP-Datei heruntergeladen.",
         "success",
       );
     } catch (error) {
       showBanner(
         "PDF-Download fehlgeschlagen",
-        "Beim Herunterladen der PDFs ist ein Fehler aufgetreten. Bitte versuche es erneut.",
+        "Beim Herunterladen der PDFs ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
         "error",
       );
       console.error(error);
     }
   };
 
-  if (!contentCardData) return <PageSkeletonLoader />;
-
   if (error) return <ErrorBlock />;
 
+  if (!contentCardData) return <PageSkeletonLoader />;
+
   return (
-    <main className="flex flex-col mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8 gap-10 pb-6">
+    <div className="flex flex-col gap-6">
       <TotalIncomeCard
         title={title}
         subtitle={
           contentCardData.totalPdf.toString() +
-          " · " +
+          " " +
           (params === "einnahmen" ? "Abrechnungen" : "Rechnungen")
         }
         totalIncome={contentCardData.totalIncome}
         variant={params === "einnahmen" ? "income" : "expense"}
       />
-      <div className="flex flex-col gap-2">
-        <div className="grid grid-cols-1">
-          <Dropdown
-            label="Sortieren nach"
-            options={paycheckFilterOptions}
-            onSelect={setSortSelected}
-            value={sortSelected}
-          />
-        </div>
-        <div className="grid md:grid-cols-2 gap-2">
-          <Dropdown
-            label="Startmonat auswählen"
-            options={monthOptions}
-            onSelect={setStartMonthSelected}
-            value={startMonthSelected}
-          />
-          <Dropdown
-            label="Endmonat auswählen"
-            options={endMonthOptions}
-            onSelect={setEndMonthSelected}
-            value={endMonthSelected}
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 items-center gap-3">
-        <Button
-          onClick={handleResetFilters}
-          text="Filter zurücksetzen"
-          size="medium"
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Button
-            onClick={handleDownloadAll}
-            variant="secondary"
-            text={
-              isFiltered
-                ? "Gefilterte Dokumente herunterladen"
-                : "Alle Dokumente herunterladen"
-            }
-            size="medium"
-          />
-          <Button
-            onClick={handleExportCsv}
-            variant="secondary"
-            text={
-              isFiltered
-                ? "Gefilterte Daten als CSV exportieren"
-                : "Alle Daten als CSV exportieren"
-            }
-            size="medium"
-          />
-        </div>
-      </div>
+      <DocumentToolbar
+        isFiltered={isFiltered}
+        onReset={handleResetFilters}
+        onDownloadAll={handleDownloadAll}
+        onExportCsv={handleExportCsv}
+        resultCount={contentCardData.pdfs.length}
+        filters={
+          <>
+            <Dropdown
+              label="Sortierung"
+              options={paycheckFilterOptions}
+              onSelect={setSortSelected}
+              value={sortSelected}
+            />
+            <Dropdown
+              label="Von"
+              options={monthOptions}
+              onSelect={setStartMonthSelected}
+              value={startMonthSelected}
+            />
+            <Dropdown
+              label="Bis"
+              options={endMonthOptions}
+              onSelect={setEndMonthSelected}
+              value={endMonthSelected}
+            />
+          </>
+        }
+      />
       {isLoading ? (
         <DocumentSkeletonLoader />
       ) : (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2.5 stagger">
           {contentCardData.pdfs.length === 0 ? (
             <EmptyState
               message="Keine Dokumente gefunden"
-              hint="Versuche andere Filter oder lade ein neues Dokument hoch."
+              hint="Passen Sie die Filter an oder laden Sie ein neues Dokument hoch."
             />
           ) : (
             contentCardData.pdfs.map((pdf, index) => (
@@ -284,12 +260,12 @@ export const OtherPages = ({ title }: CategoryProps) => {
                 downloadLink={pdf.signedUrl}
                 openLink={pdf.openLink}
                 id={pdf.id}
-                onDelete={(id) => removePdf.mutate(id)}
+                onDelete={(id) => removePdf.mutateAsync(id)}
               />
             ))
           )}
         </div>
       )}
-    </main>
+    </div>
   );
 };

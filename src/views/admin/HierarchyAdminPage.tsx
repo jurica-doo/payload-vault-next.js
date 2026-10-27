@@ -1,5 +1,7 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
@@ -52,7 +54,7 @@ export const HierarchyAdminPage = () => {
       setManagerId(undefined);
       showBanner("Gespeichert", `Neue Zuordnung ab ${formatDate(effectiveFrom)}.`, "success");
     } catch (e) {
-      setFormError(e instanceof Error ? e.message : undefined);
+      setFormError(errorText(e));
     }
   };
 
@@ -78,7 +80,7 @@ export const HierarchyAdminPage = () => {
     <div className="flex flex-col gap-4">
       {permissions.isAdmin && !permissions.hasMfa && <MfaRequiredNotice />}
 
-      <section className="flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+      <section className="flex flex-col gap-3 ui-card p-4 sm:p-5">
         <EmployeePicker
           label="Person"
           employees={employees}
@@ -93,7 +95,7 @@ export const HierarchyAdminPage = () => {
 
       {employeeId && (
         <>
-          <section className="flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+          <section className="flex flex-col gap-3 ui-card p-4 sm:p-5">
             <h2 className="text-base font-semibold">Neue Zuordnung</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <EmployeePicker
@@ -117,10 +119,10 @@ export const HierarchyAdminPage = () => {
             </div>
           </section>
 
-          <section className="rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+          <section className="ui-card p-4 sm:p-5">
             <h2 className="mb-3 text-base font-semibold">Verlauf</h2>
             {isLoading ? (
-              <p className="text-sm">Lädt…</p>
+              <LoadingState />
             ) : history.length === 0 ? (
               <p className="text-sm text-color-text-subtle">Noch keine Zuordnung.</p>
             ) : (

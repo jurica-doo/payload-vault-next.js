@@ -33,24 +33,24 @@ export const AdcuriPage = () => {
   if (isLoading || !contentCardData) return <PageSkeletonLoader />;
 
   return (
-    <main className="flex flex-col mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8 gap-10 pb-6">
+    <div className="flex flex-col gap-6">
       <TotalIncomeCard
         title="Adcuri Gesamteinnahmen"
-        subtitle={contentCardData.totalPdf.toString() + " · Abrechnungen"}
+        subtitle={contentCardData.totalPdf.toString() + " Abrechnungen"}
         totalIncome={contentCardData.totalIncome}
       />
-      <div className="flex flex-col gap-6">
+      <div className="grid gap-3 md:grid-cols-2 stagger">
         {contentCardData.adcuriCategories.map((category, index) => (
           <ContentCard
             key={index}
             variant="category"
             title={category.category.title}
-            subtitle={category.subtitle.toString() + " · Abrechnungen"}
+            subtitle={category.subtitle.toString() + " Abrechnungen"}
             profit={category.profit}
             link={`/einnahmen/kategorie/${category.category.slug}`}
           />
         ))}
       </div>
-    </main>
+    </div>
   );
 };

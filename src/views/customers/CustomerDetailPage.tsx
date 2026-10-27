@@ -1,5 +1,10 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
+import { DetailLayout, RecordHeader } from "../../components/detailLayout/DetailLayout";
+import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
+import { LoadingState } from "../../components/loadingState/LoadingState";
+import { cardClass } from "../../components/card/card.const";
 import Link from "next/link";
 import { Fragment, useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -22,8 +27,7 @@ import { ContractsCard } from "./ContractsCard";
 import { ServiceCard } from "./ServiceCard";
 import { EmailHistoryCard } from "./EmailHistoryCard";
 
-export const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
-const errText = (e: unknown) => (e instanceof Error ? e.message : "");
+export const card = cardClass;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const CustomerDetailPage = ({ customerId }: { customerId: string }) =>
@@ -31,10 +35,11 @@ export const CustomerDetailPage = ({ customerId }: { customerId: string }) =>
 
 /** One customer (§10.1): profile, follow-up, adviser, activities, history. */
 const CustomerDetail = ({ customerId }: { customerId: string }) => {
-  const { data, isLoading } = useCustomer(customerId);
+  const { data, isLoading, error, refetch } = useCustomer(customerId);
   const { permissions } = usePermissions();
   const { data: structure } = useStructure();
-  if (isLoading) return <p className="text-sm">Lädt…</p>;
+  if (isLoading) return <LoadingState rows={6} />;
+  if (error) return <ErrorBlock variant="inline" message="Der Kunde konnte nicht geladen werden." onRetry={() => refetch()} />;
   const c = data?.customer;
   if (!c) return <EmptyState message="Kunde nicht gefunden oder keine Berechtigung." />;
   const name = (id: string | null) => {
@@ -46,39 +51,40 @@ const CustomerDetail = ({ customerId }: { customerId: string }) => {
   const canWork = !c.erased_at && (c.owner_id === permissions.employeeId || permissions.isLeader || permissions.isAdmin);
 
   return (
-    <div className="flex flex-col gap-4">
-      <Link href="/vertrieb/kunden" className="text-sm font-semibold">← Kunden</Link>
-      <header className="flex flex-wrap items-baseline gap-2">
-        <h1 className="text-xl font-semibold">{c.erased_at ? "Gelöscht (pseudonymisiert)" : customerName(c)}</h1>
-        <span className="text-sm text-color-text-subtle">{customerNo(c.customer_no)} · {CUSTOMER_STATUS_LABEL[c.status]}{c.archived_at ? " · archiviert" : ""}</span>
-      </header>
-      {c.erased_at && <p className="text-sm text-color-text-secondary">Personenbezogene Daten wurden am {formatDate(c.erased_at.slice(0, 10))} gelöscht. Vertrags- und Abrechnungsbezüge bleiben erhalten.</p>}
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <ProfileCard c={c} canWork={canWork} />
-        <div className="flex flex-col gap-4">
+    <DetailLayout
+      header={
+        <RecordHeader
+          title={c.erased_at ? "Gelöscht (pseudonymisiert)" : customerName(c)}
+          meta={`${customerNo(c.customer_no)} · ${CUSTOMER_STATUS_LABEL[c.status]}${c.archived_at ? " · archiviert" : ""}`}
+        >
+          {c.erased_at && <p className="text-sm text-color-text-secondary">Personenbezogene Daten wurden am {formatDate(c.erased_at.slice(0, 10))} gelöscht. Vertrags- und Abrechnungsbezüge bleiben erhalten.</p>}
+        </RecordHeader>
+      }
+      main={
+        <>
+          <section className={card}>
+            <h2 className="text-base font-semibold">Kontakt- und Beratungshistorie</h2>
+            <ActivityPanel filter={{ linkedType: "customer", linkedId: c.id }} canLog={canWork} />
+            {c.lead_id && (
+              <p className="text-xs text-color-text-subtle">
+                Frühere Aktivitäten als Lead: <Link href={`/vertrieb/leads/${c.lead_id}`}>zum Lead</Link>
+              </p>
+            )}
+          </section>
+          <ContractsCard customer={c} canWork={canWork} />
+          <ServiceCard customer={c} canWork={canWork} />
+          <EmailHistoryCard customerId={c.id} />
+        </>
+      }
+      aside={
+        <>
+          <ProfileCard c={c} canWork={canWork} />
           {canWork && <FollowUpCard c={c} />}
           <AdviserCard c={c} name={name} history={data.assignments} canWork={canWork} />
-        </div>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <ConsentCard customer={c} canWork={canWork} />
-        <ContractsCard customer={c} canWork={canWork} />
-      </div>
-      <ServiceCard customer={c} canWork={canWork} />
-      <EmailHistoryCard customerId={c.id} />
-
-      <section className={card}>
-        <h2 className="text-base font-semibold">Kontakt- und Beratungshistorie</h2>
-        <ActivityPanel filter={{ linkedType: "customer", linkedId: c.id }} canLog={canWork} />
-        {c.lead_id && (
-          <p className="text-xs text-color-text-subtle">
-            Frühere Aktivitäten als Lead: <Link href={`/vertrieb/leads/${c.lead_id}`}>zum Lead</Link>
-          </p>
-        )}
-      </section>
-    </div>
+          <ConsentCard customer={c} canWork={canWork} />
+        </>
+      }
+    />
   );
 };
 
@@ -135,7 +141,7 @@ const FollowUpCard = ({ c }: { c: Customer }) => {
       await update.mutateAsync({ id: c.id, data: { next_follow_up_at: value } });
       setDate("");
     } catch (e) {
-      showBanner("Nicht gespeichert", errText(e), "error");
+      showBanner("Nicht gespeichert", errorText(e), "error");
     }
   };
   return (
@@ -187,7 +193,7 @@ const AdviserCard = ({ c, name, history, canWork }: {
                 await assign.mutateAsync({ id: c.id, ownerId: owner as string, reason });
                 setOwner(null); setReason("");
               } catch (e) {
-                showBanner("Nicht zugewiesen", errText(e), "error");
+                showBanner("Nicht zugewiesen", errorText(e), "error");
               }
             }} />
           </div>

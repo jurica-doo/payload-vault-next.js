@@ -1,5 +1,7 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { EmptyState } from "../../components/emptyState/EmptyState";
 import { EmployeePicker } from "../../components/employeePicker/EmployeePicker";
@@ -59,9 +61,9 @@ export const CareerPage = () => {
       )}
 
       {isLoading ? (
-        <p className="text-sm">Fortschritt wird berechnet…</p>
+        <LoadingState label="Fortschritt wird berechnet…" />
       ) : error || !data ? (
-        <EmptyState message="Der Fortschritt konnte nicht geladen werden." hint={error?.message} />
+        <EmptyState message="Der Fortschritt konnte nicht geladen werden." hint={error ? errorText(error) : undefined} />
       ) : (
         <ProgressView progress={data} />
       )}
@@ -82,7 +84,7 @@ const ProgressView = ({ progress }: { progress: CareerProgress }) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <section className="flex flex-col gap-4 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+      <section className="flex flex-col gap-4 ui-card p-4 sm:p-5">
         <header className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold">
             {p.level} → {p.target}{" "}
@@ -115,7 +117,7 @@ const ProgressView = ({ progress }: { progress: CareerProgress }) => {
         </p>
       </section>
 
-      <section className="rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+      <section className="ui-card p-4 sm:p-5">
         <h3 className="mb-3 text-base font-semibold">Herkunft der Punkte</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

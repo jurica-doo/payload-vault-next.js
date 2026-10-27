@@ -1,9 +1,22 @@
 "use client";
 
 import { PageSkeletonLoader } from "../../components/skeletonLoader/PageSkeletonLoader";
-import { ContentCard } from "../../components/contentCard/ContentCard";
 import { TotalIncomeCard } from "../../components/totalIncomeCard/TotalIncomeCard";
-import { HeaderHome } from "../../components/header/HeaderHome";
+import { type ReactNode } from "react";
+import { AppShell } from "../../components/layout/AppShell";
+import { PageHeader } from "../../components/pageHeader/PageHeader";
+import { KpiTile } from "../../components/kpiTile/KpiTile";
+import { LinkCard } from "../../components/linkCard/LinkCard";
+import { SectionHeading } from "../../components/sectionHeading/SectionHeading";
+import { EmptyState } from "../../components/emptyState/EmptyState";
+import { normalizeProfit } from "../../components/contentCard/ContentCard.utils";
+import {
+  ChartBarIcon,
+  ReceiptIcon,
+  TrendIcon,
+  UploadIcon,
+  WalletIcon,
+} from "../../components/icons";
 import { useAuth } from "../../context/AuthContext";
 import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { useFetchExpenses } from "../../hooks/useExpenses/useExpenses";
@@ -11,7 +24,6 @@ import { useYear } from "../../hooks/year/UseYear";
 import { usePdfs } from "../../hooks/usePdf/UsePdfs";
 import { formatExpenses } from "../expenses/utils";
 import { formatData } from "./utils";
-import { MiniFooter } from "../../components/footer/MiniFooter";
 
 export const HomePage = () => {
   const { user } = useAuth();
@@ -43,50 +55,107 @@ export const HomePage = () => {
     allCategories: expenses ? formatExpenses(expenses).allCategories : [],
   };
 
-  if (!user || !year || errorExpenses || errorPdfs) return <ErrorBlock />;
-
-  return (
-    <div className="flex flex-col min-h-screen bg-color-bg">
-      {isLoadingExpenses || isLoadingPdfs || !expenses || !pdfs ? (
-        <PageSkeletonLoader />
-      ) : (
-        <>
-          <div className="sticky top-0 z-40">
-            <HeaderHome isSticky={false} />
-          </div>
-          <main className="flex-1 flex flex-col mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8 gap-10 pb-25">
-            <TotalIncomeCard
-              title="Gesamteinnahmen"
-              subtitle={contentCardData.totalPdf + " · Abrechnungen"}
-              totalIncome={contentCardData.totalIncome}
-            />
-            <TotalIncomeCard
-              variant="expense"
-              title="Gesamtkosten"
-              subtitle={contentCardData.totalExpensePdf + " · Rechnungen"}
-              totalIncome={contentCardData.totalExpanse}
-            />
-            <h2 className="text-color-primary font-bold mx-auto">Kategorien</h2>
-            <div className="flex flex-col gap-6">
-              <ContentCard
-                variant="category"
-                title="Einnahmen"
-                subtitle={contentCardData.totalPdf + " · Abrechnungen"}
-                profit={contentCardData.totalIncome}
-                link="/einnahmen"
-              />
-              <ContentCard
-                variant="category"
-                title="Steuerrelevante Ausgaben"
-                subtitle={contentCardData.totalExpensePdf + " · Rechnungen"}
-                profit={contentCardData.totalExpanse}
-                link="/steuerrelevante-ausgaben"
-              />
-            </div>
-          </main>
-          <MiniFooter />
-        </>
-      )}
-    </div>
+  const shell = (content: ReactNode) => (
+    <AppShell title="Übersicht" subtitle={`Geschäftsjahr ${year}`} showYearSelector>
+      {content}
+    </AppShell>
   );
+
+  if (!user || !year || errorExpenses || errorPdfs) return shell(<ErrorBlock />);
+
+  if (isLoadingExpenses || isLoadingPdfs || !expenses || !pdfs)
+    return shell(<PageSkeletonLoader />);
+
+  const balance = contentCardData.totalIncome - contentCardData.totalExpanse;
+  const isEmpty =
+    contentCardData.totalPdf === 0 && contentCardData.totalExpensePdf === 0;
+
+  return shell(
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        title={greeting()}
+        description={`Ihr Überblick über Einnahmen und steuerrelevante Ausgaben im Geschäftsjahr ${year}.`}
+      />
+
+      <div className="grid gap-4 md:grid-cols-3 stagger">
+        <TotalIncomeCard
+          title="Gesamteinnahmen"
+          subtitle={`${contentCardData.totalPdf} Abrechnungen`}
+          totalIncome={contentCardData.totalIncome}
+        />
+        <TotalIncomeCard
+          variant="expense"
+          title="Steuerrelevante Ausgaben"
+          subtitle={`${contentCardData.totalExpensePdf} Rechnungen`}
+          totalIncome={contentCardData.totalExpanse}
+        />
+        <KpiTile
+          label="Saldo"
+          value={
+            <span className={balance >= 0 ? "text-color-text-main" : "text-color-error-text"}>
+              {normalizeProfit(balance)} €
+            </span>
+          }
+          hint="Einnahmen abzüglich Ausgaben"
+        />
+      </div>
+
+      {isEmpty ? (
+        <div className="ui-card">
+          <EmptyState
+            icon={UploadIcon}
+            message="Noch keine Dokumente für dieses Jahr"
+            hint="Laden Sie Ihre erste Abrechnung unter „Einnahmen“ hoch – Beträge und Kategorien werden automatisch erkannt."
+          />
+        </div>
+      ) : null}
+
+      <section className="flex flex-col gap-4">
+        <SectionHeading>Bereiche</SectionHeading>
+        <div className="grid gap-3 md:grid-cols-2 stagger">
+          <LinkCard
+            href="/einnahmen"
+            icon={WalletIcon}
+            title="Einnahmen"
+            description={`${contentCardData.totalPdf} Abrechnungen · nach Gesellschaft sortiert`}
+            meta={
+              <span className="tabular text-sm font-semibold text-color-text-main">
+                {normalizeProfit(contentCardData.totalIncome)} €
+              </span>
+            }
+          />
+          <LinkCard
+            href="/steuerrelevante-ausgaben"
+            icon={ReceiptIcon}
+            title="Steuerrelevante Ausgaben"
+            description={`${contentCardData.totalExpensePdf} Rechnungen · nach Kategorie`}
+            meta={
+              <span className="tabular text-sm font-semibold text-color-text-main">
+                {normalizeProfit(contentCardData.totalExpanse)} €
+              </span>
+            }
+          />
+          <LinkCard
+            href="/statistiken"
+            icon={ChartBarIcon}
+            title="Statistiken"
+            description="Monatsverlauf, Kategorien und Steuerbericht"
+          />
+          <LinkCard
+            href="/analysen"
+            icon={TrendIcon}
+            title="Analysen"
+            description="Prognosen, Budgets und Einnahmen-Ziele"
+          />
+        </div>
+      </section>
+    </div>,
+  );
+};
+
+const greeting = () => {
+  const h = new Date().getHours();
+  if (h < 11) return "Guten Morgen";
+  if (h < 18) return "Guten Tag";
+  return "Guten Abend";
 };

@@ -1,110 +1,75 @@
 /* ===== Cookie Consent Theme Overrides ===== */
-/* Matches PayloadVault's dark/light design system */
+/* Reads the app's design tokens (src/index.css), so both themes follow
+   automatically. */
 
 #cc-main {
-  --cc-font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  --cc-font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Arial, "Noto Sans", sans-serif;
 
-  /* Dark theme (default) */
-  --cc-bg: #2e2e2e;
-  --cc-primary-color: #ffffff;
-  --cc-secondary-color: #bbbbbb;
+  --cc-bg: var(--color-surface-raised);
+  --cc-primary-color: var(--color-text-main);
+  --cc-secondary-color: var(--color-text-subtle);
 
-  --cc-btn-primary-bg: #00c4b3;
-  --cc-btn-primary-color: #000000;
-  --cc-btn-primary-border-color: #00c4b3;
-  --cc-btn-primary-hover-bg: #009c8f;
-  --cc-btn-primary-hover-color: #000000;
-  --cc-btn-primary-hover-border-color: #009c8f;
+  --cc-btn-primary-bg: var(--color-primary);
+  --cc-btn-primary-color: var(--color-on-primary);
+  --cc-btn-primary-border-color: var(--color-primary);
+  --cc-btn-primary-hover-bg: var(--color-primary-dark);
+  --cc-btn-primary-hover-color: var(--color-on-primary);
+  --cc-btn-primary-hover-border-color: var(--color-primary-dark);
 
-  --cc-btn-secondary-bg: transparent;
-  --cc-btn-secondary-color: #bbbbbb;
-  --cc-btn-secondary-border-color: #545454;
-  --cc-btn-secondary-hover-bg: #545454;
-  --cc-btn-secondary-hover-color: #ffffff;
-  --cc-btn-secondary-hover-border-color: #545454;
+  --cc-btn-secondary-bg: var(--color-bg-card);
+  --cc-btn-secondary-color: var(--color-text-main);
+  --cc-btn-secondary-border-color: var(--color-border-strong);
+  --cc-btn-secondary-hover-bg: var(--color-bg-alt);
+  --cc-btn-secondary-hover-color: var(--color-text-main);
+  --cc-btn-secondary-hover-border-color: var(--color-text-subtle);
 
-  --cc-separator-border-color: #545454;
-  --cc-toggle-on-bg: #00c4b3;
-  --cc-toggle-off-bg: #545454;
-  --cc-toggle-readonly-bg: #009c8f;
+  --cc-separator-border-color: var(--color-border-light);
+  --cc-toggle-on-bg: var(--color-primary);
+  --cc-toggle-off-bg: var(--color-border-strong);
+  --cc-toggle-readonly-bg: var(--color-primary-light);
   --cc-toggle-readonly-knob-bg: #ffffff;
 
-  --cc-cookie-category-block-bg: #111111;
-  --cc-cookie-category-block-border: #545454;
-  --cc-cookie-category-block-hover-bg: #1a1a1a;
+  --cc-cookie-category-block-bg: var(--color-bg-alt);
+  --cc-cookie-category-block-border: var(--color-border-light);
+  --cc-cookie-category-block-hover-bg: var(--color-bg-dark);
 
-  --cc-cookie-table-border: #545454;
+  --cc-cookie-table-border: var(--color-border-light);
 
-  --cc-overlay-bg: rgba(0, 0, 0, 0.65);
-  --cc-section-border: #545454;
+  --cc-overlay-bg: var(--color-overlay);
+  --cc-section-border: var(--color-border-light);
 
-  --cc-footer-bg: #111111;
-  --cc-footer-color: #a1a1a1;
-  --cc-footer-border-color: #545454;
+  --cc-footer-bg: var(--color-bg-alt);
+  --cc-footer-color: var(--color-text-subtle);
+  --cc-footer-border-color: var(--color-border-light);
 
-  --cc-pm-bg: #2e2e2e;
+  --cc-pm-bg: var(--color-surface-raised);
 }
 
-/* Light theme */
-:root[data-theme="light"] #cc-main {
-  --cc-bg: #ffffff;
-  --cc-primary-color: #1a1a2e;
-  --cc-secondary-color: #475569;
-
-  --cc-btn-primary-bg: #00a99d;
-  --cc-btn-primary-color: #ffffff;
-  --cc-btn-primary-border-color: #00a99d;
-  --cc-btn-primary-hover-bg: #008578;
-  --cc-btn-primary-hover-color: #ffffff;
-  --cc-btn-primary-hover-border-color: #008578;
-
-  --cc-btn-secondary-bg: transparent;
-  --cc-btn-secondary-color: #475569;
-  --cc-btn-secondary-border-color: #cbd5e1;
-  --cc-btn-secondary-hover-bg: #e2e8f0;
-  --cc-btn-secondary-hover-color: #1a1a2e;
-  --cc-btn-secondary-hover-border-color: #cbd5e1;
-
-  --cc-separator-border-color: #cbd5e1;
-  --cc-toggle-on-bg: #00a99d;
-  --cc-toggle-off-bg: #cbd5e1;
-  --cc-toggle-readonly-bg: #008578;
-  --cc-toggle-readonly-knob-bg: #ffffff;
-
-  --cc-cookie-category-block-bg: #f1f5f9;
-  --cc-cookie-category-block-border: #cbd5e1;
-  --cc-cookie-category-block-hover-bg: #e2e8f0;
-
-  --cc-cookie-table-border: #cbd5e1;
-
-  --cc-overlay-bg: rgba(0, 0, 0, 0.4);
-  --cc-section-border: #cbd5e1;
-
-  --cc-footer-bg: #f1f5f9;
-  --cc-footer-color: #64748b;
-  --cc-footer-border-color: #cbd5e1;
-
-  --cc-pm-bg: #ffffff;
-}
-
-/* Button border radius to match app */
 #cc-main .cm__btn,
 #cc-main .pm__btn {
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition:
+    background-color var(--dur-base) var(--ease-out-soft),
+    transform var(--dur-fast) var(--ease-out-soft);
 }
 
-/* Footer links styling */
+#cc-main .cm__btn:active,
+#cc-main .pm__btn:active {
+  transform: scale(0.97);
+}
+
 #cc-main .cm__footer a {
   color: var(--cc-footer-color);
 }
 
 #cc-main .cm__footer a:hover {
-  color: var(--cc-btn-primary-bg);
+  color: var(--color-text-accent);
 }
 
-/* Smooth transitions */
 #cc-main .cm,
 #cc-main .pm {
-  border-radius: 1rem;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-strong);
 }

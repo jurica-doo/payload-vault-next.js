@@ -1,7 +1,11 @@
 "use client";
 
-import { HeaderHome } from "../../components/header/HeaderHome";
-import { MiniFooter } from "../../components/footer/MiniFooter";
+import { useErrorToast } from "../../hooks/useErrorToast";
+import type React from "react";
+
+import { AppShell } from "../../components/layout/AppShell";
+import { PageHeader } from "../../components/pageHeader/PageHeader";
+import { SectionHeading } from "../../components/sectionHeading/SectionHeading";
 import { useAuth } from "../../context/AuthContext";
 import { useYear } from "../../hooks/year/UseYear";
 import { usePdfs } from "../../hooks/usePdf/UsePdfs";
@@ -16,6 +20,7 @@ import { IncomeGoalTracking } from "./IncomeGoalTracking";
 import type { ExpenseCategory } from "../../hooks/useExpenses/types";
 
 export const AnalyticsPage = () => {
+  const onFail = useErrorToast();
   const { user } = useAuth();
   const { year } = useYear();
 
@@ -58,11 +63,11 @@ export const AnalyticsPage = () => {
       year,
       category,
       budget_amount: amount,
-    });
+    }, { onError: onFail("Budget nicht gespeichert") });
   };
 
   const handleBudgetRemove = (id: string) => {
-    removeTarget.mutate(id);
+    removeTarget.mutate(id, { onError: onFail("Budget nicht gelöscht") });
   };
 
   const handleGoalUpsert = (month: number | null, amount: number) => {
@@ -72,14 +77,20 @@ export const AnalyticsPage = () => {
       year,
       month,
       goal_amount: amount,
-    });
+    }, { onError: onFail("Ziel nicht gespeichert") });
   };
 
   const handleGoalRemove = (id: string) => {
-    removeGoal.mutate(id);
+    removeGoal.mutate(id, { onError: onFail("Ziel nicht gelöscht") });
   };
 
-  if (!user || !year || errorPdfs || errorExpenses) return <ErrorBlock />;
+  const shell = (content: React.ReactNode) => (
+    <AppShell title="Analysen" subtitle={`Geschäftsjahr ${year}`} showYearSelector>
+      {content}
+    </AppShell>
+  );
+
+  if (!user || !year || errorPdfs || errorExpenses) return shell(<ErrorBlock />);
 
   const isLoading =
     isLoadingPdfs ||
@@ -90,31 +101,17 @@ export const AnalyticsPage = () => {
     !pdfs ||
     !expenses;
 
-  return (
-    <div className="flex flex-col min-h-screen bg-color-bg-main">
-      {isLoading ? (
-        <PageSkeletonLoader />
-      ) : (
-        <>
-          <div className="sticky top-0 z-40">
-            <HeaderHome
-              isTwoHeaders
-              isSticky={false}
-              pageTitle="Erweiterte Analysen"
-              pageSubtitle={year.toString()}
-            />
-          </div>
+  if (isLoading) return shell(<PageSkeletonLoader />);
 
-          <main className="flex-1">
-            <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8 space-y-8 pb-10">
+  return shell(
+            <div className="space-y-10">
+              <PageHeader
+                title="Erweiterte Analysen"
+                description="Prognosen, Kategorie-Budgets und Einnahmen-Ziele für das gewählte Geschäftsjahr."
+              />
               {/* Section: Income Forecasting */}
               <section className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-6 w-1 bg-color-primary rounded-full" />
-                  <h3 className="text-lg sm:text-xl font-bold text-color-text-main">
-                    Einnahmenprognose
-                  </h3>
-                </div>
+                <SectionHeading tone="primary">Einnahmenprognose</SectionHeading>
                 <IncomeForecast
                   pdfs={pdfs}
                   previousYearPdfs={previousYearPdfs ?? []}
@@ -124,12 +121,7 @@ export const AnalyticsPage = () => {
 
               {/* Section: Category Budget Targets */}
               <section className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-6 w-1 bg-color-error rounded-full" />
-                  <h3 className="text-lg sm:text-xl font-bold text-color-text-main">
-                    Kategorie-Budgets
-                  </h3>
-                </div>
+                <SectionHeading tone="accent">Kategorie-Budgets</SectionHeading>
                 <BudgetTargets
                   expenses={expenses}
                   budgetTargets={budgetTargets ?? []}
@@ -141,12 +133,7 @@ export const AnalyticsPage = () => {
 
               {/* Section: Income Goal Tracking */}
               <section className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-6 w-1 bg-color-primary rounded-full" />
-                  <h3 className="text-lg sm:text-xl font-bold text-color-text-main">
-                    Einnahmen-Ziele
-                  </h3>
-                </div>
+                <SectionHeading tone="primary">Einnahmen-Ziele</SectionHeading>
                 <IncomeGoalTracking
                   pdfs={pdfs}
                   incomeGoals={incomeGoals ?? []}
@@ -155,12 +142,6 @@ export const AnalyticsPage = () => {
                   onRemove={handleGoalRemove}
                 />
               </section>
-            </div>
-
-            <MiniFooter />
-          </main>
-        </>
-      )}
-    </div>
+            </div>,
   );
 };

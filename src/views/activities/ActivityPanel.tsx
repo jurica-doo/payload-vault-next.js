@@ -1,5 +1,7 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
@@ -53,7 +55,7 @@ export const ActivityPanel = ({ filter = {}, canLog = true }: { filter?: Activit
         {options.map((o) => (
           <button key={o} type="button" disabled={setOutcome.isPending}
             className="cursor-pointer rounded-full border border-color-border-light px-2 py-0.5 text-xs hover:border-color-primary"
-            onClick={() => setOutcome.mutate({ id: a.id, outcome: o }, { onError: (e) => showBanner("Nicht gespeichert", e.message, "error") })}>
+            onClick={() => setOutcome.mutate({ id: a.id, outcome: o }, { onError: (e) => showBanner("Nicht gespeichert", errorText(e), "error") })}>
             {OUTCOME[o].label}
           </button>
         ))}
@@ -64,7 +66,7 @@ export const ActivityPanel = ({ filter = {}, canLog = true }: { filter?: Activit
   return (
     <div className="flex flex-col gap-3">
       {canLog && <ActivityForm filter={filter} />}
-      {isLoading ? <p className="text-sm">Lädt…</p> : data.length === 0 ? (
+      {isLoading ? <LoadingState /> : data.length === 0 ? (
         <p className="text-sm text-color-text-subtle">Noch keine Aktivitäten.</p>
       ) : (
         <ul className="flex flex-col">
@@ -121,13 +123,13 @@ const ActivityForm = ({ filter }: { filter: ActivityFilter }) => {
         });
         setNotes(""); setOutcomeValue(""); setTime("");
       } catch (err) {
-        showBanner("Nicht gespeichert", err instanceof Error ? err.message : "", "error");
+        showBanner("Nicht gespeichert", errorText(err), "error");
       }
     }}>
       <div className="grid gap-3 sm:grid-cols-4">
         <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
           Art
-          <select value={type} onChange={(e) => setType(e.target.value as ActivityType)} className="rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-3 text-color-text-main">
+          <select value={type} onChange={(e) => setType(e.target.value as ActivityType)} className="ui-input">
             {TYPES_FOR_FORM.map((t) => <option key={t} value={t}>{ACTIVITY_TYPE_LABEL[t]}</option>)}
           </select>
         </label>
@@ -136,7 +138,7 @@ const ActivityForm = ({ filter }: { filter: ActivityFilter }) => {
         {hasReach ? (
           <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
             Ergebnis
-            <select value={outcome} onChange={(e) => setOutcomeValue(e.target.value)} className="rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-3 text-color-text-main">
+            <select value={outcome} onChange={(e) => setOutcomeValue(e.target.value)} className="ui-input">
               <option value="">–</option><option value="reached">erreicht</option><option value="not_reached">nicht erreicht</option>
             </select>
           </label>

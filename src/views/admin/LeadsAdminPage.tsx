@@ -1,5 +1,8 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
+import { LoadingState } from "../../components/loadingState/LoadingState";
+import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { CurrencyInput, DateInput } from "../../components/formFields/FormFields";
@@ -15,16 +18,15 @@ import { REQUIRED_FIELD_LABEL } from "../../domain/leads";
 import { berlinToday, formatDate, formatMoney } from "../../utils/format";
 import { Select } from "../leads/LeadForm";
 
-const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
+const card = cardClass;
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-const errText = (e: unknown) => (e instanceof Error ? e.message : "");
 
 /** Lead configuration (§9.2, §9.3): everything Profina decides, nothing hard-coded. */
 export const LeadsAdminPage = () => {
   const { permissions } = usePermissions();
   const { data: config } = useLeadConfig();
   if (!permissions.isAdmin) return <p className="text-sm">Nur für Administratoren.</p>;
-  if (!config) return <p className="text-sm">Lädt…</p>;
+  if (!config) return <LoadingState />;
   return (
     <div className="flex flex-col gap-4">
       {!permissions.hasMfa && <MfaRequiredNotice />}
@@ -86,7 +88,7 @@ const SlaCard = ({ config }: { config: LeadConfig }) => {
                   }, reason });
                   closeModal();
                 } catch (e) {
-                  showBanner("Nicht gespeichert", errText(e), "error");
+                  showBanner("Nicht gespeichert", errorText(e), "error");
                 }
               }} />
           ),
@@ -139,7 +141,7 @@ const StagesCard = ({ config }: { config: LeadConfig }) => {
                                 await updateStage.mutateAsync({ code: s.code, requiredFields: d.required, allowSkip: d.skip, active: d.active, reason });
                                 closeModal();
                               } catch (e) {
-                                showBanner("Nicht gespeichert", errText(e), "error");
+                                showBanner("Nicht gespeichert", errorText(e), "error");
                               }
                             }} />
                         ),
@@ -169,7 +171,7 @@ const SourcesCard = ({ config }: { config: LeadConfig }) => {
   const [amount, setAmount] = useState("");
   const sourceName = new Map(config.sources.map((s) => [s.id, s.name]));
   const run = async (fn: () => Promise<unknown>) => {
-    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", errText(e), "error"); }
+    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", errorText(e), "error"); }
   };
   return (
     <section className={card}>
@@ -219,7 +221,7 @@ const HolidaysCard = ({ config }: { config: LeadConfig }) => {
   const [region, setRegion] = useState(config.sla.holiday_region);
   const [name, setName] = useState("");
   const run = async (fn: () => Promise<unknown>) => {
-    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", errText(e), "error"); }
+    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", errorText(e), "error"); }
   };
   const upcoming = config.holidays.filter((h) => h.day >= berlinToday());
   return (

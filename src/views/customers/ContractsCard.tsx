@@ -1,5 +1,7 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
+import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput } from "../../components/formFields/FormFields";
@@ -13,7 +15,7 @@ import { useContracts, type ContractLink, type Customer } from "../../hooks/useC
 import { formatDate, formatDateTime } from "../../utils/format";
 import { Select } from "../leads/LeadForm";
 
-const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
+const card = cardClass;
 
 const STATUS: StatusMap<string> = {
   pending: { label: "in Bearbeitung", tone: "info" },
@@ -93,7 +95,7 @@ export const ContractsCard = ({ customer, canWork }: { customer: Customer; canWo
               try {
                 await linkExternal.mutateAsync({ sourceSystem: "portal", externalId: extId.trim() });
               } catch (e) {
-                showBanner("Nicht gespeichert", e instanceof Error ? e.message : "", "error");
+                showBanner("Nicht gespeichert", errorText(e), "error");
               }
             }} />
         </div>
@@ -127,7 +129,7 @@ const ContractForm = ({ customerId, onDone }: { customerId: string; onDone: () =
         });
         onDone();
       } catch (err) {
-        showBanner("Nicht gespeichert", err instanceof Error ? err.message : "", "error");
+        showBanner("Nicht gespeichert", errorText(err), "error");
       }
     }}>
       <div className="grid gap-3 sm:grid-cols-3">

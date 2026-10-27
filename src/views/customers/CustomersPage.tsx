@@ -1,6 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import { errorText } from "../../utils/dbErrors";
+import { MailIcon, PlusIcon, ShieldIcon } from "../../components/icons";
+import { ButtonLink } from "../../components/button/ButtonLink";
+import { PageActions } from "../../components/pageHeader/PageActions";
+import { Tabs } from "../../components/tabs/Tabs";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -50,31 +54,24 @@ export const CustomersPage = () => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div role="tablist" className="flex flex-wrap gap-2">
-          {scopes.map((s) => (
-            <button key={s.id} role="tab" aria-selected={scope === s.id} onClick={() => setScope(s.id)}
-              className={`cursor-pointer rounded-full border px-3 py-1 text-sm ${scope === s.id ? "border-color-primary text-color-primary" : "border-color-border-light text-color-text-subtle"}`}>
-              {s.label}
-            </button>
-          ))}
-        </div>
-        <span className="flex items-center gap-3">
-        {(permissions.isCompliance || permissions.isAdmin) && <Link href="/vertrieb/kunden/kommunikation" className="text-sm font-semibold">Kommunikation</Link>}
-        {(permissions.isCompliance || permissions.isAdmin) && <Link href="/vertrieb/kunden/datenschutz" className="text-sm font-semibold">Datenschutz</Link>}
-        {me && (
-          <Button text="Kunde anlegen" onClick={() => openModal({
-            title: "Kunde anlegen", size: "large",
-            children: <CustomerForm onDone={(id) => { closeModal(); router.push(`/vertrieb/kunden/${id}`); }} />,
-          })} />
-        )}
-        </span>
+        <Tabs ariaLabel="Kunden-Ansicht" value={scope} onChange={setScope} items={scopes.map((s) => ({ value: s.id, label: s.label }))} />
+        <PageActions>
+          {(permissions.isCompliance || permissions.isAdmin) && <ButtonLink href="/vertrieb/kunden/kommunikation" text="Kommunikation" icon={MailIcon} />}
+          {(permissions.isCompliance || permissions.isAdmin) && <ButtonLink href="/vertrieb/kunden/datenschutz" text="Datenschutz" icon={ShieldIcon} />}
+          {me && (
+            <Button text="Kunde anlegen" icon={PlusIcon} onClick={() => openModal({
+              title: "Kunde anlegen", size: "large",
+              children: <CustomerForm onDone={(id) => { closeModal(); router.push(`/vertrieb/kunden/${id}`); }} />,
+            })} />
+          )}
+        </PageActions>
       </div>
       <input type="search" aria-label="Suche" placeholder="Name, Firma, K-Nummer, Telefon, E-Mail, PLZ" value={query} onChange={(e) => setQuery(e.target.value)}
-        className="rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-2 text-sm" />
+        className="ui-input" />
       <DataTable
         rows={rows}
         isLoading={isLoading}
-        error={error ? error.message : null}
+        error={error ? errorText(error) : null}
         getRowId={(c) => c.id}
         onRowClick={(c) => router.push(`/vertrieb/kunden/${c.id}`)}
         emptyMessage="Keine Kunden in dieser Ansicht"

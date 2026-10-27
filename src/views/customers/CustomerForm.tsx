@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
@@ -72,7 +73,7 @@ export const CustomerForm = ({ customer, onDone }: { customer?: Customer; onDone
       }
       onDone(await create.mutateAsync({ data, ownerId: owner, confirmDuplicates: confirmed }));
     } catch (err) {
-      showBanner("Nicht gespeichert", err instanceof Error ? err.message : "", "error");
+      showBanner("Nicht gespeichert", errorText(err), "error");
     }
   };
 

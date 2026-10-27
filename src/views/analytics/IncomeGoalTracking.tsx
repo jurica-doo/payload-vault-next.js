@@ -116,7 +116,7 @@ export const IncomeGoalTracking = ({
   const canAddMonthly = usedMonths.size < 12;
 
   return (
-    <div className="bg-color-bg-card border border-color-border-light rounded-radius-lg p-4 sm:p-6 animate-fade-in">
+    <div className="ui-card p-4 sm:p-6 animate-fade-in">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
           <h4 className="text-base sm:text-lg font-semibold text-color-text-main">
@@ -299,7 +299,7 @@ export const IncomeGoalTracking = ({
       {deleteId && (
         <ConfirmDeleteModal
           title="Ziel löschen"
-          message={`Möchtest du das Ziel „${deleteName}" wirklich löschen?`}
+          message={`Möchten Sie das Ziel „${deleteName}" wirklich löschen?`}
           onCancel={() => setDeleteId(null)}
           onConfirm={() => {
             onRemove(deleteId);

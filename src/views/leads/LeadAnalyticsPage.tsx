@@ -1,6 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { errorText } from "../../utils/dbErrors";
+import { Tabs } from "../../components/tabs/Tabs";
+import { LoadingState } from "../../components/loadingState/LoadingState";
+import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { DataTable } from "../../components/dataTable/DataTable";
 import { FunnelChart } from "../../components/charts/FunnelChart";
@@ -16,7 +19,7 @@ import { berlinToday, formatDate, formatPercent } from "../../utils/format";
 
 type Scope = "me" | "team" | "all";
 
-const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
+const card = cardClass;
 
 /** Inclusive end date for captions: the RPC window is [from, to). */
 const dayBefore = (iso: string) => {
@@ -43,21 +46,13 @@ export const LeadAnalyticsPage = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/vertrieb/leads" className="text-sm font-semibold">← Leads</Link>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <PeriodSelector value={period} onChange={setPeriod} years={[y - 1, y]} />
-        <div role="tablist" className="flex flex-wrap gap-2">
-          {scopes.map((s) => (
-            <button key={s.id} role="tab" aria-selected={scope === s.id} onClick={() => setScope(s.id)}
-              className={`cursor-pointer rounded-full border px-3 py-1 text-sm ${scope === s.id ? "border-color-primary text-color-primary" : "border-color-border-light text-color-text-subtle"}`}>
-              {s.label}
-            </button>
-          ))}
-        </div>
+        <Tabs ariaLabel="Auswertungsbereich" value={scope} onChange={setScope} items={scopes.map((s) => ({ value: s.id, label: s.label }))} />
       </div>
       {!range ? <p className="text-sm">Bitte einen gültigen Zeitraum wählen.</p>
-        : error ? <p role="alert" className="text-sm text-color-error-text">{error.message}</p>
-        : isLoading || !data ? <p className="text-sm">Lädt…</p>
+        : error ? <p role="alert" className="text-sm text-color-error-text">{errorText(error)}</p>
+        : isLoading || !data ? <LoadingState />
         : data.totals.leads === 0 ? <EmptyState message="Im gewählten Zeitraum sind keine Leads eingegangen." />
         : <Report d={data} scope={scope} />}
       {permissions.isAdmin && <SourceTrends />}

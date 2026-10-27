@@ -1,5 +1,7 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
+import { ModalActions } from "../../components/modal/ModalActions";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { InputField } from "../../components/inputField/InputField";
@@ -54,7 +56,7 @@ export const EmployeeCreateForm = ({
     try {
       await onSubmit(parsed.data);
     } catch (e) {
-      setErrors({ form: e instanceof Error ? e.message : undefined });
+      setErrors({ form: errorText(e) });
     } finally {
       setIsLoading(false);
     }
@@ -80,7 +82,7 @@ export const EmployeeCreateForm = ({
       <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
         Beschäftigung
         <select
-          className="rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-3 font-medium text-color-text-main"
+          className="ui-input"
           value={values.employmentType}
           onChange={(e) => set("employmentType")(e.target.value)}
         >
@@ -95,10 +97,10 @@ export const EmployeeCreateForm = ({
         </p>
       )}
 
-      <div className="mt-2 flex flex-wrap gap-3 sm:gap-6">
+      <ModalActions>
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} isDisabled={isLoading} />
         <Button type="submit" text="Anlegen & einladen" isLoading={isLoading} />
-      </div>
+      </ModalActions>
     </form>
   );
 };

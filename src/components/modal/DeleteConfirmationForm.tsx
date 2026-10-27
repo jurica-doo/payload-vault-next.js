@@ -1,3 +1,5 @@
+import { errorText } from "../../utils/dbErrors";
+import { ModalActions } from "./ModalActions";
 import { useState } from "react";
 import { Button } from "../button/Button";
 import { useBanner } from "../../context/banner/BannerContext";
@@ -27,10 +29,10 @@ export const DeleteConfirmationForm = ({
         `Die Datei wurde erfolgreich gelöscht: "${fileName}"`,
         "success",
       );
-    } catch {
+    } catch (err) {
       showBanner(
-        "Fehler",
-        `Beim Löschen der Datei ist ein Fehler aufgetreten.: "${fileName}".`,
+        "Löschen fehlgeschlagen",
+        errorText(err, `„${fileName}“ konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.`),
         "error",
       );
     } finally {
@@ -39,7 +41,7 @@ export const DeleteConfirmationForm = ({
   };
 
   return (
-    <div className="flex flex-col gap-6 pt-2">
+    <div className="flex flex-col gap-5">
       <p className="text-color-text-secondary w-full sm:w-70">
         Möchten Sie wirklich löschen &bdquo;
         <span className="font-semibold text-color-text-primary break-all">
@@ -47,15 +49,15 @@ export const DeleteConfirmationForm = ({
         </span>
         &ldquo;?
       </p>
-      <div className="mt-6 flex flex-wrap gap-3 sm:gap-6">
+      <ModalActions>
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} />
         <Button
           text="Löschen"
-          variant="decline"
+          variant="danger"
           onClick={handleConfirm}
           isLoading={isLoading}
         />
-      </div>
+      </ModalActions>
     </div>
   );
 };

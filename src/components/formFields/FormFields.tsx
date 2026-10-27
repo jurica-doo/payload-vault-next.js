@@ -24,18 +24,22 @@ const FieldShell = ({ label, isRequired, error, hint, children }: FieldShellProp
 
   return (
     <div className="relative flex w-full flex-col">
-      <label htmlFor={id} className="mb-1 flex h-6 items-center font-semibold text-color-text-secondary">
-        {isRequired && <span className="text-[24px] leading-none">*</span>}
-        <span className="ml-1 text-[14px] text-color-text-secondary">{label}</span>
+      <label htmlFor={id} className="mb-1.5 flex items-center gap-0.5 text-[0.8125rem] font-medium text-color-text-secondary">
+        <span>{label}</span>
+        {isRequired && (
+          <span aria-hidden className="text-color-error-text">
+            *
+          </span>
+        )}
       </label>
       {children(id, describedBy)}
       {hint && !error && (
-        <p id={hintId} className="mt-1 text-xs text-color-text-subtle">
+        <p id={hintId} className="mt-1.5 text-xs text-color-text-subtle">
           {hint}
         </p>
       )}
       {error && (
-        <p id={errorId} className="mt-1 text-[16px] font-medium text-color-error-text">
+        <p id={errorId} className="mt-1.5 text-[0.8125rem] text-color-error-text animate-slide-down">
           {error}
         </p>
       )}

@@ -16,7 +16,7 @@ import {
 } from "../../hooks/useAnalytics/forecastUtils";
 import { normalizeProfit } from "../../components/contentCard/ContentCard.utils";
 
-const FORECAST_COLOR = "#f59e0b"; // amber — visually distinct from primary
+const FORECAST_COLOR = "var(--chart-2)"; // orange slot — distinct from the primary teal
 
 type IncomeForecastProps = {
   pdfs: PdfRecord[];
@@ -98,7 +98,7 @@ export const IncomeForecast = ({
   );
 
   return (
-    <div className="bg-color-bg-card border border-color-border-light rounded-radius-lg p-4 sm:p-6 animate-fade-in">
+    <div className="ui-card p-4 sm:p-6 animate-fade-in">
       <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
         <div>
           <h4 className="text-base sm:text-lg font-semibold text-color-text-main">

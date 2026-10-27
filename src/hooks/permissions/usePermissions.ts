@@ -1,5 +1,6 @@
 "use client";
 
+import { throwDbError } from "../../utils/dbErrors";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../context/AuthContext";
@@ -26,7 +27,7 @@ export function usePermissions(): {
     queryKey: myContextQueryKey(user?.id),
     queryFn: async () => {
       const { data, error } = await supabase.rpc("rpc_my_context");
-      if (error) throw error;
+      if (error) throwDbError(error);
       return data;
     },
     enabled: !!user,

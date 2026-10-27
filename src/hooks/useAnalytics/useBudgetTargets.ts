@@ -1,3 +1,4 @@
+import { throwDbError } from "../../utils/dbErrors";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
 import type { BudgetTarget, NewBudgetTarget } from "./types";
@@ -14,7 +15,7 @@ function useBudgetTargets(userId: string, year: number) {
         .eq("user_id", userId)
         .eq("year", year)
         .order("category");
-      if (error) throw error;
+      if (error) throwDbError(error);
       return data as BudgetTarget[];
     },
     enabled: !!userId,
@@ -43,7 +44,7 @@ function useBudgetTargets(userId: string, year: number) {
         )
         .select()
         .single();
-      if (error) throw error;
+      if (error) throwDbError(error);
       return data as BudgetTarget;
     },
     onSuccess: invalidate,
@@ -55,7 +56,7 @@ function useBudgetTargets(userId: string, year: number) {
         .from("budget_targets")
         .delete()
         .eq("id", id);
-      if (error) throw error;
+      if (error) throwDbError(error);
     },
     onSuccess: invalidate,
   });

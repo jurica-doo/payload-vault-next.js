@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
@@ -15,7 +16,7 @@ import { normalizeEmail, normalizePhone } from "../../domain/normalize";
 import { CHANNEL_LABEL, CONSENT_LABEL } from "../../domain/leads";
 import { berlinLocalToUtcIso, berlinToday } from "../../utils/format";
 
-const selectClass = "rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-3 text-color-text-main";
+const selectClass = "ui-input";
 
 /** Shared select markup for small option lists. */
 export const Select = ({ label, value, onChange, options }: {
@@ -88,7 +89,7 @@ export const LeadForm = ({ onDone }: { onDone: (id: string) => void }) => {
       const id = await create.mutateAsync({ data, ownerId: toPool ? null : owner, toPool, confirmDuplicates: confirmed });
       onDone(id);
     } catch (err) {
-      showBanner("Nicht gespeichert", err instanceof Error ? err.message : "", "error");
+      showBanner("Nicht gespeichert", errorText(err), "error");
     }
   };
 

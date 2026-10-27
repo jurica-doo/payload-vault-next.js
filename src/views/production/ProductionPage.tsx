@@ -1,6 +1,13 @@
 "use client";
 
-import Link from "next/link";
+import { errorText } from "../../utils/dbErrors";
+import { PlusIcon, UploadIcon } from "../../components/icons";
+import { ButtonLink } from "../../components/button/ButtonLink";
+import { ActionMenu } from "../../components/actionMenu/ActionMenu";
+import { ConfirmDialog } from "../../components/modal/ConfirmDialog";
+import { DeleteIcon, FileTextIcon, XIcon } from "../../components/icons";
+import { PageActions } from "../../components/pageHeader/PageActions";
+import { rowActionClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DataTable } from "../../components/dataTable/DataTable";
@@ -25,8 +32,7 @@ export const productionStatus: StatusMap<"draft" | "submitted" | "eligible" | "c
 
 const PERIOD = { monthly: "mtl.", annual: "jährl.", one_off: "einm." } as const;
 
-const action =
-  "cursor-pointer rounded-radius-sm px-2 py-1 text-xs font-semibold text-color-text-accent hover:bg-color-primary/15 disabled:cursor-not-allowed disabled:opacity-40";
+const action = rowActionClass;
 
 export const ProductionPage = () => {
   const { permissions } = usePermissions();
@@ -49,7 +55,7 @@ export const ProductionPage = () => {
       await fn();
       showBanner("Erledigt", success, "success");
     } catch (e) {
-      showBanner("Fehlgeschlagen", e instanceof Error ? e.message : "", "error");
+      showBanner("Aktion nicht ausgeführt", errorText(e), "error");
     }
   };
 
@@ -98,20 +104,35 @@ export const ProductionPage = () => {
       ),
     });
 
+  // Deleting a draft can't be undone — ask first.
+  const confirmDeleteDraft = (r: ProductionRow) =>
+    openModal({
+      title: "Entwurf löschen?",
+      children: (
+        <ConfirmDialog
+          message="Der Entwurf wird endgültig gelöscht. Dieser Schritt kann nicht rückgängig gemacht werden."
+          confirmText="Entwurf löschen"
+          onCancel={closeModal}
+          onConfirm={async () => {
+            await run(() => removeDraft.mutateAsync(r.id!), "Entwurf gelöscht.");
+            closeModal();
+          }}
+        />
+      ),
+    });
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-color-text-subtle">
           Punkte zählen, sobald ein Eintrag als anrechenbar bestätigt ist.
         </p>
-        <div className="flex flex-wrap gap-2">
+        <PageActions>
           {permissions.isAdmin && (
-            <Link href="/vertrieb/produktion/import" className="self-center text-sm font-semibold">
-              CSV-Import
-            </Link>
+            <ButtonLink href="/vertrieb/produktion/import" text="CSV-Import" icon={UploadIcon} />
           )}
-          <Button text="Produktion erfassen" onClick={openCreate} isDisabled={!permissions.employeeId && !(permissions.isAdmin && permissions.hasMfa)} />
-        </div>
+          <Button text="Produktion erfassen" icon={PlusIcon} onClick={openCreate} isDisabled={!permissions.employeeId && !(permissions.isAdmin && permissions.hasMfa)} />
+        </PageActions>
       </div>
 
       <DataTable
@@ -119,7 +140,7 @@ export const ProductionPage = () => {
         getRowId={(r) => r.id!}
         caption="Produktion"
         isLoading={isLoading}
-        error={error ? error.message : null}
+        error={error ? errorText(error) : null}
         emptyMessage="Noch keine Produktion erfasst"
         onRowClick={openDetails}
         pagination={data ? { page, pageSize: data.pageSize, total: data.total, onPageChange: setPage } : undefined}
@@ -153,19 +174,33 @@ export const ProductionPage = () => {
               const canEdit = own || (permissions.isAdmin && permissions.hasMfa);
               return (
                 // Buttons stop the row click so they don't also open the details.
-                <span className="flex flex-wrap justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                <span className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                   {r.status === "draft" && canEdit && (
-                    <>
-                      <button type="button" className={action} onClick={() => run(() => submit.mutateAsync(r.id!), "Eingereicht.")}>Einreichen</button>
-                      <button type="button" className={action} onClick={() => run(() => removeDraft.mutateAsync(r.id!), "Entwurf gelöscht.")}>Löschen</button>
-                    </>
+                    <button type="button" className={action} onClick={() => run(() => submit.mutateAsync(r.id!), "Eingereicht.")}>Einreichen</button>
                   )}
                   {r.status === "submitted" && isApprover && (
                     <button type="button" className={action} onClick={() => run(() => markEligible.mutateAsync(r.id!), "Als anrechenbar bestätigt.")}>Anrechenbar</button>
                   )}
-                  {(r.status === "submitted" ? canEdit : r.status === "eligible" ? isApprover : false) && (
-                    <button type="button" className={action} onClick={() => openCancel(r)}>Stornieren</button>
-                  )}
+                  <ActionMenu
+                    label="Weitere Aktionen"
+                    items={[
+                      { label: "Details anzeigen", icon: FileTextIcon, onClick: () => openDetails(r) },
+                      {
+                        label: "Stornieren",
+                        icon: XIcon,
+                        danger: true,
+                        hidden: !(r.status === "submitted" ? canEdit : r.status === "eligible" ? isApprover : false),
+                        onClick: () => openCancel(r),
+                      },
+                      {
+                        label: "Entwurf löschen",
+                        icon: DeleteIcon,
+                        danger: true,
+                        hidden: !(r.status === "draft" && canEdit),
+                        onClick: () => confirmDeleteDraft(r),
+                      },
+                    ]}
+                  />
                 </span>
               );
             },

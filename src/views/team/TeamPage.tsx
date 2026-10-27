@@ -1,5 +1,7 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import Link from "next/link";
 import { useState } from "react";
 import { HierarchyTree } from "../../components/hierarchyTree/HierarchyTree";
@@ -23,9 +25,9 @@ export const TeamPage = () => {
   const [expanded, setExpanded] = useState<Set<string> | null>(null);
   const [selectedId, setSelectedId] = useState<string>();
 
-  if (isLoading) return <p className="text-sm text-color-text-subtle">Struktur wird geladen…</p>;
+  if (isLoading) return <LoadingState label="Struktur wird geladen…" />;
   if (error || !structure) {
-    return <EmptyState message="Die Struktur konnte nicht geladen werden." hint={error?.message} />;
+    return <EmptyState message="Die Struktur konnte nicht geladen werden." hint={error ? errorText(error) : undefined} />;
   }
 
   // Roots start expanded so a leader sees their direct reports at once.
@@ -35,7 +37,7 @@ export const TeamPage = () => {
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-      <section className="rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+      <section className="ui-card p-4 sm:p-5">
         <h2 className="mb-3 text-base font-semibold">Struktur heute</h2>
         <HierarchyTree
           roots={structure.roots}
@@ -54,7 +56,7 @@ export const TeamPage = () => {
         />
       </section>
 
-      <aside className="rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft" aria-live="polite">
+      <aside className="ui-card p-4 sm:p-5" aria-live="polite">
         {selected ? (
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-2 text-sm">
             <dt className="col-span-2 text-base font-semibold text-color-text-main">

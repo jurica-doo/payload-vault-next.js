@@ -68,7 +68,7 @@ export const CategoryChart = ({ data, label }: CategoryChartProps) => {
 
   if (!data.length) {
     return (
-      <div className="bg-color-bg-card border border-color-border-light rounded-radius-lg p-4 sm:p-6 animate-fade-in">
+      <div className="ui-card p-4 sm:p-6 animate-fade-in">
         <h4 className="text-base sm:text-lg font-semibold text-color-text-main mb-4">
           {label}
         </h4>
@@ -80,7 +80,7 @@ export const CategoryChart = ({ data, label }: CategoryChartProps) => {
   }
 
   return (
-    <div className="bg-color-bg-card border border-color-border-light rounded-radius-lg p-4 sm:p-6 animate-fade-in">
+    <div className="ui-card p-4 sm:p-6 animate-fade-in">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h4 className="text-base sm:text-lg font-semibold text-color-text-main">
           {label}

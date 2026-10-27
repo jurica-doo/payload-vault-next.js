@@ -1,7 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+
+// Self-hosted by next/font: no request reaches Google at runtime.
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 // iOS splash screens (generated with pwa-asset-generator from
 // public/pwa-icon-source.svg). Without these, an installed PWA cold-starts
@@ -69,8 +77,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   colorScheme: "dark light",
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0d0d0d" },
-    { media: "(prefers-color-scheme: light)", color: "#00c4b3" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1115" },
+    { media: "(prefers-color-scheme: light)", color: "#f5f7f9" },
   ],
 };
 
@@ -83,13 +91,18 @@ export default async function RootLayout({
   const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
-    <html lang="de" translate="no" suppressHydrationWarning>
+    <html
+      lang="de"
+      translate="no"
+      className={inter.variable}
+      suppressHydrationWarning
+    >
       <head>
         {/* Sets data-theme BEFORE first paint so the loading screen (and
-            everything else) renders in the right theme immediately — without
-            this, light-mode users get a dark flash/loading screen because the
-            CSS default is dark and the React effect runs after paint. */}
+            everything else) renders in the right theme immediately. No saved
+            choice means "system" (see src/utils/theme.ts). */}
         <script
+          suppressHydrationWarning
           nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}document.documentElement.dataset.theme=t;}catch(e){}`,

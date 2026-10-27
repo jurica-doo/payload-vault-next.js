@@ -49,6 +49,7 @@ Legend: **[You]** = needs the account owner or a Profina decision · **[Dev]** =
 
 - [ ] Deploy `invite-employee`, then invite yourself a test employee.
 - [ ] On staging: deploy `send-emails` with `EMAIL_PROVIDER=dryrun`, and schedule it (Supabase scheduled function, or pg_net + cron) every 10 minutes with the header `x-cron-secret`.
+- [ ] **Redeploy `extract-data-from-expense-image`** when `feat/ux-ui-improvements` ships (`supabase functions deploy extract-data-from-expense-image`). Its error responses changed from mixed English/German sentences to stable keys (`unauthorized`, `rate_limited`, `invalid_body`, `invalid_file_path`, `forbidden`, `file_too_large`, `ai_unavailable`, `processing_failed`), which the app maps to German in `src/utils/dbErrors.ts`. The client still understands the old replies (it falls back to the HTTP status), so the order of deploys doesn't matter, but until the redeploy users get the status-based text instead of the precise one. Locally: restart `npm run functions`.
 
 ### 1.4 First data
 - [ ] Log in, set up 2FA at `/profil/sicherheit`. Admin, finance and compliance actions all require it.
@@ -191,11 +192,11 @@ What the tests already prove (pgTAP), and what a reviewer should look at:
 ## 6. Clean-up backlog [Dev]
 
 ### 6.1 UX pass (agreed: "UX later")
-- [ ] Signup/invite wording; the "Database error saving new user" text on `/signup` (kept on purpose for now). Retire `/signup` in favour of the invite-only flow.
-- [ ] Empty states and wording review across all new pages.
+- [ ] Signup/invite wording; the "Database error saving new user" text on `/signup` is now mapped to the German allowlist message (`src/utils/authErrors.ts`) and the login page no longer links to `/signup`. Still open: retire the `/signup` route itself in favour of the invite-only flow.
+- [x] Empty states and wording review across all new pages (`feat/ux-ui-improvements`: shared EmptyState/ErrorBlock/LoadingState, German "Sie" copy, mapped error texts).
 - [ ] Mobile layout of the admin stage × required-field matrix (`/admin/leads`).
-- [ ] Navigation entries for the new sub-pages (Aktivitäten, Lead-Auswertung, Kommunikation, Datenschutz are reachable via links only).
-- [ ] Finance/admin users without an employee record have no `/vertrieb` dashboard. Decide whether they get one.
+- [x] Navigation entries for the new sub-pages (sidebar sub-items in `src/data/navigation.ts`, `feat/ux-ui-improvements`).
+- [ ] Finance/admin users without an employee record have no personal `/vertrieb` dashboard. They now see an explanatory empty state plus the admin/finance sections; decide whether they need more.
 
 ### 6.2 Functional gaps
 - [ ] Production CSV and other exports through a logging RPC (`export_log`).

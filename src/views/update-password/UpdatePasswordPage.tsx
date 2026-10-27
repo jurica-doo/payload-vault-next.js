@@ -1,5 +1,6 @@
 "use client";
 
+import { authErrorMessage } from "../../utils/authErrors";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -7,9 +8,8 @@ import { supabase } from "../../lib/supabase";
 import { PasswordInput } from "../../components/passwordInput/PasswordInput";
 import { Banner } from "../../components/banner/Banner";
 import { Button } from "../../components/button/Button";
-import { VaultIcon } from "../../components/icons";
 import { passwordChangeSchema } from "../../validation/ChangePasswordValidation";
-import { MiniFooter } from "../../components/footer/MiniFooter";
+import { AuthLayout, AuthResult } from "../../components/auth/AuthLayout";
 
 export const UpdatePasswordPage = () => {
   const [password, setPassword] = useState("");
@@ -40,9 +40,7 @@ export const UpdatePasswordPage = () => {
     });
 
     if (error) {
-      setError(
-        "Passwort konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
-      );
+      setError(authErrorMessage(error, "update"));
     } else {
       setIsUpdated(true);
     }
@@ -52,39 +50,38 @@ export const UpdatePasswordPage = () => {
 
   if (isUpdated) {
     return (
-      <div className="auth-bg flex flex-col min-h-screen">
-        <div className="flex-1 flex items-center justify-center w-full p-4">
-          <div className="flex flex-col gap-6 w-full max-w-md bg-color-bg-card p-8 rounded-xl border border-color-border-light text-center shadow-shadow-strong animate-scale-in">
-            <h3 className="font-bold text-color-text-main">
-              Passwort aktualisiert
-            </h3>
-            <p className="text-color-text-subtle">
-              Ihr Passwort wurde erfolgreich geändert.
-            </p>
-            <Button onClick={() => router.push("/login")} text="Zur Anmeldung" />
-          </div>
-        </div>
-        <MiniFooter />
-      </div>
+      <AuthLayout title="Passwort gespeichert">
+        <AuthResult
+          action={
+            <Button
+              onClick={() => router.push("/login")}
+              text="Zur Anmeldung"
+              size="large"
+              fullWidth
+            />
+          }
+        >
+          Ihr Passwort wurde erfolgreich gespeichert. Sie können sich jetzt
+          anmelden.
+        </AuthResult>
+      </AuthLayout>
     );
   }
 
   return (
-    <div className="auth-bg flex flex-col min-h-screen">
-      <div className="flex-1 flex items-center justify-center w-full p-4">
-        <div className="flex flex-col gap-6 w-full max-w-md bg-color-bg-card p-8 rounded-xl border border-color-border-light shadow-shadow-strong animate-scale-in">
-          <div className="bg-color-primary/15 p-2 rounded-full mx-auto">
-            <VaultIcon className="w-12 h-12 mx-auto text-color-primary" />
-          </div>
-          <h3 className="font-bold text-color-text-main">Neues Passwort</h3>
-          <p className="text-color-text-subtle text-sm">
-            Geben Sie Ihr neues Passwort ein.
-          </p>
-
-          {error && <Banner bannerType="error" title={error} description="" />}
+    <AuthLayout
+      title="Passwort festlegen"
+      description="Wählen Sie ein sicheres Passwort für Ihr Konto."
+      footer={<Link href="/login">Zurück zur Anmeldung</Link>}
+    >
+          {error && (
+            <div className="mb-5 animate-slide-down">
+              <Banner bannerType="error" title="Passwort nicht gespeichert" description={error} />
+            </div>
+          )}
 
           <form
-            className="flex flex-col gap-6"
+            className="flex flex-col gap-5"
             onSubmit={(e) => {
               e.preventDefault();
               handleUpdatePassword();
@@ -107,21 +104,8 @@ export const UpdatePasswordPage = () => {
               isRepeated
             />
 
-            <div className="flex flex-col gap-3 mt-4">
-              <Button
-                type="submit"
-                text="Passwort speichern"
-                isLoading={loading}
-              />
-            </div>
+            <Button type="submit" text="Passwort speichern" isLoading={loading} size="large" fullWidth className="mt-1" />
           </form>
-
-          <p className="text-color-text-subtle text-center text-sm mt-2">
-            <Link href="/login">Zurück zur Anmeldung</Link>
-          </p>
-        </div>
-      </div>
-      <MiniFooter />
-    </div>
+    </AuthLayout>
   );
 };

@@ -1,5 +1,7 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
+import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
@@ -12,7 +14,7 @@ import {
 import { berlinLocalToUtcIso, berlinToday, formatDate, formatDateTime } from "../../utils/format";
 import { Select } from "../leads/LeadForm";
 
-const card = "flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft";
+const card = cardClass;
 
 /**
  * Consents and communication permissions (§10.1, §10.5). Append-only: a
@@ -35,7 +37,7 @@ export const ConsentCard = ({ customer, canWork }: { customer: Customer; canWork
       });
       setForm((x) => ({ ...x, evidence: "" }));
     } catch (e) {
-      showBanner("Nicht gespeichert", e instanceof Error ? e.message : "", "error");
+      showBanner("Nicht gespeichert", errorText(e), "error");
     }
   };
 

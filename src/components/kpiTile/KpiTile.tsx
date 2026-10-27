@@ -41,25 +41,27 @@ export const KpiTile = ({
   return (
     <section
       aria-busy={isLoading}
-      className="flex flex-col gap-1 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft"
+      className="ui-card flex flex-col gap-1.5 p-4 sm:p-5 animate-fade-in"
     >
       <div className="flex items-center justify-between gap-2">
-        <h4 className="text-sm text-color-text-subtle">{label}</h4>
+        <h3 className="text-[0.8125rem] font-medium text-color-text-subtle">
+          {label}
+        </h3>
         {isEstimate && (
-          <span className="rounded-full border border-color-secondary/40 px-2 text-xs text-color-secondary">
+          <span className="rounded-full bg-color-bg-warning-subtle px-2 py-0.5 text-[0.6875rem] font-medium text-color-warning-text">
             Schätzung
           </span>
         )}
       </div>
-      <div className="text-2xl font-bold text-color-text-main">
+      <div className="tabular text-2xl font-semibold tracking-tight text-color-text-main">
         {isLoading ? (
-          <span className="inline-block h-7 w-24 animate-pulse rounded-radius-sm bg-color-bg-dark" />
+          <span className="skeleton inline-block h-7 w-24" />
         ) : (
           value
         )}
       </div>
       {delta && !isLoading && (
-        <p className={`text-xs ${deltaClass}`}>
+        <p className={`text-xs font-medium ${deltaClass}`}>
           {ratio === null ? (
             <span>Kein Vergleich {delta.comparedTo}</span>
           ) : (

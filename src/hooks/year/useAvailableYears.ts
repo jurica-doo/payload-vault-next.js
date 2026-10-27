@@ -1,3 +1,4 @@
+import { throwDbError } from "../../utils/dbErrors";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../context/AuthContext";
@@ -14,7 +15,7 @@ async function fetchAvailableYears(
     );
 
     if (rpcError) {
-        throw rpcError;
+        throwDbError(rpcError);
     }
 
     const currentYear = new Date().getFullYear();

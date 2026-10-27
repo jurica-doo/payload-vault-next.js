@@ -1,6 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { useErrorToast } from "../../hooks/useErrorToast";
+import { errorText } from "../../utils/dbErrors";
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
@@ -46,13 +48,12 @@ const Profile = ({ employeeId }: { employeeId: string }) => {
   const coaching = useCoaching(employeeId);
   const isManager = permissions.employeeId !== employeeId && permissions.isLeader;
 
-  if (isLoading) return <p className="text-sm">Profil wird geladen…</p>;
-  if (error || !p) return <EmptyState message="Profil nicht verfügbar." hint={error?.message} />;
+  if (isLoading) return <LoadingState label="Profil wird geladen…" />;
+  if (error || !p) return <EmptyState message="Profil nicht verfügbar." hint={error ? errorText(error) : undefined} />;
 
   const last3 = p.trend.slice(-3).reduce((s, t) => s + Number(t.points), 0);
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/vertrieb/team" className="text-sm">← Struktur</Link>
       <header className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-xl font-semibold">{p.employee.name}</h2>
         <span className="text-sm text-color-text-subtle">
@@ -76,11 +77,11 @@ const Profile = ({ employeeId }: { employeeId: string }) => {
         <KpiTile label="Produktmix (12 Monate)" value={p.product_mix.map((m) => m.category).join(" · ") || "–"} />
       </div>
 
-      <section className="rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+      <section className="ui-card p-4 sm:p-5">
         <TrendChart caption="Anrechenbare Punkte je Monat, letzte 12 Monate" data={p.trend.map((t) => ({ label: MONTHS[Number(t.month.slice(5, 7)) - 1], value: Number(t.points) }))} />
       </section>
 
-      <section className="rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+      <section className="ui-card p-4 sm:p-5">
         <h3 className="mb-2 text-base font-semibold">Ziele</h3>
         {p.goals.length === 0 ? <p className="text-sm text-color-text-subtle">Keine Ziele erfasst.</p> : (
           <ul className="flex flex-col gap-1 text-sm">
@@ -102,6 +103,7 @@ const Profile = ({ employeeId }: { employeeId: string }) => {
 type CoachingHook = ReturnType<typeof useCoaching>;
 
 const CoachingSection = ({ coaching, isManager }: { coaching: CoachingHook; isManager: boolean }) => {
+  const onFail = useErrorToast();
   const { showBanner } = useBanner();
   const { permissions } = usePermissions();
   const [summary, setSummary] = useState("");
@@ -122,12 +124,12 @@ const CoachingSection = ({ coaching, isManager }: { coaching: CoachingHook; isMa
       setSummary(""); setActionTitle(""); setActionDue(""); setNextReview("");
       showBanner("Gespräch gespeichert", "", "success");
     } catch (e) {
-      showBanner("Nicht gespeichert", e instanceof Error ? e.message : "", "error");
+      showBanner("Nicht gespeichert", errorText(e), "error");
     }
   };
 
   return (
-    <section className="flex flex-col gap-4 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+    <section className="flex flex-col gap-4 ui-card p-4 sm:p-5">
       <h3 className="text-base font-semibold">Coaching</h3>
 
       <div>
@@ -140,7 +142,7 @@ const CoachingSection = ({ coaching, isManager }: { coaching: CoachingHook; isMa
                 <li key={a.id} className="flex flex-wrap items-center justify-between gap-2">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" checked={a.status === "done"} disabled={!canToggle || a.status === "cancelled"}
-                      onChange={(e) => coaching.setActionStatus.mutate({ id: a.id, status: e.target.checked ? "done" : "open" })} />
+                      onChange={(e) => coaching.setActionStatus.mutate({ id: a.id, status: e.target.checked ? "done" : "open" }, { onError: onFail("Maßnahme nicht aktualisiert") })} />
                     <span className={a.status === "done" ? "line-through" : ""}>{a.title}</span>
                   </label>
                   <span className={`text-xs ${a.status === "open" && a.due_on && a.due_on < berlinToday() ? "text-color-error-text" : "text-color-text-subtle"}`}>
@@ -199,9 +201,15 @@ const CoachingSection = ({ coaching, isManager }: { coaching: CoachingHook; isMa
             </label>
             <div>
               <Button text="Notiz speichern" variant="secondary" isDisabled={!note.trim()}
+                isLoading={coaching.addNote.isPending}
                 onClick={async () => {
-                  await coaching.addNote.mutateAsync({ visibility: privateNote ? "private_manager" : "shared", body: note });
-                  setNote("");
+                  try {
+                    await coaching.addNote.mutateAsync({ visibility: privateNote ? "private_manager" : "shared", body: note });
+                    setNote("");
+                    showBanner("Notiz gespeichert", "", "success");
+                  } catch (e) {
+                    showBanner("Notiz nicht gespeichert", errorText(e), "error");
+                  }
                 }} />
             </div>
           </div>

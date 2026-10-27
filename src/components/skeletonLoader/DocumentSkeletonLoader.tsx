@@ -1,14 +1,20 @@
+import { Skeleton } from "./Skeleton";
+
 export const DocumentSkeletonLoader = () => {
   return (
-    <div className="flex flex-col mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8 gap-10 pb-25">
+    <div
+      role="status"
+      aria-label="Dokumente werden geladen"
+      className="flex w-full flex-col gap-3"
+    >
       {Array.from({ length: 6 }).map((_, idx) => (
-        <div
-          key={idx}
-          className="bg-color-bg-card rounded-md p-4 flex flex-col gap-2 animate-pulse"
-        >
-          <div className="w-3/5 h-6 bg-color-bg-dark rounded-sm"></div>
-          <div className="w-full h-4 bg-color-bg-dark rounded-sm"></div>
-          <div className="w-7/10 h-4 bg-color-bg-dark rounded-sm"></div>
+        <div key={idx} className="ui-card flex items-center gap-4 p-4">
+          <Skeleton className="h-10 w-10 shrink-0 rounded-radius-md" />
+          <div className="flex flex-1 flex-col gap-2">
+            <Skeleton className="h-4 w-3/5" />
+            <Skeleton className="h-3 w-2/5" />
+          </div>
+          <Skeleton className="hidden h-8 w-24 sm:block" />
         </div>
       ))}
     </div>

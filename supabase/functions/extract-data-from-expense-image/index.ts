@@ -312,7 +312,7 @@ Deno.serve(async (req: Request) => {
   // Validate JWT — ensure caller is an authenticated user
   const authHeader = req.headers.get("Authorization");
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ success: false, error: "unauthorized", code: "unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders(req), "Content-Type": "application/json" },
     });
@@ -321,7 +321,7 @@ Deno.serve(async (req: Request) => {
     authHeader.replace("Bearer ", ""),
   );
   if (authError || !user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+    return new Response(JSON.stringify({ success: false, error: "unauthorized", code: "unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders(req), "Content-Type": "application/json" },
     });
@@ -330,7 +330,7 @@ Deno.serve(async (req: Request) => {
   // Rate limiting
   if (!(await checkRateLimit(user.id))) {
     console.warn(`Rate limit exceeded for user ${user.id}`);
-    return new Response(JSON.stringify({ error: "Too many requests" }), {
+    return new Response(JSON.stringify({ success: false, error: "rate_limited", code: "rate_limited" }), {
       status: 429,
       headers: { ...corsHeaders(req), "Content-Type": "application/json" },
     });
@@ -341,7 +341,7 @@ Deno.serve(async (req: Request) => {
 
     if (!filePath || typeof filePath !== "string") {
       return new Response(
-        JSON.stringify({ success: false, error: "No filePath provided" }),
+        JSON.stringify({ success: false, error: "invalid_body", code: "invalid_body" }),
         {
           status: 400,
           headers: { ...corsHeaders(req), "Content-Type": "application/json" },
@@ -359,13 +359,13 @@ Deno.serve(async (req: Request) => {
       /[%]/.test(filePath) ||
       filePath.length > 512
     ) {
-      return new Response(JSON.stringify({ error: "Invalid file path" }), {
+      return new Response(JSON.stringify({ success: false, error: "invalid_file_path", code: "invalid_file_path" }), {
         status: 400,
         headers: { ...corsHeaders(req), "Content-Type": "application/json" },
       });
     }
     if (!normalizedPath.startsWith(`${user.id}/`)) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
+      return new Response(JSON.stringify({ success: false, error: "forbidden", code: "forbidden" }), {
         status: 403,
         headers: { ...corsHeaders(req), "Content-Type": "application/json" },
       });
@@ -393,7 +393,7 @@ Deno.serve(async (req: Request) => {
         `Rejected oversized file for user ${user.id}: ${arrayBuffer.byteLength} bytes`,
       );
       return new Response(
-        JSON.stringify({ success: false, error: "Die Datei ist zu groß." }),
+        JSON.stringify({ success: false, error: "file_too_large", code: "file_too_large" }),
         {
           status: 413,
           headers: { ...corsHeaders(req), "Content-Type": "application/json" },
@@ -415,8 +415,8 @@ Deno.serve(async (req: Request) => {
       return new Response(
         JSON.stringify({
           success: false,
-          error:
-            "Der KI-Service ist momentan nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut.",
+          error: "ai_unavailable",
+          code: "ai_unavailable",
         }),
         {
           headers: { ...corsHeaders(req), "Content-Type": "application/json" },
@@ -467,7 +467,8 @@ Deno.serve(async (req: Request) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: "Verarbeitung fehlgeschlagen. Bitte erneut versuchen.",
+        error: "processing_failed",
+        code: "processing_failed",
       }),
       {
         headers: { ...corsHeaders(req), "Content-Type": "application/json" },

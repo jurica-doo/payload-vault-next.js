@@ -1,3 +1,4 @@
+import { errorText } from "../../utils/dbErrors";
 import { useState } from "react";
 import { Button } from "../button/Button";
 import { DownloadIcon } from "../icons/DownloadIcon";
@@ -30,10 +31,10 @@ export const TaxReportButton = ({
       const email = user?.email ?? "benutzer";
       await generateTaxReport(pdfs, expenses, year, email);
       showBanner("Steuerbericht", "PDF wurde erfolgreich erstellt.", "success");
-    } catch {
+    } catch (err) {
       showBanner(
-        "Fehler",
-        "Steuerbericht konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
+        "Steuerbericht nicht erstellt",
+        errorText(err, "Das PDF konnte nicht erstellt werden. Bitte versuchen Sie es erneut."),
         "error",
       );
     } finally {

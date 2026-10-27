@@ -22,23 +22,24 @@ export const BulkActionBar = ({
   const allSelected = count === totalCount && totalCount > 0;
 
   return (
-    <div className="fixed bottom-16 left-0 right-0 z-[60] animate-slide-up">
-      <div className="mx-auto w-full max-w-5xl px-4 pb-2 sm:px-6 lg:px-8">
-        <div
-          className="flex flex-wrap items-center justify-between gap-3
-            rounded-radius-md border border-color-border-light
-            bg-color-bg-card px-4 py-3
-            shadow-shadow-strong"
-        >
+    <div
+      role="region"
+      aria-label="Auswahl"
+      className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-[60] animate-slide-up lg:bottom-6 lg:pl-[16.5rem]"
+    >
+      <div className="mx-auto w-full max-w-2xl px-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-radius-xl bg-color-surface-raised py-2.5 pl-4 pr-2.5 shadow-shadow-strong ring-1 ring-color-border-light">
           {/* Left: count + select/deselect all */}
           <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-color-text-main whitespace-nowrap">
-              {count} ausgewählt
+            <span className="tabular flex h-7 min-w-7 items-center justify-center rounded-full bg-color-primary px-2 text-xs font-semibold text-color-on-primary animate-pop-in" key={count}>
+              {count}
+            </span>
+            <span className="text-sm font-medium text-color-text-main whitespace-nowrap">
+              ausgewählt
             </span>
             <button
               type="button"
-              className="cursor-pointer text-sm font-medium text-color-primary
-                hover:underline transition-colors duration-150"
+              className="ui-link-button"
               onClick={allSelected ? onDeselectAll : onSelectAll}
             >
               {allSelected ? "Alle abwählen" : "Alle auswählen"}
@@ -51,8 +52,8 @@ export const BulkActionBar = ({
               type="button"
               className="cursor-pointer flex items-center gap-2 rounded-radius-md
                 px-3 py-2 text-sm font-medium
-                text-color-text-main bg-color-bg-dark
-                hover:bg-color-primary/10 hover:text-color-primary
+                text-color-text-main border border-color-border-strong bg-color-bg-card
+                hover:bg-color-bg-hover
                 transition-all duration-200 active:scale-95"
               onClick={onDownload}
               disabled={count === 0}
@@ -65,8 +66,8 @@ export const BulkActionBar = ({
               type="button"
               className="cursor-pointer flex items-center gap-2 rounded-radius-md
                 px-3 py-2 text-sm font-medium
-                text-color-error-text bg-color-error/10
-                hover:bg-color-error/20
+                text-white bg-color-error
+                hover:brightness-110
                 transition-all duration-200 active:scale-95"
               onClick={onDelete}
               disabled={count === 0}
@@ -80,7 +81,7 @@ export const BulkActionBar = ({
               className="cursor-pointer flex items-center justify-center
                 rounded-radius-md p-2
                 text-color-text-secondary hover:text-color-text-main
-                hover:bg-color-bg-dark
+                hover:bg-color-bg-hover
                 transition-all duration-200 active:scale-95"
               onClick={onCancel}
               aria-label="Auswahl beenden"

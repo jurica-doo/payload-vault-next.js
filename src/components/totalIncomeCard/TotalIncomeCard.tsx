@@ -1,4 +1,4 @@
-import { IncomeIcon, LossIcon } from "../icons";
+import { TrendIcon, ReceiptIcon } from "../icons";
 import type { TotalIncomeCardProps } from "./TotalIncomeCard.types";
 import { normalizeProfit } from "../contentCard/ContentCard.utils";
 
@@ -8,26 +8,42 @@ export const TotalIncomeCard = ({
   subtitle,
   variant = "income",
 }: TotalIncomeCardProps) => {
+  const isIncome = variant === "income";
   return (
-    <div
-      className={`${variant === "income" ? "bg-color-bg-accent-subtle" : "bg-color-bg-error-subtle"} rounded-radius-lg flex p-5 justify-center transition-all duration-200 ease-in-out hover:shadow-shadow-medium`}
-    >
-      <div className="w-[95%] flex flex-col items-baseline gap-1">
-        <h4 className="text-color-text-subtle">{title}</h4>
-        <h3
-          className={`${variant === "income" ? "text-color-primary" : "text-color-error"}`}
+    <div className="ui-card relative flex items-center justify-between gap-4 overflow-hidden p-5 sm:p-6 animate-fade-in">
+      {/* Soft brand wash in the corner. */}
+      <span
+        aria-hidden
+        className={`pointer-events-none absolute -right-10 -top-16 h-44 w-44 rounded-full blur-3xl ${
+          isIncome ? "bg-color-primary/12" : "bg-color-secondary/12"
+        }`}
+      />
+      <div className="relative flex min-w-0 flex-col gap-1">
+        <span className="text-[0.8125rem] font-medium text-color-text-subtle">
+          {title}
+        </span>
+        <span
+          className={`tabular text-[1.75rem] font-semibold leading-tight tracking-tight sm:text-[2rem] ${
+            isIncome ? "text-color-text-accent" : "text-color-text-main"
+          }`}
         >
           {normalizeProfit(totalIncome)} €
-        </h3>
-        {subtitle && <p>{subtitle}</p>}
-      </div>
-      <div className="flex justify-center">
-        {variant === "income" ? (
-          <IncomeIcon className="text-color-primary w-14 lg:w-18" />
-        ) : (
-          <LossIcon className="text-color-error w-14 lg:w-18" />
+        </span>
+        {subtitle && (
+          <span className="text-[0.8125rem] text-color-text-subtle">
+            {subtitle}
+          </span>
         )}
       </div>
+      <span
+        className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-radius-lg ${
+          isIncome
+            ? "bg-color-bg-accent-subtle text-color-text-accent"
+            : "bg-color-bg-warning-subtle text-color-warning-text"
+        }`}
+      >
+        {isIncome ? <TrendIcon size={24} /> : <ReceiptIcon size={24} />}
+      </span>
     </div>
   );
 };

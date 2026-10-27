@@ -12,12 +12,12 @@ const MONTH_FULL_NAMES = [
   "Juli", "August", "September", "Oktober", "November", "Dezember",
 ];
 
-// Chart color palette that works in both light and dark themes
-const CHART_COLORS = [
-  "#00c4b3", "#be9b53", "#6366f1", "#f43f5e",
-  "#22d3ee", "#a855f7", "#f97316", "#84cc16",
-  "#ec4899", "#14b8a6",
-];
+// Categorical chart palette: CSS tokens (--chart-1…8 in index.css), one
+// validated set per theme. Assigned in fixed order; anything past slot 8
+// shares a neutral "other" grey instead of cycling hues.
+const CHART_COLORS = Array.from({ length: 8 }, (_, i) => `var(--chart-${i + 1})`);
+const chartColor = (i: number) =>
+  i < CHART_COLORS.length ? CHART_COLORS[i] : "var(--chart-other)";
 
 type MonthlyData = {
   month: string;
@@ -77,7 +77,7 @@ function aggregateEarningsByCategory(pdfs: PdfRecord[]): CategoryTotal[] {
   return entries.map(([category, total], i) => ({
     category,
     total,
-    color: CHART_COLORS[i % CHART_COLORS.length],
+    color: chartColor(i),
   }));
 }
 
@@ -143,7 +143,7 @@ function aggregateExpensesByCategory(expenses: ExpenseRecord[]): CategoryTotal[]
   return entries.map(([category, total], i) => ({
     category,
     total,
-    color: CHART_COLORS[i % CHART_COLORS.length],
+    color: chartColor(i),
   }));
 }
 

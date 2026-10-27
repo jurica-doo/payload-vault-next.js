@@ -110,31 +110,31 @@ export const PwaInstallPrompt = () => {
       <div
         role="dialog"
         aria-modal="true"
-        className="fixed inset-0 z-[10000] flex items-end justify-center bg-black/60 p-4 sm:items-center"
+        className="fixed inset-0 z-[10000] flex items-end justify-center bg-color-overlay p-4 sm:items-center"
         onClick={dismiss}
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-md rounded-2xl border border-[#00c4b3]/30 bg-[#0d0d0d] p-5 text-white shadow-2xl"
+          className="w-full max-w-md rounded-radius-xl bg-color-surface-raised p-5 text-color-text-main shadow-shadow-strong ring-1 ring-color-border-light animate-sheet-up sm:animate-scale-in"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1.25rem)" }}
         >
           <h2 className="mb-2 text-lg font-bold">Zum Home-Bildschirm hinzufügen</h2>
-          <ol className="space-y-2 text-sm leading-relaxed opacity-90">
+          <ol className="space-y-2 text-sm leading-relaxed text-color-text-secondary">
             <li>
-              1. Tippe in Safari auf das <strong>Teilen-Symbol</strong>{" "}
+              1. Tippen Sie in Safari auf das <strong>Teilen-Symbol</strong>{" "}
               <span aria-hidden="true">▢↑</span>.
             </li>
             <li>
-              2. Wähle <strong>„Zum Home-Bildschirm“</strong>.
+              2. Wählen Sie <strong>„Zum Home-Bildschirm“</strong>.
             </li>
             <li>
-              3. Tippe rechts oben auf <strong>„Hinzufügen“</strong>.
+              3. Tippen Sie rechts oben auf <strong>„Hinzufügen“</strong>.
             </li>
           </ol>
           <button
             type="button"
             onClick={dismiss}
-            className="mt-5 w-full cursor-pointer rounded-md bg-[#00c4b3] px-3 py-2 text-sm font-semibold text-black transition hover:bg-[#33d1c2] active:scale-95"
+            className="mt-5 h-11 w-full cursor-pointer rounded-radius-md bg-color-primary px-3 text-sm font-medium text-color-on-primary transition hover:bg-color-primary-dark active:scale-[0.98]"
           >
             Verstanden
           </button>
@@ -147,25 +147,25 @@ export const PwaInstallPrompt = () => {
     <div
       role="dialog"
       aria-live="polite"
-      className="fixed right-4 bottom-4 left-4 z-[9998] flex max-w-md flex-col gap-2 rounded-xl border border-[#00c4b3]/40 bg-[#0d0d0d]/95 p-4 text-white shadow-2xl backdrop-blur-md sm:left-auto"
+      className="fixed right-4 bottom-4 left-4 z-[9998] flex max-w-md flex-col gap-2 rounded-radius-lg bg-color-surface-raised p-4 text-color-text-main shadow-shadow-strong ring-1 ring-color-border-light animate-slide-up sm:left-auto"
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem)" }}
     >
       <p className="text-sm font-semibold">Payload Vault installieren</p>
-      <p className="text-xs opacity-80">
+      <p className="text-xs text-color-text-subtle">
         Schnellerer Zugriff direkt vom Home-Bildschirm.
       </p>
       <div className="mt-1 flex gap-2">
         <button
           type="button"
           onClick={install}
-          className="cursor-pointer rounded-md bg-[#00c4b3] px-3 py-1.5 text-xs font-semibold text-black transition hover:bg-[#33d1c2] active:scale-95"
+          className="h-8 cursor-pointer rounded-radius-md bg-color-primary px-3 text-xs font-medium text-color-on-primary transition hover:bg-color-primary-dark active:scale-95"
         >
           Installieren
         </button>
         <button
           type="button"
           onClick={dismiss}
-          className="cursor-pointer rounded-md border border-white/20 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-white/10 active:scale-95"
+          className="h-8 cursor-pointer rounded-radius-md border border-color-border-strong px-3 text-xs font-medium text-color-text-main transition hover:bg-color-bg-hover active:scale-95"
         >
           Nicht jetzt
         </button>

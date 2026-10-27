@@ -1,5 +1,10 @@
 "use client";
 
+import { useErrorToast } from "../../hooks/useErrorToast";
+import { errorText } from "../../utils/dbErrors";
+import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
+import { GaugeIcon } from "../../components/icons";
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import Link from "next/link";
 import { DataTable } from "../../components/dataTable/DataTable";
 import { KpiTile } from "../../components/kpiTile/KpiTile";
@@ -40,9 +45,23 @@ export const DashboardPage = () => {
   return (
     <div className="flex flex-col gap-6">
       {isEmployee && <MyActions employeeId={permissions.employeeId!} />}
-      {isEmployee && (me.data ? <MySection d={me.data} /> : me.isLoading ? <p className="text-sm">Lädt…</p> : <EmptyState message="Dashboard nicht verfügbar." hint={me.error?.message} />)}
-      {permissions.isLeader && team.data && <TeamSection d={team.data} />}
-      {(permissions.isAdmin || permissions.isFinance) && admin.data && <AdminSection d={admin.data} />}
+      {isEmployee && (me.data ? <MySection d={me.data} /> : me.isLoading ? <DashboardSkeleton /> : <ErrorBlock variant="inline" message={me.error ? errorText(me.error) : "Ihr Dashboard konnte nicht geladen werden."} onRetry={() => me.refetch()} />)}
+      {!isEmployee && (
+        <div className="ui-card">
+          <EmptyState
+            icon={GaugeIcon}
+            compact
+            message="Kein persönliches Vertriebsprofil verknüpft"
+            hint={
+              permissions.isAdmin || permissions.isFinance
+                ? "Persönliche Kennzahlen gibt es nur für Mitarbeitende. Unten sehen Sie die Übersicht für Verwaltung und Finanzen."
+                : "Wenden Sie sich an die Verwaltung, um Ihr Konto mit einem Mitarbeiterprofil zu verknüpfen."
+            }
+          />
+        </div>
+      )}
+      {permissions.isLeader && (team.data ? <TeamSection d={team.data} /> : team.isLoading ? <LoadingState rows={4} label="Teamdaten werden geladen…" /> : team.error ? <ErrorBlock variant="inline" message="Die Teamdaten konnten nicht geladen werden." onRetry={() => team.refetch()} /> : null)}
+      {(permissions.isAdmin || permissions.isFinance) && (admin.data ? <AdminSection d={admin.data} /> : admin.isLoading ? <LoadingState rows={3} label="Übersicht wird geladen…" /> : admin.error ? <ErrorBlock variant="inline" message="Die Verwaltungsübersicht konnte nicht geladen werden." onRetry={() => admin.refetch()} /> : null)}
     </div>
   );
 };
@@ -111,7 +130,7 @@ const MySection = ({ d }: { d: MyDashboard }) => {
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+        <div className="flex flex-col gap-3 ui-card p-4 sm:p-5">
           <h3 className="text-base font-semibold">Karriere</h3>
           {c.status === "in_progress" || c.status === "ready" ? (
             <>
@@ -139,7 +158,7 @@ const MySection = ({ d }: { d: MyDashboard }) => {
             <p className="text-sm text-color-text-subtle">Noch nicht berechenbar ({c.reason ?? c.status}).</p>
           )}
         </div>
-        <div className="rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+        <div className="ui-card p-4 sm:p-5">
           <TrendChart
             caption="Anrechenbare Punkte je Monat (eigene Produktion, nach Produktionsdatum)"
             data={d.trend.map((t) => ({ label: monthShort(t.month), value: Number(t.points) }))}
@@ -237,6 +256,7 @@ const AdminSection = ({ d }: { d: AdminDashboard }) => {
 
 /** Agreed coaching actions show up on the employee's dashboard (§8.4). */
 const MyActions = ({ employeeId }: { employeeId: string }) => {
+  const onFail = useErrorToast();
   const { data, setActionStatus } = useCoaching(employeeId);
   const open = (data?.actions ?? []).filter((a) => a.status === "open" && a.owner_id === employeeId);
   if (open.length === 0) return null;
@@ -247,7 +267,7 @@ const MyActions = ({ employeeId }: { employeeId: string }) => {
         {open.map((a) => (
           <li key={a.id}>
             <label className="flex items-center gap-2">
-              <input type="checkbox" onChange={() => setActionStatus.mutate({ id: a.id, status: "done" })} />
+              <input type="checkbox" onChange={() => setActionStatus.mutate({ id: a.id, status: "done" }, { onError: onFail("Maßnahme nicht aktualisiert") })} />
               {a.title}
               {a.due_on && <span className="text-xs text-color-text-subtle">bis {formatDate(a.due_on)}</span>}
             </label>
@@ -257,3 +277,14 @@ const MyActions = ({ employeeId }: { employeeId: string }) => {
     </section>
   );
 };
+
+const DashboardSkeleton = () => (
+  <div role="status" aria-label="Dashboard wird geladen" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    {Array.from({ length: 4 }).map((_, i) => (
+      <div key={i} className="ui-card flex flex-col gap-3 p-4 sm:p-5">
+        <span className="skeleton h-3.5 w-24" />
+        <span className="skeleton h-7 w-20" />
+      </div>
+    ))}
+  </div>
+);

@@ -1,3 +1,4 @@
+import { dbErrorMessage, throwDbError, UserFacingError } from "../../utils/dbErrors";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
 import type { PostgrestError } from "@supabase/supabase-js";
@@ -49,7 +50,7 @@ async function fetchPdfs({
   }
 
   const { data, error } = await query;
-  if (error) throw error;
+  if (error) throwDbError(error);
 
   const filePaths = data
     .map((pdf) => pdf.pdf_url)
@@ -62,7 +63,7 @@ async function fetchPdfs({
     .from("pdf_reports")
     .createSignedUrls(filePaths, 900);
 
-  if (signError) throw signError;
+  if (signError) throwDbError(signError);
   return data.map((pdf, index) => ({
     ...pdf,
     signed_url: signedUrls?.[index]?.signedUrl ?? "",
@@ -75,7 +76,7 @@ async function insertPdf(pdf: NewPdf): Promise<PdfRecord> {
     .insert(pdf)
     .select()
     .single();
-  if (error) throw error;
+  if (error) throwDbError(error);
   return data;
 }
 
@@ -86,7 +87,7 @@ async function deletePdfAndFile(id: string): Promise<PdfRecord> {
     .eq("id", id)
     .single();
 
-  if (fetchError) throw fetchError;
+  if (fetchError) throwDbError(fetchError);
   if (record?.pdf_url) await deleteFileFromStorage(record.pdf_url);
 
   const { data, error } = await supabase
@@ -96,13 +97,13 @@ async function deletePdfAndFile(id: string): Promise<PdfRecord> {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) throwDbError(error);
   return data;
 }
 
 // ── Errors ────────────────────────────────────────────────────────────────────
 
-export class ExtractionError extends Error {
+export class ExtractionError extends UserFacingError {
   constructor(
     message: string,
     public readonly rejectionReason?: string,
@@ -112,9 +113,9 @@ export class ExtractionError extends Error {
   }
 }
 
-export class DuplicateFileError extends Error {
+export class DuplicateFileError extends UserFacingError {
   constructor(fileName: string) {
-    super(`Eine Datei mit dem Namen "${fileName}" existiert bereits.`);
+    super(`Eine Datei mit dem Namen „${fileName}“ existiert bereits.`);
     this.name = "DuplicateFileError";
   }
 }
@@ -131,7 +132,7 @@ async function checkDuplicateFileName(
     .eq("file_name", fileName)
     .limit(1);
 
-  if (error) throw error;
+  if (error) throwDbError(error);
   return (data?.length ?? 0) > 0;
 }
 
@@ -163,7 +164,8 @@ async function fileToBase64(file: File): Promise<string> {
       const result = reader.result as string;
       resolve(result.split(",")[1]);
     };
-    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.onerror = () =>
+      reject(new UserFacingError("Die Datei konnte nicht gelesen werden. Bitte wählen Sie sie erneut aus."));
     reader.readAsDataURL(file);
   });
 }
@@ -213,7 +215,7 @@ async function uploadAndExtractOnly({
     .upload(filePath, file);
 
   if (uploadError)
-    throw new ExtractionError("Upload fehlgeschlagen", uploadError.message);
+    throw new ExtractionError("Upload fehlgeschlagen", dbErrorMessage(uploadError));
 
   return {
     id: crypto.randomUUID(),
@@ -239,7 +241,7 @@ async function uploadAndInsertPdf({
     .upload(filePath, file);
 
   if (uploadError)
-    throw new ExtractionError("Upload fehlgeschlagen", uploadError.message);
+    throw new ExtractionError("Upload fehlgeschlagen", dbErrorMessage(uploadError));
 
   return insertPdf({
     user_id: userId,
@@ -322,7 +324,7 @@ export function usePdfs(props: FetchPdfProps) {
         .eq("id", payload.id)
         .select()
         .single();
-      if (error) throw error;
+      if (error) throwDbError(error);
       return data;
     },
     onSuccess: invalidate,

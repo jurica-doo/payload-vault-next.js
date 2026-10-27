@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DataTable } from "../../components/dataTable/DataTable";
@@ -19,7 +18,7 @@ import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useEmployees } from "../../hooks/useEmployees/useEmployees";
 import { logExport, useFinance } from "../../hooks/useCommission/useCommission";
 import { downloadCsv } from "../../utils/csvExport";
-import { dbErrorMessage } from "../../utils/dbErrors";
+import { errorText } from "../../utils/dbErrors";
 import { formatDateTime, parseGermanDecimal } from "../../utils/format";
 import { currentMonth, periodStatus } from "./CommissionPage";
 import { overviewCsv } from "./statementCsv";
@@ -88,7 +87,7 @@ export const FinancePage = () => {
       await logExport("statement_overview", month, rows.length);
       downloadCsv(overviewCsv(rows), `abrechnung_${month.slice(0, 7)}.csv`);
     } catch (e) {
-      showBanner("Export fehlgeschlagen", e instanceof Error ? e.message : "", "error");
+      showBanner("Export fehlgeschlagen", errorText(e), "error");
     }
   };
 
@@ -106,7 +105,7 @@ export const FinancePage = () => {
       showBanner("Zuschuss gespeichert", "", "success");
       setSubAmount(""); setSubNote(""); setSubReason(""); setSubOverride("");
     } catch (e) {
-      setSubError(e instanceof Error ? e.message : dbErrorMessage(null));
+      setSubError(errorText(e));
     }
   };
 
@@ -115,17 +114,16 @@ export const FinancePage = () => {
   return (
     <RoleGate when={allowed} fallback={<EmptyState message="Nur für Finanzen und Verwaltung." />}>
       <div className="flex flex-col gap-4">
-        <Link href="/vertrieb/provisionen" className="text-sm">← Eigene Abrechnung</Link>
         {!permissions.hasMfa && <MfaRequiredNotice />}
 
-        <section className="flex flex-wrap items-end justify-between gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+        <section className="flex flex-wrap items-end justify-between gap-3 ui-card p-4 sm:p-5">
           <label className="flex flex-col gap-1 text-sm font-semibold text-color-text-secondary">
             Abrechnungsmonat
             <input
               type="month"
               value={month.slice(0, 7)}
               onChange={(e) => e.target.value && setMonth(`${e.target.value}-01`)}
-              className="rounded-radius-md border border-color-border-light bg-color-bg-dark px-3 py-2 text-color-text-main"
+              className="ui-input"
             />
           </label>
           <div className="flex flex-wrap items-center gap-2">
@@ -143,7 +141,7 @@ export const FinancePage = () => {
           getRowId={(r) => r.recipient_id}
           caption="Abrechnungsübersicht"
           isLoading={overview.isLoading}
-          error={overview.error ? overview.error.message : null}
+          error={overview.error ? errorText(overview.error) : null}
           emptyMessage="Keine Buchungen oder Zuschüsse in diesem Monat"
           columns={[
             { id: "name", header: "Name", cell: (r) => `${r.recipient_name} (${r.employee_no})`, sortValue: (r) => r.recipient_name },
@@ -155,7 +153,7 @@ export const FinancePage = () => {
           ]}
         />
 
-        <section className="flex flex-col gap-3 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+        <section className="flex flex-col gap-3 ui-card p-4 sm:p-5">
           <h2 className="text-base font-semibold">Zuschuss für {month.slice(5, 7)}/{month.slice(0, 4)}</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <EmployeePicker label="Person" employees={employees.filter((e) => e.status === "active")} value={subEmployee} onChange={setSubEmployee} />
@@ -170,7 +168,7 @@ export const FinancePage = () => {
           <div><Button text="Zuschuss speichern" onClick={saveSubsidy} isDisabled={!canWrite} isLoading={setSubsidy.isPending} /></div>
         </section>
 
-        <section className="rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+        <section className="ui-card p-4 sm:p-5">
           <h2 className="mb-3 text-base font-semibold">Prüfwarteschlange ({exceptions.data?.length ?? 0})</h2>
           {(exceptions.data ?? []).length === 0 ? (
             <p className="text-sm text-color-text-subtle">Keine offenen Fälle.</p>
@@ -189,7 +187,7 @@ export const FinancePage = () => {
                           const n = await retry.mutateAsync(x.entity_id);
                           showBanner("Gebucht", `${n} Buchungen erstellt.`, "success");
                         } catch (e) {
-                          showBanner("Noch nicht buchbar", e instanceof Error ? e.message : dbErrorMessage(null), "error");
+                          showBanner("Noch nicht buchbar", errorText(e), "error");
                         }
                       }} />
                     <Button text="Verwerfen" size="small" variant="decline" isDisabled={!canWrite}

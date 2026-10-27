@@ -1,5 +1,7 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
+import { ModalActions } from "../../components/modal/ModalActions";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
@@ -40,7 +42,7 @@ export const EmployeeLevelForm = ({
     try {
       await onSubmit(level, from, reason.trim());
     } catch (e) {
-      setError(e instanceof Error ? e.message : undefined);
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -56,7 +58,7 @@ export const EmployeeLevelForm = ({
       <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
         Stufe
         <select
-          className="rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-3 font-medium text-color-text-main"
+          className="ui-input"
           value={level}
           onChange={(e) => setLevel(e.target.value)}
         >
@@ -67,10 +69,10 @@ export const EmployeeLevelForm = ({
       </label>
       <DateInput label="Gültig ab" value={from} min={startDate} onChange={setFrom} />
       <TextArea label="Begründung" value={reason} onChange={setReason} maxLength={500} isRequired error={error} />
-      <div className="flex flex-wrap gap-3 sm:gap-6">
+      <ModalActions>
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} isDisabled={busy} />
         <Button type="submit" text="Speichern" isLoading={busy} />
-      </div>
+      </ModalActions>
     </form>
   );
 };

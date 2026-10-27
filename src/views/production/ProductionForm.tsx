@@ -1,5 +1,7 @@
 "use client";
 
+import { ModalActions } from "../../components/modal/ModalActions";
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { InputField } from "../../components/inputField/InputField";
@@ -10,7 +12,7 @@ import { ProvisionalRuleNotice } from "../../components/provisionalRuleNotice/Pr
 import { AeValue, MoneyValue, PointsValue } from "../../components/values/Values";
 import { useRules } from "../../hooks/useRules/useRules";
 import { calculatePoints } from "../../domain/points";
-import { dbErrorMessage } from "../../utils/dbErrors";
+import { dbErrorMessage, errorText } from "../../utils/dbErrors";
 import { parseGermanDecimal } from "../../utils/format";
 import type { ProductionInput } from "../../hooks/useProduction/useProduction";
 
@@ -93,13 +95,13 @@ export const ProductionForm = ({
         submitNow,
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : undefined);
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }
   };
 
-  const select = "rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-3 font-medium text-color-text-main";
+  const select = "ui-input";
 
   return (
     <form className="flex flex-col gap-4 pt-2" onSubmit={(e) => { e.preventDefault(); void submit(false); }}>
@@ -157,7 +159,7 @@ export const ProductionForm = ({
 
       <section aria-live="polite" className="rounded-radius-md bg-color-bg-dark p-3 text-sm">
         {rulesLoading ? (
-          <p>Regeln werden geladen…</p>
+          <LoadingState label="Regeln werden geladen…" />
         ) : !preview ? (
           <p className="text-color-text-subtle">Vorschau erscheint nach Eingabe des Beitrags.</p>
         ) : !preview.ok ? (
@@ -192,11 +194,11 @@ export const ProductionForm = ({
 
       {error && <p role="alert" className="text-sm font-medium text-color-error-text">{error}</p>}
 
-      <div className="flex flex-wrap gap-3">
+      <ModalActions>
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} isDisabled={busy} />
         <Button type="submit" variant="secondary" text="Als Entwurf speichern" isLoading={busy} />
         <Button text="Speichern & einreichen" onClick={() => submit(true)} isLoading={busy} />
-      </div>
+      </ModalActions>
     </form>
   );
 };

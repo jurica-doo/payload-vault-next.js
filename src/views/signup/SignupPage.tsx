@@ -1,5 +1,6 @@
 "use client";
 
+import { authErrorMessage } from "../../utils/authErrors";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -10,9 +11,8 @@ import { useAuth } from "../../context/AuthContext";
 import { EmailConfirmation } from "../../components/auth/EmailConfirmation";
 import { Banner } from "../../components/banner/Banner";
 import { Button } from "../../components/button/Button";
-import { VaultIcon } from "../../components/icons";
 import { signUpSchema } from "../../validation/SignUpValidation";
-import { MiniFooter } from "../../components/footer/MiniFooter";
+import { AuthLayout } from "../../components/auth/AuthLayout";
 import { safeInternalPath } from "../../utils/safeRedirect";
 
 export const SignUpPage = () => {
@@ -60,11 +60,7 @@ export const SignUpPage = () => {
     });
 
     if (signUpError) {
-      setError(
-        signUpError.message.includes("User already registered")
-          ? "Ein Konto mit dieser E-Mail-Adresse existiert bereits."
-          : "Registrierung fehlgeschlagen. Bitte versuchen Sie es später erneut.",
-      );
+      setError(authErrorMessage(signUpError, "signup"));
     } else if (
       data.user?.identities?.length === 0 ||
       (data.user &&
@@ -85,25 +81,29 @@ export const SignUpPage = () => {
   }
 
   return (
-    <div className="auth-bg flex flex-col min-h-screen">
-      <div className="flex-1 flex justify-center items-center w-full p-4">
-        <div className="flex flex-col gap-6 w-full max-w-md bg-color-bg-card border border-color-border-light p-8 rounded-xl shadow-shadow-strong animate-scale-in">
-          <div className="bg-color-primary/15 p-2 rounded-full mx-auto">
-            <VaultIcon className="w-12 h-12 mx-auto text-color-primary" />
-          </div>
-          <h3 className="font-bold text-color-text-main">Konto erstellen</h3>
-
-          {error && <Banner bannerType="error" title={error} description="" />}
+    <AuthLayout
+      title="Konto erstellen"
+      footer={
+        <span>
+          Schon ein Konto? <Link href="/login">Anmelden</Link>
+        </span>
+      }
+    >
+          {error && (
+            <div className="mb-5 animate-slide-down">
+              <Banner bannerType="error" title="Registrierung nicht möglich" description={error} />
+            </div>
+          )}
 
           <form
-            className="flex flex-col gap-6"
+            className="flex flex-col gap-5"
             onSubmit={(e) => {
               e.preventDefault();
               handleSignUp();
             }}
           >
             <InputField
-              label="Email"
+              label="E-Mail"
               placeholder="nachname@pro-fina.de"
               type="email"
               name="email"
@@ -129,17 +129,8 @@ export const SignUpPage = () => {
               isRepeated
             />
 
-            <div className="flex flex-col gap-3 mt-4">
-              <Button type="submit" text="Registrieren" isLoading={loading} />
-
-              <p className="text-color-text-subtle text-center text-sm mt-2">
-                Schon ein Konto? <Link href="/login">Anmelden</Link>
-              </p>
-            </div>
+            <Button type="submit" text="Registrieren" isLoading={loading} size="large" fullWidth className="mt-1" />
           </form>
-        </div>
-      </div>
-      <MiniFooter />
-    </div>
+    </AuthLayout>
   );
 };

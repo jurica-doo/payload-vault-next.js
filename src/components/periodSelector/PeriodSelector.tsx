@@ -68,7 +68,7 @@ export const PeriodSelector = ({
   const fallbackYear = years[0] ?? new Date().getFullYear();
   const currentYear = "year" in value ? value.year : fallbackYear;
   const select =
-    "rounded-radius-md border border-color-border-light bg-color-bg-dark px-3 py-2 text-sm text-color-text-main";
+    "ui-input w-auto";
 
   const switchKind = (kind: Period["kind"]) => {
     if (kind === "month") onChange({ kind, year: currentYear, month: 1 });

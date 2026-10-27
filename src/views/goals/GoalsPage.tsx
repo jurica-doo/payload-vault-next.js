@@ -1,5 +1,8 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
+import { Tabs } from "../../components/tabs/Tabs";
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DecimalInput, TextArea } from "../../components/formFields/FormFields";
@@ -55,21 +58,14 @@ export const GoalsPage = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div role="tablist" aria-label="Monat" className="flex flex-wrap gap-2">
-        {months.map((m) => (
-          <button
-            key={m}
-            role="tab"
-            aria-selected={m === month}
-            onClick={() => setMonth(m)}
-            className={`cursor-pointer rounded-full border px-3 py-1 text-sm ${m === month ? "border-color-primary text-color-primary" : "border-color-border-light text-color-text-subtle"}`}
-          >
-            {monthLabel(m)}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        ariaLabel="Monat"
+        value={month}
+        onChange={setMonth}
+        items={months.map((m) => ({ value: m, label: monthLabel(m) }))}
+      />
 
-      {isLoading ? <p className="text-sm">Ziele werden geladen…</p> : <GoalEditor key={`${month}-${own?.updated_at ?? "new"}`} month={month} goal={own} />}
+      {isLoading ? <LoadingState label="Ziele werden geladen…" /> : <GoalEditor key={`${month}-${own?.updated_at ?? "new"}`} month={month} goal={own} />}
 
       {toReview.length > 0 && <ReviewList goals={toReview} />}
     </div>
@@ -113,12 +109,12 @@ const GoalEditor = ({ month, goal }: { month: string; goal: Goal | undefined }) 
       if (andSubmit) await submit.mutateAsync({ goalId: id, comment });
       showBanner(andSubmit ? "Eingereicht" : "Gespeichert", monthLabel(month), "success");
     } catch (e) {
-      setError(e instanceof Error ? e.message : undefined);
+      setError(errorText(e));
     }
   };
 
   return (
-    <section className="flex flex-col gap-4 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+    <section className="flex flex-col gap-4 ui-card p-4 sm:p-5">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-semibold">Meine Ziele · {monthLabel(month)}</h2>
         <span className="flex items-center gap-2">
@@ -169,7 +165,7 @@ const ReviewList = ({ goals }: { goals: Goal[] }) => {
   };
 
   return (
-    <section className="rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+    <section className="ui-card p-4 sm:p-5">
       <h2 className="mb-3 text-lg font-semibold">Zur Freigabe ({goals.length})</h2>
       <ul className="flex flex-col gap-3">
         {goals.map((g) => {

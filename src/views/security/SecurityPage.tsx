@@ -1,5 +1,12 @@
 "use client";
 
+import { authErrorMessage } from "../../utils/authErrors";
+import { errorText } from "../../utils/dbErrors";
+import type React from "react";
+import { ShieldIcon } from "../../components/icons";
+import { StatusBadge } from "../../components/statusBadge/StatusBadge";
+import { Notice } from "../../components/notice/Notice";
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "../../components/button/Button";
@@ -35,7 +42,10 @@ export const SecurityPage = () => {
       supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
     ]);
     if (error) {
-      setState({ kind: "error", message: "Status konnte nicht geladen werden." });
+      setState({
+        kind: "error",
+        message: errorText(error, "Der Status Ihrer Zwei-Faktor-Anmeldung konnte nicht geladen werden. Bitte laden Sie die Seite neu."),
+      });
       return;
     }
     const verified = factors.totp.find((f) => f.status === "verified");
@@ -66,8 +76,8 @@ export const SecurityPage = () => {
       });
       if (error || !enrolled) throw error;
       setState({ kind: "enrolling", factorId: enrolled.id, qrCode: enrolled.totp.qr_code, secret: enrolled.totp.secret });
-    } catch {
-      showBanner("Fehler", "Die Einrichtung konnte nicht gestartet werden.", "error");
+    } catch (e) {
+      showBanner("Einrichtung nicht gestartet", authErrorMessage(e, "mfa"), "error");
     } finally {
       setBusy(false);
     }
@@ -83,7 +93,7 @@ export const SecurityPage = () => {
     const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code: trimmed });
     setBusy(false);
     if (error) {
-      setCodeError("Der Code ist ungültig oder abgelaufen. Bitte den aktuellen Code eingeben.");
+      setCodeError(authErrorMessage(error, "mfa_code"));
       return;
     }
     setCode("");
@@ -121,11 +131,32 @@ export const SecurityPage = () => {
   );
 
   return (
-    <section className="flex flex-col gap-4 rounded-radius-lg bg-color-bg-card p-5 shadow-shadow-soft">
-      <h2 className="text-lg font-semibold">Zwei-Faktor-Anmeldung</h2>
+    <section className="ui-card flex flex-col gap-5 p-5 sm:p-6 animate-fade-in">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-radius-md bg-color-bg-accent-subtle text-color-text-accent">
+            <ShieldIcon size={20} />
+          </span>
+          <div className="flex flex-col gap-0.5">
+            <h2 className="text-[1.0625rem] font-semibold">Zwei-Faktor-Anmeldung</h2>
+            <p className="text-[0.8125rem] text-color-text-subtle">Zusätzlicher Schutz mit einem Einmal-Code aus Ihrer Authenticator-App.</p>
+          </div>
+        </div>
+        {state.kind !== "loading" && state.kind !== "error" && (
+          <StatusBadge
+            status={state.kind}
+            map={{
+              none: { label: "Nicht eingerichtet", tone: "warning" },
+              enrolling: { label: "Einrichtung läuft", tone: "info" },
+              needsChallenge: { label: "Bestätigung nötig", tone: "warning" },
+              verified: { label: "Aktiv", tone: "success" },
+            }}
+          />
+        )}
+      </div>
 
-      {state.kind === "loading" && <p className="text-sm">Status wird geladen…</p>}
-      {state.kind === "error" && <p className="text-sm text-color-error-text">{state.message}</p>}
+      {state.kind === "loading" && <LoadingState label="Status wird geladen…" />}
+      {state.kind === "error" && <Notice tone="error">{state.message}</Notice>}
 
       {state.kind === "none" && (
         <>
@@ -140,15 +171,15 @@ export const SecurityPage = () => {
 
       {state.kind === "enrolling" && (
         <>
-          <p className="text-sm">1. QR-Code mit der Authenticator-App scannen.</p>
+          <Step n={1}>QR-Code mit der Authenticator-App scannen.</Step>
           {/* eslint-disable-next-line @next/next/no-img-element -- data: URI from Supabase, nothing to optimise */}
-          <img src={state.qrCode} alt="QR-Code für die Authenticator-App" className="h-48 w-48 rounded-radius-md bg-white p-2" />
-          <p className="text-xs">
+          <img src={state.qrCode} alt="QR-Code für die Authenticator-App" className="ml-9 h-44 w-44 rounded-radius-lg bg-white p-2 ring-1 ring-color-border-light animate-scale-in" />
+          <p className="ml-9 text-xs">
             Kein Scan möglich? Schlüssel manuell eingeben:{" "}
-            <code className="break-all rounded-radius-sm bg-color-bg-dark px-1">{state.secret}</code>
+            <code className="break-all rounded-radius-sm bg-color-bg-alt px-1.5 py-0.5 font-mono text-color-text-main ring-1 ring-inset ring-color-border-light">{state.secret}</code>
           </p>
-          <p className="text-sm">2. Den angezeigten Code eingeben.</p>
-          {codeForm(state.factorId, "Bestätigen")}
+          <Step n={2}>Den angezeigten 6-stelligen Code eingeben.</Step>
+          <div className="ml-9">{codeForm(state.factorId, "Bestätigen")}</div>
         </>
       )}
 
@@ -162,8 +193,26 @@ export const SecurityPage = () => {
       )}
 
       {state.kind === "verified" && (
-        <p className="text-sm text-color-success-text">Eingerichtet – diese Sitzung ist bestätigt.</p>
+        <div className="flex items-center gap-3 rounded-radius-lg bg-color-success/8 p-4 ring-1 ring-inset ring-color-success/20">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-color-success/15 text-color-success-text animate-pop-in">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="m5 12 5 5 9-10" className="animate-draw-check" />
+            </svg>
+          </span>
+          <p className="text-sm text-color-text-main">
+            <span className="font-semibold">Eingerichtet</span> – diese Sitzung ist bestätigt. Verwaltungs- und Finanzfunktionen sind freigeschaltet.
+          </p>
+        </div>
       )}
     </section>
   );
 };
+
+const Step = ({ n, children }: { n: number; children: React.ReactNode }) => (
+  <p className="flex items-center gap-3 text-sm text-color-text-main">
+    <span className="tabular flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-color-bg-accent-subtle text-xs font-semibold text-color-text-accent">
+      {n}
+    </span>
+    {children}
+  </p>
+);

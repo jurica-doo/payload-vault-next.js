@@ -23,6 +23,13 @@ const MESSAGES: Record<string, string> = {
   user_exists: "Für diese E-Mail-Adresse existiert bereits ein Konto.",
   invite_send_failed: "Die Einladung konnte nicht versendet werden. Bitte erneut versuchen.",
   unauthorized: "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+  invalid_body: "Die Angaben sind unvollständig. Bitte prüfen Sie das Formular.",
+  unavailable: "Der Dienst ist gerade nicht erreichbar. Bitte versuchen Sie es in einigen Minuten erneut.",
+  not_configured: "Diese Funktion ist noch nicht eingerichtet. Bitte wenden Sie sich an die Verwaltung.",
+  unexpected: "Unerwarteter Fehler auf dem Server. Bitte versuchen Sie es erneut.",
+  audit_append_only: "Protokolleinträge können nicht geändert oder gelöscht werden.",
+  "Registrierung ist derzeit nur für freigegebene E-Mail-Adressen möglich.":
+    "Registrierung ist derzeit nur für freigegebene E-Mail-Adressen möglich.",
 
   // hierarchy
   hierarchy_cycle: "Diese Zuordnung würde einen Kreis in der Struktur erzeugen.",
@@ -71,6 +78,8 @@ const MESSAGES: Record<string, string> = {
   invalid_target_value: "Bitte nur positive Zahlen eintragen (Anzahlen ohne Nachkommastellen).",
   unknown_target: "Unbekanntes Zielfeld.",
   reviewer_not_employee: "Nur aktive Führungskräfte können Ziele freigeben.",
+  invalid_decision: "Bitte entscheiden Sie: freigeben oder zurückgeben.",
+  invalid_targets: "Die Zielwerte sind unvollständig oder ungültig.",
 
   // tasks
   owner_inactive: "Die Person ist inaktiv.",
@@ -96,6 +105,8 @@ const MESSAGES: Record<string, string> = {
   stage_in_use: "In dieser Phase befinden sich noch Leads.",
   invalid_input: "Bitte prüfen Sie Ihre Eingaben.",
   append_only: "Verlaufseinträge können nicht geändert werden.",
+  "calendar exhausted": "Für die Frist konnte kein Arbeitstag ermittelt werden. Bitte die Feiertage in den Lead-Einstellungen prüfen.",
+  calendar_exhausted: "Für die Frist konnte kein Arbeitstag ermittelt werden. Bitte die Feiertage in den Lead-Einstellungen prüfen.",
 
   // customers
   customer_name_required: "Bitte einen Nachnamen oder eine Firma angeben.",
@@ -139,26 +150,136 @@ const MESSAGES: Record<string, string> = {
   unknown_producer: "Unbekannte Person.",
   invalid_payload: "Die Importdatei konnte nicht gelesen werden.",
   too_many_rows: "Höchstens 5.000 Zeilen pro Import.",
+
+  // receipt AI (edge function extract-data-from-expense-image)
+  invalid_file_path: "Die Datei wurde nicht gefunden. Bitte laden Sie sie erneut hoch.",
+  file_too_large: "Die Datei ist zu groß. Bitte eine kleinere Datei oder ein komprimiertes Foto verwenden.",
+  ai_unavailable: "Die automatische Belegerkennung ist gerade nicht verfügbar. Bitte versuchen Sie es in wenigen Minuten erneut.",
+  processing_failed: "Der Beleg konnte nicht verarbeitet werden. Bitte versuchen Sie es erneut.",
 };
 
-const CONSTRAINT_MESSAGES: Record<string, string> = {
+/** Fallbacks by SQLSTATE / PostgREST code when the message isn't a key. */
+const CODE_MESSAGES: Record<string, string> = {
   "23514": "Bitte prüfen Sie Ihre Eingaben (Format oder Wertebereich ungültig).",
   "23505": "Dieser Eintrag existiert bereits.",
+  "23P01": "Der Zeitraum überschneidet sich mit einem bestehenden Eintrag.",
+  "23503": "Der Eintrag wird noch verwendet oder verweist auf etwas, das nicht mehr existiert.",
+  "23502": "Bitte füllen Sie alle Pflichtfelder aus.",
+  "42501": "Dafür fehlt Ihnen die Berechtigung.",
+  "22P02": "Ungültiges Format. Bitte prüfen Sie Ihre Eingaben.",
+  "22007": "Ungültiges Datum. Bitte prüfen Sie Ihre Eingaben.",
+  "22008": "Ungültiges Datum. Bitte prüfen Sie Ihre Eingaben.",
+  "22003": "Der Wert ist zu groß oder zu klein.",
+  "22001": "Der Text ist zu lang.",
+  "40001": "Der Server war kurz ausgelastet. Bitte versuchen Sie es erneut.",
+  "40P01": "Der Server war kurz ausgelastet. Bitte versuchen Sie es erneut.",
+  "57014": "Die Anfrage hat zu lange gedauert. Bitte versuchen Sie es erneut.",
+  PGRST301: "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+  PGRST303: "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+  PGRST116: "Der Eintrag wurde nicht gefunden.",
 };
 
-export const GENERIC_ERROR = "Aktion fehlgeschlagen. Bitte erneut versuchen.";
+export const GENERIC_ERROR =
+  "Das hat leider nicht geklappt. Bitte versuchen Sie es erneut. Besteht das Problem weiter, wenden Sie sich an die Verwaltung.";
 
-type ErrorLike = { message?: unknown; code?: unknown } | null | undefined;
+export const NETWORK_ERROR =
+  "Keine Verbindung zum Server. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.";
+
+export const SESSION_EXPIRED = MESSAGES.unauthorized;
+
+const STORAGE_TOO_LARGE =
+  "Die Datei ist zu groß. PDFs dürfen höchstens 500 KB groß sein – bitte komprimieren oder eine kleinere Datei wählen.";
+const STORAGE_BAD_TYPE =
+  "Dieses Dateiformat wird nicht unterstützt. Bitte laden Sie eine PDF-Datei (bzw. ein JPG/PNG-Foto für Belege) hoch.";
+const STORAGE_DUPLICATE = "Eine Datei mit diesem Namen existiert bereits.";
+
+/**
+ * An error whose message is already written for users (German, no
+ * internals). Everything else is mapped before it is shown.
+ */
+export class UserFacingError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "UserFacingError";
+  }
+}
+
+type ErrorLike =
+  | { message?: unknown; code?: unknown; status?: unknown; statusCode?: unknown; name?: unknown }
+  | null
+  | undefined;
+
+const str = (v: unknown) => (typeof v === "string" ? v : typeof v === "number" ? String(v) : "");
+
+/** fetch() failures differ per browser; all mean "no connection". */
+export function isNetworkError(error: unknown): boolean {
+  const e = error as ErrorLike;
+  const msg = str(e?.message).toLowerCase();
+  const name = str(e?.name);
+  return (
+    name === "FunctionsFetchError" ||
+    name === "AuthRetryableFetchError" ||
+    msg.includes("failed to fetch") ||
+    msg.includes("networkerror") ||
+    msg.includes("network request failed") ||
+    msg === "load failed" ||
+    msg === "fetch failed" ||
+    (typeof navigator !== "undefined" && navigator.onLine === false)
+  );
+}
+
+/** Supabase Storage rejections (size, type, duplicate) in plain German. */
+function storageMessage(e: ErrorLike): string | undefined {
+  const status = str(e?.statusCode) || str(e?.status);
+  const msg = str(e?.message).toLowerCase();
+  if (status === "413" || msg.includes("exceeded the maximum allowed size") || msg.includes("payload too large"))
+    return STORAGE_TOO_LARGE;
+  if (status === "415" || msg.includes("mime type") || msg.includes("invalid_mime_type"))
+    return STORAGE_BAD_TYPE;
+  if (msg.includes("resource already exists") || msg.includes("the resource already exists"))
+    return STORAGE_DUPLICATE;
+  return undefined;
+}
+
+// Our own German output, so an already-mapped message passes through even
+// if something re-wrapped it in a plain Error.
+const KNOWN_TEXTS = new Set<string>([
+  ...Object.values(MESSAGES),
+  ...Object.values(CODE_MESSAGES),
+  GENERIC_ERROR,
+  NETWORK_ERROR,
+  STORAGE_TOO_LARGE,
+  STORAGE_BAD_TYPE,
+  STORAGE_DUPLICATE,
+]);
 
 export function dbErrorMessage(error: unknown): string {
+  if (error instanceof UserFacingError) return error.message;
   const e = error as ErrorLike;
-  const key = typeof e?.message === "string" ? e.message : "";
-  if (MESSAGES[key]) return MESSAGES[key];
-  const code = typeof e?.code === "string" ? e.code : "";
-  return CONSTRAINT_MESSAGES[code] ?? GENERIC_ERROR;
+  const key = str(e?.message);
+  if (Object.hasOwn(MESSAGES, key)) return MESSAGES[key];
+  if (KNOWN_TEXTS.has(key)) return key;
+  if (isNetworkError(error)) return NETWORK_ERROR;
+  const storage = storageMessage(e);
+  if (storage) return storage;
+  const code = str(e?.code);
+  if (Object.hasOwn(CODE_MESSAGES, code)) return CODE_MESSAGES[code];
+  if (key.toLowerCase().includes("jwt expired")) return SESSION_EXPIRED;
+  // RLS refusals come without a key but with this wording.
+  if (key.includes("row-level security")) return CODE_MESSAGES["42501"];
+  return GENERIC_ERROR;
 }
 
 /** Throws an Error whose message is already user-facing German text. */
 export function throwDbError(error: unknown): never {
-  throw new Error(dbErrorMessage(error));
+  throw new UserFacingError(dbErrorMessage(error));
+}
+
+/**
+ * Text for any caught error in a toast or inline message. Never empty and
+ * never raw server text: user-facing errors pass through, the rest is mapped.
+ */
+export function errorText(error: unknown, fallback = GENERIC_ERROR): string {
+  const text = dbErrorMessage(error);
+  return text === GENERIC_ERROR ? fallback : text;
 }

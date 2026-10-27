@@ -1,14 +1,14 @@
 "use client";
 
+import { authErrorMessage } from "../../utils/authErrors";
 import { useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 import { InputField } from "../../components/inputField/InputField";
 import { Banner } from "../../components/banner/Banner";
 import { Button } from "../../components/button/Button";
-import { VaultIcon } from "../../components/icons";
 import { z } from "zod";
-import { MiniFooter } from "../../components/footer/MiniFooter";
+import { AuthLayout, AuthResult } from "../../components/auth/AuthLayout";
 
 const emailSchema = z
   .string()
@@ -38,9 +38,7 @@ export const ResetPasswordPage = () => {
     });
 
     if (error) {
-      setError(
-        "Der Link konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.",
-      );
+      setError(authErrorMessage(error, "reset"));
     } else {
       setIsSent(true);
     }
@@ -50,54 +48,46 @@ export const ResetPasswordPage = () => {
 
   if (isSent) {
     return (
-      <div className="auth-bg flex flex-col min-h-screen">
-        <div className="flex-1 flex items-center justify-center w-full p-4">
-          <div className="flex flex-col gap-6 w-full max-w-md bg-color-bg-card p-8 rounded-xl border border-color-border-light text-center shadow-shadow-strong animate-scale-in">
-            <h3 className="font-bold text-color-text-main">E-Mail gesendet</h3>
-            <p className="text-color-text-subtle">
-              Wir haben einen Link zum Zurücksetzen des Passworts an{" "}
-              <span className="font-bold text-color-text-main">{email}</span>{" "}
-              gesendet. Bitte überprüfen Sie Ihr Postfach.
-            </p>
+      <AuthLayout title="E-Mail gesendet">
+        <AuthResult
+          action={
             <Link
               href="/login"
-              className="text-sm text-color-text-subtle underline hover:text-color-text-main transition-colors"
+              className="inline-flex h-11 w-full items-center justify-center rounded-radius-md border border-color-border-strong bg-color-bg-card text-sm font-medium text-color-text-main no-underline transition-all hover:bg-color-bg-hover hover:no-underline active:scale-[0.98]"
             >
               Zurück zur Anmeldung
             </Link>
-          </div>
-        </div>
-        <MiniFooter />
-      </div>
+          }
+        >
+          Wir haben einen Link zum Zurücksetzen des Passworts an{" "}
+          <span className="font-semibold text-color-text-main">{email}</span>{" "}
+          gesendet. Bitte prüfen Sie Ihr Postfach – auch den Spam-Ordner.
+        </AuthResult>
+      </AuthLayout>
     );
   }
 
   return (
-    <div className="auth-bg flex flex-col min-h-screen">
-      <div className="flex-1 flex items-center justify-center w-full p-4">
-        <div className="flex flex-col gap-6 w-full max-w-md bg-color-bg-card p-8 rounded-xl border border-color-border-light shadow-shadow-strong animate-scale-in">
-          <div className="bg-color-primary/15 p-2 rounded-full mx-auto">
-            <VaultIcon className="w-12 h-12 mx-auto text-color-primary" />
-          </div>
-          <h3 className="font-bold text-color-text-main">
-            Passwort zurücksetzen
-          </h3>
-          <p className="text-color-text-subtle text-sm">
-            Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link
-            zum Zurücksetzen Ihres Passworts.
-          </p>
-
-          {error && <Banner bannerType="error" title={error} description="" />}
+    <AuthLayout
+      title="Passwort zurücksetzen"
+      description="Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Link zum Zurücksetzen."
+      footer={<Link href="/login">Zurück zur Anmeldung</Link>}
+    >
+          {error && (
+            <div className="mb-5 animate-slide-down">
+              <Banner bannerType="error" title="Link nicht gesendet" description={error} />
+            </div>
+          )}
 
           <form
-            className="flex flex-col gap-6"
+            className="flex flex-col gap-5"
             onSubmit={(e) => {
               e.preventDefault();
               handleReset();
             }}
           >
             <InputField
-              label="Email"
+              label="E-Mail"
               placeholder="nachname@pro-fina.de"
               type="email"
               name="email"
@@ -106,17 +96,8 @@ export const ResetPasswordPage = () => {
               onChange={(val) => setEmail(val)}
             />
 
-            <div className="flex flex-col gap-3 mt-4">
-              <Button type="submit" text="Link senden" isLoading={loading} />
-            </div>
+            <Button type="submit" text="Link senden" isLoading={loading} size="large" fullWidth className="mt-1" />
           </form>
-
-          <p className="text-color-text-subtle text-center text-sm mt-2">
-            <Link href="/login">Zurück zur Anmeldung</Link>
-          </p>
-        </div>
-      </div>
-      <MiniFooter />
-    </div>
+    </AuthLayout>
   );
 };

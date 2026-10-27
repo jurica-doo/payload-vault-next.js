@@ -10,7 +10,7 @@ export const EmailHistoryCard = ({ customerId }: { customerId: string }) => {
   const { data = [] } = useCustomerEmails(customerId);
   if (data.length === 0) return null;
   return (
-    <section className="flex flex-col gap-2 rounded-radius-lg bg-color-bg-card p-4 shadow-shadow-soft">
+    <section className="flex flex-col gap-2 ui-card p-4 sm:p-5">
       <h2 className="text-base font-semibold">Automatische E-Mails</h2>
       <ul className="text-sm">
         {data.map((r) => (

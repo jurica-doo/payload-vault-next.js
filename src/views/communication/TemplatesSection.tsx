@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { TextArea } from "../../components/formFields/FormFields";
@@ -17,7 +18,6 @@ import { Select } from "../leads/LeadForm";
 import { TestSendButton } from "./SendingSections";
 import { card } from "./emailLabels";
 
-const errText = (e: unknown) => (e instanceof Error ? e.message : "");
 
 export const PURPOSE_LABEL: Record<string, string> = {
   birthday: "Geburtstag", holiday: "Feiertag", year_end: "Jahresende", service: "Service", marketing: "Werbung",
@@ -53,7 +53,7 @@ export const TemplatesSection = () => {
             setSelected(await saveTemplate.mutateAsync({ id: null, name, purpose, allowedBases: ["consent"] }));
             setName("");
           } catch (e) {
-            showBanner("Nicht gespeichert", errText(e), "error");
+            showBanner("Nicht gespeichert", errorText(e), "error");
           }
         }} />
       </div>
@@ -76,7 +76,7 @@ const TemplateEditor = ({ template, versions }: { template: EmailTemplate; versi
   const problem = checkTemplateText(subject) ?? checkTemplateText(body);
   const preview = renderTemplate(subject, body, SAMPLE_VALUES);
   const run = async (fn: () => Promise<unknown>) => {
-    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", errText(e), "error"); }
+    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", errorText(e), "error"); }
   };
   const editable = !open || open.status === "draft";
 

@@ -11,12 +11,14 @@ export const DropdownItem = ({ option, onClick }: DropdownItemProps) => {
 
   return (
     <button
-      className="flex h-12 w-full cursor-pointer items-center gap-4 hover:bg-color-primary/20
-        transition-all duration-200 ease-in-out active:bg-color-primary/30"
+      type="button"
+      role="option"
+      aria-selected={false}
+      className="flex h-9 w-full cursor-pointer items-center gap-2.5 rounded-radius-md px-2.5 text-left transition-colors duration-100 hover:bg-color-bg-hover active:bg-color-bg-accent-subtle focus:bg-color-bg-hover focus:outline-none"
       onClick={handleClick}
     >
-      {Icon && <Icon />}
-      <p className="flex items-center align-middle leading-6 w-full h-full hover:text-color-text-main px-6">
+      {Icon && <Icon className="h-[18px] w-[18px] shrink-0" />}
+      <p className="flex h-full w-full items-center truncate text-sm leading-6 text-color-text-main">
         {option.label}
       </p>
     </button>

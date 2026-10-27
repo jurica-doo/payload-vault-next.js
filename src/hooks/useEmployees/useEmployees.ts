@@ -3,7 +3,7 @@
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
-import { dbErrorMessage, throwDbError } from "../../utils/dbErrors";
+import { dbErrorMessage, throwDbError, UserFacingError } from "../../utils/dbErrors";
 import type { Tables } from "../../types/supabase";
 
 export type Employee = Tables<"employees">;
@@ -33,9 +33,9 @@ async function sendInvite(employeeId: string): Promise<void> {
   if (!error) return;
   if (error instanceof FunctionsHttpError) {
     const body = await error.context.json().catch(() => null);
-    throw new Error(dbErrorMessage({ message: body?.error }));
+    throw new UserFacingError(dbErrorMessage({ message: body?.error }));
   }
-  throw new Error(dbErrorMessage(null));
+  throw new UserFacingError(dbErrorMessage(error));
 }
 
 /**

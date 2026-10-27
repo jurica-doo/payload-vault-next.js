@@ -29,17 +29,18 @@ export const DropdownList = ({
 
   return (
     <div
-      className={`absolute z-60 mt-2 w-full overflow-hidden rounded-md border border-color-border-light bg-color-bg-dark shadow-md ${isClosing ? "animate-slide-up-out" : "animate-slide-down"}`}
+      role="listbox"
+      className={`absolute z-60 mt-1.5 w-full min-w-40 overflow-hidden rounded-radius-lg bg-color-surface-raised p-1 shadow-shadow-strong ring-1 ring-color-border-light ${isClosing ? "animate-slide-up-out" : "animate-slide-down"}`}
     >
       {isSearchEnabled && (
-        <div className="p-3">
+        <div className="p-1.5 pb-2">
           <SearchBar value={search} onChange={setSearch} placeholder="Suchen" />
         </div>
       )}
 
       <ul className="max-h-60 overflow-y-auto">
         {filtered.length === 0 && (
-          <li className="p-2 text-center text-color-text-secondary">
+          <li className="p-3 text-center text-sm text-color-text-subtle">
             Keine Ergebnisse gefunden
           </li>
         )}

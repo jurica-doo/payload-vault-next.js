@@ -1,5 +1,12 @@
 "use client";
 
+import { useErrorToast } from "../../hooks/useErrorToast";
+import { errorText } from "../../utils/dbErrors";
+import { ActivityIcon, PlusIcon } from "../../components/icons";
+import { ButtonLink } from "../../components/button/ButtonLink";
+import { PageActions } from "../../components/pageHeader/PageActions";
+import { Tabs } from "../../components/tabs/Tabs";
+import { LoadingState } from "../../components/loadingState/LoadingState";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -58,6 +65,7 @@ export function sortTasks(tasks: Task[], now = nowIso()) {
 
 /** Shared task list (§11): own tasks, plus the team's for leaders. */
 export const TasksPage = () => {
+  const onFail = useErrorToast();
   const { permissions } = usePermissions();
   const { data = [], isLoading, setStatus } = useTasks();
   const { openModal, closeModal } = useModal();
@@ -78,7 +86,7 @@ export const TasksPage = () => {
             className="mt-1"
             checked={t.status === "done"}
             disabled={t.status === "cancelled"}
-            onChange={(e) => setStatus.mutate({ id: t.id, status: e.target.checked ? "done" : "open" })}
+            onChange={(e) => setStatus.mutate({ id: t.id, status: e.target.checked ? "done" : "open" }, { onError: onFail("Aufgabe nicht aktualisiert") })}
           />
           <span>
             <span className={`text-sm ${t.status !== "open" ? "line-through text-color-text-subtle" : "text-color-text-main"}`}>{t.title}</span>
@@ -101,22 +109,23 @@ export const TasksPage = () => {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         {permissions.isLeader ? (
-          <div role="tablist" className="flex gap-2">
-            {(["me", "team"] as const).map((s) => (
-              <button key={s} role="tab" aria-selected={scope === s} onClick={() => setScope(s)}
-                className={`cursor-pointer rounded-full border px-3 py-1 text-sm ${scope === s ? "border-color-primary text-color-primary" : "border-color-border-light text-color-text-subtle"}`}>
-                {s === "me" ? "Meine Aufgaben" : "Team"}
-              </button>
-            ))}
-          </div>
+          <Tabs
+            ariaLabel="Aufgaben-Ansicht"
+            value={scope}
+            onChange={setScope}
+            items={[
+              { value: "me", label: "Meine Aufgaben" },
+              { value: "team", label: "Team" },
+            ]}
+          />
         ) : <span />}
-        <span className="flex items-center gap-3">
-          <Link href="/vertrieb/aufgaben/aktivitaeten" className="text-sm font-semibold">Aktivitäten &amp; Termine</Link>
-          <Button text="Aufgabe anlegen" onClick={() => openModal({ title: "Aufgabe anlegen", children: <TaskForm onDone={closeModal} /> })} />
-        </span>
+        <PageActions>
+          <ButtonLink href="/vertrieb/aufgaben/aktivitaeten" text="Aktivitäten & Termine" icon={ActivityIcon} />
+          <Button text="Aufgabe anlegen" icon={PlusIcon} onClick={() => openModal({ title: "Aufgabe anlegen", children: <TaskForm onDone={closeModal} /> })} />
+        </PageActions>
       </div>
 
-      {isLoading ? <p className="text-sm">Lädt…</p> : (
+      {isLoading ? <LoadingState /> : (
         <>
           {overdue.length > 0 && (
             <section className="rounded-radius-lg border border-color-error-border/40 bg-color-bg-error-subtle p-3">
@@ -124,12 +133,12 @@ export const TasksPage = () => {
               <ul>{overdue.map(row)}</ul>
             </section>
           )}
-          <section className="rounded-radius-lg bg-color-bg-card p-3 shadow-shadow-soft">
+          <section className="ui-card p-3">
             <h2 className="text-sm font-semibold">Offen ({upcoming.length})</h2>
             {upcoming.length === 0 && overdue.length === 0 ? <p className="py-2 text-sm text-color-text-subtle">Keine offenen Aufgaben.</p> : <ul>{upcoming.map(row)}</ul>}
           </section>
           {done.length > 0 && (
-            <details className="rounded-radius-lg bg-color-bg-card p-3 shadow-shadow-soft">
+            <details className="ui-card p-3">
               <summary className="cursor-pointer text-sm font-semibold">Erledigt / geschlossen ({done.length})</summary>
               <ul>{done.slice(0, 50).map(row)}</ul>
             </details>
@@ -160,9 +169,10 @@ const TaskForm = ({ onDone }: { onDone: () => void }) => {
       if (!owner || title.trim().length < 3) return;
       try {
         await create.mutateAsync({ ownerId: owner, title, description, dueAt: due ? berlinLocalToUtcIso(due, "17:00") : null, priority: prio });
+        showBanner("Aufgabe angelegt", title, "success");
         onDone();
       } catch (err) {
-        showBanner("Nicht gespeichert", err instanceof Error ? err.message : "", "error");
+        showBanner("Nicht gespeichert", errorText(err), "error");
       }
     }}>
       <InputField label="Titel" placeholder="z. B. Unterlagen anfordern" value={title} onChange={setTitle} isRequired />
@@ -171,7 +181,7 @@ const TaskForm = ({ onDone }: { onDone: () => void }) => {
         <DateInput label="Fällig am" value={due} onChange={setDue} />
         <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
           Priorität
-          <select value={prio} onChange={(e) => setPrio(e.target.value)} className="rounded-lg border border-color-border-light bg-color-bg-dark px-3 py-3 text-color-text-main">
+          <select value={prio} onChange={(e) => setPrio(e.target.value)} className="ui-input">
             <option value="low">niedrig</option><option value="normal">normal</option><option value="high">hoch</option>
           </select>
         </label>

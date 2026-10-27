@@ -1,9 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
-import { HeaderHome } from "../../components/header/HeaderHome";
-import { MiniFooter } from "../../components/footer/MiniFooter";
+import type React from "react";
+import { AppShell } from "../../components/layout/AppShell";
+import { PageHeader } from "../../components/pageHeader/PageHeader";
+import { KpiTile } from "../../components/kpiTile/KpiTile";
+import { SectionHeading } from "../../components/sectionHeading/SectionHeading";
+import { LinkCard } from "../../components/linkCard/LinkCard";
+import { TrendIcon } from "../../components/icons";
 import { useAuth } from "../../context/AuthContext";
 import { useYear } from "../../hooks/year/UseYear";
 import { usePdfs } from "../../hooks/usePdf/UsePdfs";
@@ -92,72 +96,47 @@ export const StatisticsPage = () => {
     [expenses],
   );
 
-  if (!user || !year || errorPdfs || errorExpenses) return <ErrorBlock />;
+  const shell = (content: React.ReactNode) => (
+    <AppShell title="Statistiken" subtitle={`Geschäftsjahr ${year}`} showYearSelector>
+      {content}
+    </AppShell>
+  );
+
+  if (!user || !year || errorPdfs || errorExpenses) return shell(<ErrorBlock />);
 
   const isLoading = isLoadingPdfs || isLoadingExpenses || !pdfs || !expenses;
 
-  return (
-    <div className="flex flex-col min-h-screen bg-color-bg-main">
-      {isLoading ? (
-        <PageSkeletonLoader />
-      ) : (
-        <>
-          <div className="sticky top-0 z-40">
-            <HeaderHome
-              isTwoHeaders
-              isSticky={false}
-              pageTitle="Statistiken"
-              pageSubtitle={year.toString()}
-            />
-          </div>
+  if (isLoading) return shell(<PageSkeletonLoader />);
 
-          <main className="flex-1">
-            <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8 space-y-10 pb-10">
-              {/* ── Overview Cards ──────────────────────────────────── */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-slide-up">
-                <div className="bg-color-bg-card border border-color-border-light rounded-radius-lg p-5 flex flex-col gap-1 transition-all duration-200 hover:shadow-shadow-medium">
-                  <span className="text-xs text-color-text-subtle uppercase tracking-wide">
-                    Gesamteinnahmen
-                  </span>
-                  <span className="text-xl sm:text-2xl font-bold text-color-primary">
-                    {normalizeProfit(totalEarnings)} €
-                  </span>
-                  <span className="text-xs text-color-text-subtle">
-                    {pdfs.length} Abrechnungen
-                  </span>
-                </div>
+  return shell(
+            <div className="space-y-8">
+              <PageHeader
+                title="Statistiken"
+                description="Einnahmen und Ausgaben des Geschäftsjahres im Überblick."
+                actions={<TaxReportButton pdfs={pdfs} expenses={expenses} year={year} />}
+              />
 
-                <div className="bg-color-bg-card border border-color-border-light rounded-radius-lg p-5 flex flex-col gap-1 transition-all duration-200 hover:shadow-shadow-medium">
-                  <span className="text-xs text-color-text-subtle uppercase tracking-wide">
-                    Gesamtausgaben
-                  </span>
-                  <span className="text-xl sm:text-2xl font-bold text-color-error-text">
-                    {normalizeProfit(totalExpenses)} €
-                  </span>
-                  <span className="text-xs text-color-text-subtle">
-                    {expenses.length} Rechnungen
-                  </span>
-                </div>
-              </div>
-
-              {/* ── Tax Report Button ─────────────────────────────── */}
-              <div className="flex justify-end animate-slide-up">
-                <TaxReportButton pdfs={pdfs} expenses={expenses} year={year} />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 stagger">
+                <KpiTile
+                  label="Gesamteinnahmen"
+                  value={<span className="text-color-text-accent">{normalizeProfit(totalEarnings)} €</span>}
+                  hint={`${pdfs.length} Abrechnungen`}
+                />
+                <KpiTile
+                  label="Gesamtausgaben"
+                  value={`${normalizeProfit(totalExpenses)} €`}
+                  hint={`${expenses.length} Rechnungen`}
+                />
               </div>
 
               {/* ── Earnings Section ───────────────────────────────── */}
-              <section className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="h-6 w-1 bg-color-primary rounded-full" />
-                  <h3 className="text-lg sm:text-xl font-bold text-color-text-main">
-                    Einnahmen
-                  </h3>
-                </div>
+              <section className="space-y-4">
+                <SectionHeading tone="primary">Einnahmen</SectionHeading>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <MonthlyChart
                     data={earningsMonthly}
-                    color="var(--color-primary)"
+                    color="var(--chart-1)"
                     label="Monatliche Einnahmen"
                   />
                   <CategoryChart
@@ -170,18 +149,13 @@ export const StatisticsPage = () => {
               </section>
 
               {/* ── Expenses Section ───────────────────────────────── */}
-              <section className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="h-6 w-1 bg-color-error rounded-full" />
-                  <h3 className="text-lg sm:text-xl font-bold text-color-text-main">
-                    Ausgaben
-                  </h3>
-                </div>
+              <section className="space-y-4">
+                <SectionHeading tone="accent">Ausgaben</SectionHeading>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <MonthlyChart
                     data={expensesMonthly}
-                    color="var(--color-error)"
+                    color="var(--chart-2)"
                     label="Monatliche Ausgaben"
                   />
                   <CategoryChart
@@ -193,33 +167,12 @@ export const StatisticsPage = () => {
                 <SummaryTable stats={expensesSummary} variant="expense" />
               </section>
 
-              {/* Link to Advanced Analytics */}
-              <Link
+              <LinkCard
                 href="/analysen"
-                className="block bg-color-bg-card border border-color-border-light rounded-radius-lg p-5
-                  hover:shadow-shadow-medium hover:border-color-primary/40 transition-all duration-200
-                  group animate-fade-in"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-base font-semibold text-color-text-main group-hover:text-color-primary transition-colors">
-                      Erweiterte Analysen
-                    </h4>
-                    <p className="text-xs text-color-text-subtle mt-0.5">
-                      Ausgabenprognosen, Kategorie-Budgets & Einnahmen-Ziele
-                    </p>
-                  </div>
-                  <span className="text-color-text-subtle group-hover:text-color-primary transition-colors text-lg">
-                    →
-                  </span>
-                </div>
-              </Link>
-            </div>
-
-            <MiniFooter />
-          </main>
-        </>
-      )}
-    </div>
+                icon={TrendIcon}
+                title="Erweiterte Analysen"
+                description="Ausgabenprognosen, Kategorie-Budgets & Einnahmen-Ziele"
+              />
+            </div>,
   );
 };
