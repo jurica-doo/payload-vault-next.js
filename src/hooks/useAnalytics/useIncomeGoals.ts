@@ -1,3 +1,4 @@
+import { throwDbError } from "../../utils/dbErrors";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
 import type { IncomeGoal, NewIncomeGoal } from "./types";
@@ -14,7 +15,7 @@ function useIncomeGoals(userId: string, year: number) {
         .eq("user_id", userId)
         .eq("year", year)
         .order("month", { nullsFirst: true });
-      if (error) throw error;
+      if (error) throwDbError(error);
       return data as IncomeGoal[];
     },
     enabled: !!userId,
@@ -50,7 +51,7 @@ function useIncomeGoals(userId: string, year: number) {
             .eq("id", existing.id)
             .select()
             .single();
-          if (error) throw error;
+          if (error) throwDbError(error);
           return data as IncomeGoal;
         }
       }
@@ -69,7 +70,7 @@ function useIncomeGoals(userId: string, year: number) {
         )
         .select()
         .single();
-      if (error) throw error;
+      if (error) throwDbError(error);
       return data as IncomeGoal;
     },
     onSuccess: invalidate,
@@ -81,7 +82,7 @@ function useIncomeGoals(userId: string, year: number) {
         .from("income_goals")
         .delete()
         .eq("id", id);
-      if (error) throw error;
+      if (error) throwDbError(error);
     },
     onSuccess: invalidate,
   });

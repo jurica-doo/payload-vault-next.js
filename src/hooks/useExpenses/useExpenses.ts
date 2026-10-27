@@ -1,3 +1,4 @@
+import { dbErrorMessage, GENERIC_ERROR, throwDbError, UserFacingError } from "../../utils/dbErrors";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
@@ -12,22 +13,53 @@ import type {
 } from "./types";
 import { isExpenseCategory, DEFAULT_EXPENSE_CATEGORY } from "./types";
 
-export class DuplicateExpenseError extends Error {
+export class DuplicateExpenseError extends UserFacingError {
   constructor(fileName: string) {
-    super(`File "${fileName}" already exists.`);
+    super(`Eine Datei mit dem Namen „${fileName}“ existiert bereits.`);
     this.name = "DuplicateExpenseError";
   }
 }
 
 export { checkDuplicateExpenseContent };
 
-export class ExtractionExpenseError extends Error {
+export class ExtractionExpenseError extends UserFacingError {
   rejectionReason: string;
   constructor(reason: string) {
     super(reason);
     this.name = "ExtractionExpenseError";
     this.rejectionReason = reason;
   }
+}
+
+const EXTRACTION_FAILED =
+  "Der Beleg konnte nicht ausgelesen werden. Bitte versuchen Sie es erneut oder laden Sie ein schärferes Foto hoch.";
+
+/** HTTP status → message when the edge function sent no usable key. */
+const EXTRACTION_STATUS: Record<number, string> = {
+  401: "unauthorized",
+  403: "forbidden",
+  413: "file_too_large",
+  429: "rate_limited",
+  400: "invalid_file_path",
+  503: "ai_unavailable",
+};
+
+/**
+ * German text for a failed extract-data-from-expense-image call: the AI's
+ * own (German) rejection reason, else the error key, else the HTTP status.
+ */
+async function extractionErrorText(error: unknown): Promise<string> {
+  const ctx = (error as { context?: { status?: number; json?: () => Promise<unknown> } })?.context;
+  let body: { error?: string; code?: string; rejection_reason?: string } | undefined;
+  try {
+    body = (await ctx?.json?.()) as typeof body;
+  } catch {
+    // Non-JSON body (gateway error); fall through to status/network checks.
+  }
+  if (body?.rejection_reason) return body.rejection_reason;
+  const key = body?.code ?? body?.error ?? (ctx?.status ? EXTRACTION_STATUS[ctx.status] : undefined);
+  const text = dbErrorMessage(key ? { message: key } : error);
+  return text === GENERIC_ERROR ? EXTRACTION_FAILED : text;
 }
 
 function sanitizeFileName(fileName: string): string {
@@ -62,7 +94,7 @@ async function checkDuplicateExpenseContent(
     .eq("expense_date", expense.expense_date)
     .limit(100);
 
-  if (error) throw error;
+  if (error) throwDbError(error);
   if (!data || data.length === 0) return null;
 
   const normalizedVendor = expense.vendor_name.trim().toLowerCase();
@@ -135,7 +167,7 @@ export function useFetchExpenses(props: FetchExpensesProps) {
       }
 
       const { data, error } = await q;
-      if (error) throw error;
+      if (error) throwDbError(error);
 
       const filePaths = data.map((e) => e.image_url).filter(Boolean);
       if (filePaths.length === 0) return data;
@@ -145,7 +177,7 @@ export function useFetchExpenses(props: FetchExpensesProps) {
           .from("expense_invoices")
           .createSignedUrls(filePaths, 900);
 
-      if (signedUrlsError) throw signedUrlsError;
+      if (signedUrlsError) throwDbError(signedUrlsError);
 
       return data.map((expense) => ({
         ...expense,
@@ -166,7 +198,7 @@ export function useUploadAndExtract(userId: string) {
       const { error: uploadError } = await supabase.storage
         .from("expense_invoices")
         .upload(filePath, file);
-      if (uploadError) throw uploadError;
+      if (uploadError) throwDbError(uploadError);
 
       try {
         const { data, error: extractError } = await supabase.functions.invoke(
@@ -177,37 +209,15 @@ export function useUploadAndExtract(userId: string) {
         );
 
         if (extractError) {
-          let message = "Extraction failed";
-          try {
-            if (
-              extractError &&
-              typeof extractError === "object" &&
-              "context" in extractError
-            ) {
-              const body = await (
-                extractError as {
-                  context: {
-                    json: () => Promise<{
-                      error?: string;
-                      rejection_reason?: string;
-                    }>;
-                  };
-                }
-              ).context.json();
-              message =
-                body?.rejection_reason || body?.error || extractError.message;
-            } else {
-              message = extractError.message || message;
-            }
-          } catch {
-            message = extractError.message || message;
-          }
-          throw new ExtractionExpenseError(message);
+          throw new ExtractionExpenseError(
+            await extractionErrorText(extractError),
+          );
         }
 
         if (!data?.success) {
           throw new ExtractionExpenseError(
-            data?.rejection_reason || data?.error || "Extraction failed",
+            data?.rejection_reason ||
+              (data?.error ? dbErrorMessage({ message: data.error }) : EXTRACTION_FAILED),
           );
         }
 
@@ -292,12 +302,12 @@ export function useConfirmAndUploadToDatabase() {
           const { data: retryData, error: retryError } =
             await insertRow(uniqueName);
           if (!retryError) return retryData;
-          if (!isUniqueViolation(retryError)) throw retryError;
+          if (!isUniqueViolation(retryError)) throwDbError(retryError);
         }
-        throw error;
+        throwDbError(error);
       }
 
-      if (error) throw error;
+      if (error) throwDbError(error);
       return data;
     },
     onSuccess: () => {
@@ -335,7 +345,7 @@ export function useUpdateExpense() {
         .eq("id", payload.id)
         .select()
         .single();
-      if (error) throw error;
+      if (error) throwDbError(error);
       return data;
     },
     onSuccess: () => {
@@ -354,7 +364,7 @@ export function useRemoveExpense() {
         .from("expenses")
         .delete()
         .eq("id", id);
-      if (dbError) throw dbError;
+      if (dbError) throwDbError(dbError);
 
       if (imageUrl) {
         await deleteImageFromStorage(imageUrl);
