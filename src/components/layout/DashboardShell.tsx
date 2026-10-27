@@ -2,8 +2,7 @@
 
 import { type ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { HeaderHome } from "../header/HeaderHome";
-import { MiniFooter } from "../footer/MiniFooter";
+import { AppShell } from "./AppShell";
 import { PdfImportFooter } from "../pdfImport/PdfImportFooter";
 import { ExpensePdfImportFooter } from "../pdfImport/ExpensePdfImportFooter";
 import { BulkSelectProvider } from "../../context/BulkSelectContext";
@@ -11,10 +10,9 @@ import { useYear } from "../../hooks/year/UseYear";
 import { useTitle } from "../../context/title/TitleContext";
 
 /**
- * Chrome shared by the einnahmen / steuerrelevante-ausgaben routes.
- * Mirrors the old react-router `Layout` (pages/layout.tsx): a sticky
- * two-row header whose title is fed by child pages via {@link useTitle},
- * a scrolling main area, and the contextual PDF import footer.
+ * Chrome shared by the einnahmen / steuerrelevante-ausgaben routes: the app
+ * shell with the year filter, a title fed by child pages via
+ * {@link useTitle}, and the upload action as the page's primary CTA.
  */
 export const DashboardShell = ({ children }: { children: ReactNode }) => {
   const { title } = useTitle();
@@ -24,25 +22,14 @@ export const DashboardShell = ({ children }: { children: ReactNode }) => {
 
   return (
     <BulkSelectProvider>
-      <div className="flex flex-col min-h-screen">
-        <div className="sticky top-0 z-40">
-          <HeaderHome
-            isTwoHeaders
-            isSticky={false}
-            pageTitle={title}
-            pageSubtitle={year.toString()}
-          />
-        </div>
-
-        <main className="flex-1 flex flex-col">
-          <div className="flex-1">{children}</div>
-          <div className="pb-20">
-            <MiniFooter />
-          </div>
-        </main>
-
-        {isSales ? <PdfImportFooter /> : <ExpensePdfImportFooter />}
-      </div>
+      <AppShell
+        title={title}
+        subtitle={`Geschäftsjahr ${year}`}
+        showYearSelector
+        actions={isSales ? <PdfImportFooter /> : <ExpensePdfImportFooter />}
+      >
+        {children}
+      </AppShell>
     </BulkSelectProvider>
   );
 };

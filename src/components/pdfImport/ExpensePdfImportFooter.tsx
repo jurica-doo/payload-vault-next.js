@@ -223,25 +223,10 @@ export const ExpensePdfImportFooter = () => {
 
   if (!user) return null;
 
+  // Primary action of the vault pages. Sits in the top bar on desktop and
+  // floats bottom-right on smaller screens (thumb reach).
   return (
-    <div
-      className="
-      fixed
-      bottom-0
-      left-0
-      w-full
-      p-4
-      border-t
-      border-color-border-light
-      flex
-      justify-center
-      items-center
-      bg-color-bg-main
-      z-50
-      shadow-[0_-4px_12px_rgba(0,0,0,0.1)]
-      pb-[calc(env(safe-area-inset-bottom)+1rem)]
-    "
-    >
+    <div className="max-lg:fixed max-lg:right-4 max-lg:bottom-[calc(env(safe-area-inset-bottom)+1.25rem)] max-lg:z-40">
       <Button
         onClick={() => {
           exitSelectionMode();
@@ -249,6 +234,7 @@ export const ExpensePdfImportFooter = () => {
         }}
         icon={UploadIcon}
         text="Dokument hochladen"
+        className="max-lg:h-12 max-lg:rounded-full max-lg:px-5 max-lg:shadow-shadow-strong"
       />
     </div>
   );

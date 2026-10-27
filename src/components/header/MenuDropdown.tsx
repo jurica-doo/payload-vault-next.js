@@ -1,26 +1,59 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ComponentType } from "react";
 import { useChangePasswordModal } from "../../hooks/modal/UsePasswordChangeModal";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
-import { LockIcon, LogoutIcon, MoonIcon, SunIcon } from "../icons";
+import {
+  KeyIcon,
+  LogOutIcon,
+  MonitorIcon,
+  MoonIcon,
+  ShieldIcon,
+  SunIcon,
+} from "../icons";
+import type { IconProps } from "../icons/Icon.types";
+import {
+  getThemePreference,
+  onThemePreferenceChange,
+  setThemePreference,
+  type ThemePreference,
+} from "../../utils/theme";
 import { useBanner } from "../../context/banner/BannerContext";
 import { useLogoutModal } from "../../hooks/modal/UseLogoutModal";
 
 type MenuDropdownProps = {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  theme: "light" | "dark";
-  toggleTheme: () => void;
+  email?: string;
 };
+
+const THEME_OPTIONS: {
+  value: ThemePreference;
+  label: string;
+  icon: ComponentType<IconProps>;
+}[] = [
+  { value: "system", label: "System", icon: MonitorIcon },
+  { value: "light", label: "Hell", icon: SunIcon },
+  { value: "dark", label: "Dunkel", icon: MoonIcon },
+];
+
+const itemClass =
+  "flex w-full cursor-pointer items-center gap-2.5 rounded-radius-md px-2.5 py-2 text-left text-sm text-color-text-main transition-colors duration-100 hover:bg-color-bg-hover focus:bg-color-bg-hover focus:outline-none";
 
 export const MenuDropdown = ({
   isOpen,
   setIsOpen,
-  theme,
-  toggleTheme,
+  email,
 }: MenuDropdownProps) => {
+  const [themePref, setThemePref] = useState<ThemePreference>("system");
+
+  useEffect(() => {
+    // Read after mount: localStorage isn't available during SSR.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setThemePref(getThemePreference());
+    return onThemePreferenceChange(setThemePref);
+  }, []);
   const router = useRouter();
   const { showBanner } = useBanner();
   const [isVisible, setIsVisible] = useState(false);
@@ -58,7 +91,9 @@ export const MenuDropdown = ({
           "Das neue Passwort darf nicht mit Ihrem aktuellen Passwort identisch sein.",
         );
       }
-      throw new Error("An error occurred while changing the password.");
+      throw new Error(
+        "Das Passwort konnte nicht geändert werden. Bitte versuchen Sie es erneut.",
+      );
     }
 
     showBanner(
@@ -96,73 +131,97 @@ export const MenuDropdown = ({
   return (
     <div
       role="menu"
-      className={`
-              absolute right-0 top-full mt-2
-              w-48 md:min-w-55
-              rounded-radius-md
-              border border-color-border-light
-              bg-color-bg-dark
-              shadow-lg
-              z-50
-              overflow-hidden
-              ${isAnimatingOut ? "animate-slide-up-out" : "animate-slide-down"}
-            `}
+      aria-label="Benutzermenü"
+      className={`absolute right-0 top-full z-50 mt-2 w-64 origin-top-right rounded-radius-lg bg-color-surface-raised p-1.5 shadow-shadow-strong ring-1 ring-color-border-light ${
+        isAnimatingOut ? "animate-slide-up-out" : "animate-slide-down"
+      }`}
     >
-      <button
-        role="menuitem"
-        className="w-full px-3 py-2.5 md:px-4 md:py-3 text-xs md:text-sm text-left hover:bg-color-primary/20 cursor-pointer flex items-center gap-2
-        hover:text-color-text-main text-color-text-subtle transition-all duration-200 ease-in-out active:bg-color-primary/30"
-        onClick={() => {
-          openChangePasswordModal();
-          setIsOpen(false);
-        }}
-      >
-        <LockIcon className="w-4 h-4" />
-        Passwort ändern
-      </button>
+      {email && (
+        <div className="mb-1 border-b border-color-border-light px-2.5 pb-2.5 pt-1.5">
+          <p className="text-[0.6875rem] font-medium uppercase tracking-wider text-color-text-subtle">
+            Angemeldet als
+          </p>
+          <p className="truncate text-sm font-medium text-color-text-main">
+            {email}
+          </p>
+        </div>
+      )}
 
       <button
         role="menuitem"
-        className="w-full px-3 py-2.5 md:px-4 md:py-3 text-xs md:text-sm text-left hover:bg-color-primary/20 cursor-pointer flex items-center gap-2
-        hover:text-color-text-main text-color-text-subtle transition-all duration-200 ease-in-out active:bg-color-primary/30"
+        type="button"
+        className={itemClass}
         onClick={() => {
           setIsOpen(false);
           router.push("/profil/sicherheit");
         }}
       >
-        <LockIcon className="w-4 h-4" />
-        Zwei-Faktor-Anmeldung
+        <ShieldIcon size={16} className="text-color-icon" />
+        Sicherheit &amp; Zwei-Faktor
       </button>
 
       <button
         role="menuitem"
-        className="w-full px-3 py-2.5 md:px-4 md:py-3 text-xs md:text-sm text-left hover:bg-color-primary/20 cursor-pointer flex items-center gap-2
-        hover:text-color-text-main text-color-text-subtle transition-all duration-200 ease-in-out active:bg-color-primary/30"
+        type="button"
+        className={itemClass}
         onClick={() => {
-          toggleTheme();
+          openChangePasswordModal();
           setIsOpen(false);
         }}
       >
-        {theme === "dark" ? (
-          <SunIcon className="w-4 h-4" />
-        ) : (
-          <MoonIcon className="w-4 h-4" />
-        )}
-        {theme === "dark" ? "Hellmodus" : "Dunkelmodus"}
+        <KeyIcon size={16} className="text-color-icon" />
+        Passwort ändern
       </button>
 
-      <button
-        role="menuitem"
-        className="w-full px-3 py-2.5 md:px-4 md:py-3 text-xs md:text-sm text-left hover:bg-color-primary/20 cursor-pointer flex items-center gap-2 text-color-error-text/75
-        hover:text-color-error-text transition-all duration-200 ease-in-out active:bg-color-error/20"
-        onClick={() => {
-          setIsOpen(false);
-          openLogoutModal();
-        }}
-      >
-        <LogoutIcon className="w-4 h-4" />
-        Abmelden
-      </button>
+      <div className="my-1 border-t border-color-border-light px-2.5 pb-1 pt-2.5">
+        <p
+          id="theme-label"
+          className="mb-1.5 text-[0.6875rem] font-medium uppercase tracking-wider text-color-text-subtle"
+        >
+          Darstellung
+        </p>
+        <div
+          role="radiogroup"
+          aria-labelledby="theme-label"
+          className="grid grid-cols-3 gap-0.5 rounded-radius-md bg-color-bg-alt p-0.5 ring-1 ring-inset ring-color-border-light"
+        >
+          {THEME_OPTIONS.map(({ value, label, icon: Icon }) => {
+            const active = themePref === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setThemePreference(value)}
+                className={`flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-[calc(var(--radius-md)-2px)] text-xs font-medium transition-all duration-150 active:scale-95 ${
+                  active
+                    ? "bg-color-bg-card text-color-text-main shadow-shadow-soft"
+                    : "text-color-text-subtle hover:text-color-text-main"
+                }`}
+              >
+                <Icon size={14} />
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="border-t border-color-border-light pt-1">
+        <button
+          role="menuitem"
+          type="button"
+          className={`${itemClass} text-color-error-text! hover:bg-color-bg-error-subtle focus:bg-color-bg-error-subtle`}
+          onClick={() => {
+            setIsOpen(false);
+            openLogoutModal();
+          }}
+        >
+          <LogOutIcon size={16} />
+          Abmelden
+        </button>
+      </div>
     </div>
   );
 };

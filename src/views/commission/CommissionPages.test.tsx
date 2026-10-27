@@ -50,7 +50,7 @@ describe("CommissionPage", () => {
     render(<CommissionPage />);
     expect(norm(screen.getByText("Provision brutto").closest("section")!.textContent)).toContain("840,00 €");
     expect(norm(screen.getByText("Reserve (10 %)").closest("section")!.textContent)).toContain("84,00 €");
-    expect(norm(screen.getByText("Nach Reserve", { selector: "h4" }).closest("section")!.textContent)).toContain("756,00 €");
+    expect(norm(screen.getByText("Nach Reserve", { selector: "h3" }).closest("section")!.textContent)).toContain("756,00 €");
     expect(norm(screen.getByText("Zuschuss (genehmigt)").closest("section")!.textContent)).toContain("400,00 €");
     const personal = screen.getByText(/Eigenproduktion/).closest("tr")!;
     expect(norm(personal.textContent)).toContain("560,00 €");

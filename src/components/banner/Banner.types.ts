@@ -1,4 +1,4 @@
-type BannerType = "success" | "error";
+type BannerType = "success" | "error" | "info" | "warning";
 
 type BannerProps = {
   bannerType: BannerType;

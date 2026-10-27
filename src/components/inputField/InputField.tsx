@@ -25,12 +25,14 @@ export const InputField = ({
     <div className="relative flex w-full flex-col">
       <label
         htmlFor={inputId}
-        className="mb-1 flex h-6 items-center font-semibold text-color-text-secondary"
+        className="mb-1.5 flex items-center gap-0.5 text-[0.8125rem] font-medium text-color-text-secondary"
       >
-        {isRequired && <span className="text-[24px] leading-none">*</span>}
-        <span className="ml-1 text-[14px] text-color-text-secondary">
-          {label}
-        </span>
+        <span>{label}</span>
+        {isRequired && (
+          <span aria-hidden className="text-color-error-text">
+            *
+          </span>
+        )}
       </label>
 
       <input
@@ -42,11 +44,17 @@ export const InputField = ({
         autoComplete={autoComplete}
         value={value ?? undefined}
         onChange={handleChange}
+        aria-invalid={Boolean(error) || undefined}
+        aria-describedby={error ? `${inputId}-error` : undefined}
+        required={isRequired}
         className={getInputStyles(position, type, Boolean(error), isReadOnly)}
       />
 
       {error && (
-        <p className="mt-1 text-[16px] font-medium text-color-error-text">
+        <p
+          id={`${inputId}-error`}
+          className="mt-1.5 text-[0.8125rem] text-color-error-text animate-slide-down"
+        >
           {error}
         </p>
       )}

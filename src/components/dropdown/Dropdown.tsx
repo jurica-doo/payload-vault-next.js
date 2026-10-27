@@ -7,7 +7,7 @@ import {
   type SVGProps,
 } from "react";
 import { DropdownList } from "./DropdownList";
-import { ArrowIcon } from "../icons";
+import { ChevronDownIcon } from "../icons";
 import { type DropdownProps, type Option } from "./Dropdown.types";
 import { radiusVariants } from "./Dropdown.const";
 
@@ -72,20 +72,18 @@ export const Dropdown = ({
   }, [isOpen, isClosing]);
 
   return (
-    <div ref={dropdownRef} className="flex flex-col gap-1">
+    <div ref={dropdownRef} className="flex flex-col gap-1.5">
       {label && (
         <label
           htmlFor={id}
-          className="flex h-6 cursor-pointer items-center font-semibold tracking-[-0.15px]"
+          className="flex cursor-pointer items-center gap-0.5 text-[0.8125rem] font-medium text-color-text-secondary"
         >
+          <span>{label}</span>
           {isRequired && (
-            <span className="text-[24px] leading-none text-color-text-secondary">
+            <span aria-hidden className="text-color-error-text">
               *
             </span>
           )}
-          <span className="ml-1 text-sm text-color-text-secondary">
-            {label}
-          </span>
         </label>
       )}
       <div className="relative w-full">
@@ -93,23 +91,24 @@ export const Dropdown = ({
           id={id}
           type="button"
           onClick={handleToggle}
+          aria-haspopup="listbox"
+          aria-expanded={isOpen && !isClosing}
           className={`
-            flex w-full cursor-pointer items-center justify-between
-            px-4 py-3
+            flex h-10 w-full cursor-pointer items-center justify-between gap-2
+            px-3
             ${radiusVariants[variant]}
-            ring-2 ring-transparent
-            transition-all duration-200 ease-in-out
-            ${isOpen && !isClosing ? "ring-color-bg-accent" : ""}
+            transition-[border-color,box-shadow,background-color] duration-150 ease-out
+            ${isOpen && !isClosing ? "border-color-primary! shadow-[0_0_0_3px_var(--color-focus-ring)]" : ""}
             ${
               error
-                ? "border border-color-error-border bg-color-error/10"
-                : "border border-color-border-light bg-color-bg-main"
+                ? "border border-color-error-border bg-color-bg-card"
+                : "border border-color-border-strong bg-color-bg-card hover:border-color-text-subtle"
             }`}
         >
-          <div className="flex items-center gap-3">
-            {MainIcon && <MainIcon />}
+          <div className="flex min-w-0 items-center gap-2.5">
+            {MainIcon && <MainIcon className="h-[18px] w-[18px] shrink-0" />}
             <p
-              className={`align-middle leading-6 ${
+              className={`truncate text-sm leading-6 ${
                 isPlaceholderActive
                   ? "text-color-text-subtle"
                   : "text-color-text-main"
@@ -119,9 +118,10 @@ export const Dropdown = ({
             </p>
           </div>
 
-          <ArrowIcon
-            className={`text-color-text-secondary transition-transform duration-400 ease-in-out ${
-              isOpen && !isClosing ? "rotate-90" : "-rotate-90"
+          <ChevronDownIcon
+            size={16}
+            className={`shrink-0 text-color-text-subtle transition-transform duration-200 ease-out ${
+              isOpen && !isClosing ? "rotate-180" : ""
             }`}
           />
         </button>
@@ -137,7 +137,7 @@ export const Dropdown = ({
       </div>
 
       {error && (
-        <p className="mt-1 text-[16px] font-medium text-color-error-text">
+        <p className="text-[0.8125rem] text-color-error-text">
           {error}
         </p>
       )}

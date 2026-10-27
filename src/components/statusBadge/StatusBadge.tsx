@@ -3,11 +3,19 @@ export type BadgeTone = "neutral" | "info" | "success" | "warning" | "error";
 export type StatusMap<S extends string> = Record<S, { label: string; tone: BadgeTone }>;
 
 const toneClasses: Record<BadgeTone, string> = {
-  neutral: "bg-color-bg-dark text-color-text-secondary border-color-border-light",
-  info: "bg-color-bg-accent-subtle text-color-text-accent border-color-primary/40",
-  success: "bg-color-success/15 text-color-success-text border-color-success-border/40",
-  warning: "bg-color-secondary/15 text-color-secondary border-color-secondary/40",
-  error: "bg-color-bg-error-subtle text-color-error-text border-color-error-border/40",
+  neutral: "bg-color-bg-alt text-color-text-secondary ring-color-border-light",
+  info: "bg-color-bg-info-subtle text-color-info-text ring-color-info/20",
+  success: "bg-color-success/10 text-color-success-text ring-color-success/20",
+  warning: "bg-color-bg-warning-subtle text-color-warning-text ring-color-warning/25",
+  error: "bg-color-bg-error-subtle text-color-error-text ring-color-error-border/25",
+};
+
+const dotClasses: Record<BadgeTone, string> = {
+  neutral: "bg-color-text-subtle",
+  info: "bg-color-info",
+  success: "bg-color-success-border",
+  warning: "bg-color-warning",
+  error: "bg-color-error-border",
 };
 
 /**
@@ -28,8 +36,9 @@ export function StatusBadge<S extends string>({
   const tone = entry?.tone ?? "neutral";
   return (
     <span
-      className={`inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-semibold ${toneClasses[tone]}`}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${toneClasses[tone]}`}
     >
+      <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${dotClasses[tone]}`} />
       {entry?.label ?? status}
     </span>
   );

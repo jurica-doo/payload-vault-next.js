@@ -53,28 +53,30 @@ export const SearchBar = ({
       {title && (
         <label
           htmlFor="search"
-          className="cursor-pointer text-sm font-semibold text-color-text-secondary"
+          className="cursor-pointer text-[0.8125rem] font-medium text-color-text-secondary"
         >
           {title}
         </label>
       )}
       <div className="relative flex items-center">
-        <SearchIcon className="absolute top-1/2 left-2 -translate-y-1/2 text-color-text-subtle" />
+        <SearchIcon className="pointer-events-none absolute top-1/2 left-3 h-[18px] w-[18px] -translate-y-1/2 text-color-text-subtle" />
         <input
           id="search"
-          type="text"
+          type="search"
           placeholder={placeholder}
           value={searchValue}
           onChange={handleInputChange}
-          className="w-full rounded-lg border border-color-border-light px-4 py-3 pl-12 text-color-text-secondary placeholder-color-text-subtle transition-all duration-200 ease-in-out focus:border-transparent focus:outline-3 focus:outline-color-bg-accent focus:shadow-shadow-medium"
+          aria-label={title ?? placeholder}
+          className="h-10 w-full rounded-radius-md border border-color-border-strong bg-color-bg-card pr-9 pl-9.5 text-sm text-color-text-main placeholder-color-text-subtle [&::-webkit-search-cancel-button]:appearance-none"
         />
         {searchValue && (
           <button
             type="button"
             onClick={handleClear}
-            className="absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer"
+            aria-label="Suche leeren"
+            className="absolute top-1/2 right-1.5 flex h-7 w-7 -translate-y-1/2 cursor-pointer items-center justify-center rounded-radius-sm text-color-text-subtle transition-all hover:bg-color-bg-hover hover:text-color-text-main active:scale-90 animate-fade-in"
           >
-            <CloseIcon className="text-color-text-subtle" />
+            <CloseIcon className="h-4 w-4" />
           </button>
         )}
       </div>

@@ -8,12 +8,14 @@ export interface BannerState {
 }
 
 interface BannerContextValue {
+  /** The most recent toast (kept for existing consumers). */
   banner: BannerState | null;
   showBanner: (
     title: string,
     description: string,
     bannerType: BannerType
   ) => void;
+  /** Closes the most recent toast. */
   closeBanner: () => void;
 }
 

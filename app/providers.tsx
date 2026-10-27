@@ -10,17 +10,18 @@ import { ScrollToTop } from "@/components/scrollToTop/ScrollToTop";
 import { PwaInstallPrompt } from "@/components/pwa/PwaInstallPrompt";
 import { PwaUpdateBar } from "@/components/pwa/PwaUpdateBar";
 import { setupCookieConsent } from "@/cookieconsent-config";
+import {
+  applyTheme,
+  getThemePreference,
+  watchSystemTheme,
+} from "@/utils/theme";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
 
   useEffect(() => {
-    const saved = localStorage.getItem("theme") as "light" | "dark" | null;
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)",
-    ).matches;
-    const theme = saved ?? (prefersDark ? "dark" : "light");
-    document.documentElement.dataset.theme = theme;
+    applyTheme(getThemePreference());
+    return watchSystemTheme();
   }, []);
 
   useEffect(() => {
