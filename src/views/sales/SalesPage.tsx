@@ -3,7 +3,8 @@
 import { useMemo, useLayoutEffect } from "react";
 import { ContentCard } from "../../components/contentCard/ContentCard";
 import { TotalIncomeCard } from "../../components/totalIncomeCard/TotalIncomeCard";
-import { PdfImportFooter } from "../../components/pdfImport/PdfImportFooter";
+import { PageHeader } from "../../components/pageHeader/PageHeader";
+import { SectionHeading } from "../../components/sectionHeading/SectionHeading";
 import { usePdfs } from "../../hooks/usePdf/UsePdfs";
 import { useAuth } from "../../context/AuthContext";
 import { useYear } from "../../hooks/year/UseYear";
@@ -43,39 +44,43 @@ export const SalesPage = () => {
   if (error) return <ErrorBlock />;
 
   return (
-    <div className="min-h-screen bg-color-bg">
+    <>
       {isLoading || !contentCardData ? (
         <PageSkeletonLoader />
       ) : (
-        <main className="flex flex-col mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8 gap-10 pb-25">
-          <TotalIncomeCard
-            title="Gesamteinnahmen"
-            subtitle={contentCardData.totalPdf.toString() + " · Abrechnungen"}
-            totalIncome={contentCardData.totalIncome}
+        <div className="flex flex-col gap-8">
+          <PageHeader
+            title="Einnahmen"
+            description="Provisions- und Abrechnungsdokumente, nach Gesellschaft geordnet."
           />
-          <ContentCard
-            variant="allPdf"
-            title={contentCardData.allPdfs.title}
-            subtitle={contentCardData.allPdfs.subtitle}
-            link={"/einnahmen" + contentCardData.allPdfs.link}
-          />
-          <h2 className="text-color-primary font-bold mx-auto">Kategorien</h2>
-          <div className="flex flex-col gap-6">
+          <div className="grid gap-4 md:grid-cols-2">
+            <TotalIncomeCard
+              title="Gesamteinnahmen"
+              subtitle={contentCardData.totalPdf.toString() + " Abrechnungen"}
+              totalIncome={contentCardData.totalIncome}
+            />
+            <ContentCard
+              variant="allPdf"
+              title={contentCardData.allPdfs.title}
+              subtitle={contentCardData.allPdfs.subtitle}
+              link={"/einnahmen" + contentCardData.allPdfs.link}
+            />
+          </div>
+          <SectionHeading>Kategorien</SectionHeading>
+          <div className="-mt-4 grid gap-3 md:grid-cols-2 stagger">
             {contentCardData.allCategories.map((category, index) => (
               <ContentCard
                 key={index}
                 variant="category"
                 title={category.category.title}
-                subtitle={category.subtitle.toString() + " · Abrechnungen"}
+                subtitle={category.subtitle.toString() + " Abrechnungen"}
                 profit={category.profit}
                 link={"/einnahmen/kategorie/" + category.category.slug}
               />
             ))}
           </div>
-        </main>
+        </div>
       )}
-
-      <PdfImportFooter />
-    </div>
+    </>
   );
 };

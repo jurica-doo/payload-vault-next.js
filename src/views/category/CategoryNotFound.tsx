@@ -15,7 +15,7 @@ export const CategoryNotFound = ({ slug }: { slug?: string }) => {
     : "/einnahmen";
 
   return (
-    <main className="flex flex-col mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8 gap-6 pb-6">
+    <div className="flex flex-col gap-6">
       <EmptyState
         message="Kategorie nicht gefunden"
         hint={slug ? `„${slug}" ist keine bekannte Kategorie.` : undefined}
@@ -26,6 +26,6 @@ export const CategoryNotFound = ({ slug }: { slug?: string }) => {
       >
         Zurück zur Übersicht
       </Link>
-    </main>
+    </div>
   );
 };

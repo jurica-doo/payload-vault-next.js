@@ -22,7 +22,7 @@ export const PageHeader = ({
   actions,
   children,
 }: PageHeaderProps) => (
-  <div className="mb-6 flex flex-col gap-4 animate-fade-in">
+  <div className="flex flex-col gap-4 animate-fade-in">
     {breadcrumbs && breadcrumbs.length > 0 && (
       <nav aria-label="Brotkrumen" className="-mb-2">
         <ol className="flex flex-wrap items-center gap-1 text-[0.8125rem] text-color-text-subtle">

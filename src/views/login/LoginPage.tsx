@@ -9,9 +9,8 @@ import { PasswordInput } from "../../components/passwordInput/PasswordInput";
 import { useAuth } from "../../context/AuthContext";
 import { Banner } from "../../components/banner/Banner";
 import { Button } from "../../components/button/Button";
-import { VaultIcon } from "../../components/icons";
 import { loginSchema } from "../../validation/LoginValidation";
-import { MiniFooter } from "../../components/footer/MiniFooter";
+import { AuthLayout } from "../../components/auth/AuthLayout";
 import { safeInternalPath } from "../../utils/safeRedirect";
 
 export const LoginPage = () => {
@@ -57,25 +56,34 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="auth-bg flex flex-col min-h-screen">
-      <div className="flex-1 flex items-center justify-center w-full p-4">
-        <div className="flex flex-col gap-6 w-full max-w-md bg-color-bg-card p-8 rounded-xl border border-color-border-light shadow-shadow-strong animate-scale-in">
-          <div className="bg-color-primary/15 p-2 rounded-full mx-auto">
-            <VaultIcon className="w-12 h-12 mx-auto text-color-primary" />
-          </div>
-          <h3 className="font-bold text-color-text-main">Anmelden</h3>
-
-          {error && <Banner bannerType="error" title={error} description="" />}
+    <AuthLayout
+      title="Willkommen zurück"
+      description="Melden Sie sich mit Ihrer Profina-E-Mail-Adresse an."
+      footer={
+        <>
+          <Link href="/passwort-zurucksetzen">Passwort vergessen?</Link>
+          <span className="text-xs">
+            Noch kein Zugang? Konten werden von der Verwaltung per Einladung
+            angelegt.
+          </span>
+        </>
+      }
+    >
+          {error && (
+            <div className="mb-5 animate-slide-down">
+              <Banner bannerType="error" title={error} description="" />
+            </div>
+          )}
 
           <form
-            className="flex flex-col gap-6"
+            className="flex flex-col gap-5"
             onSubmit={(e) => {
               e.preventDefault();
               handleLogin();
             }}
           >
             <InputField
-              label="Email"
+              label="E-Mail"
               placeholder="nachname@pro-fina.de"
               type="email"
               name="email"
@@ -92,21 +100,8 @@ export const LoginPage = () => {
               onChange={(val) => setPassword(val)}
             />
 
-            <div className="flex flex-col gap-3 mt-4">
-              <Button type="submit" text="Anmelden" isLoading={loading} />
-            </div>
+            <Button type="submit" text="Anmelden" isLoading={loading} size="large" fullWidth className="mt-1" />
           </form>
-
-          <p className="text-color-text-subtle text-center text-sm mt-2">
-            Noch kein Konto? <Link href="/signup">Registrieren</Link>
-          </p>
-          <p className="text-color-text-subtle text-center text-sm">
-            Passwort vergessen?{" "}
-            <Link href="/passwort-zurucksetzen">Passwort zurücksetzen</Link>
-          </p>
-        </div>
-      </div>
-      <MiniFooter />
-    </div>
+    </AuthLayout>
   );
 };

@@ -87,7 +87,6 @@ export const ActionMenu = ({
     <div ref={wrapperRef} className="relative inline-flex">
       <button
         type="button"
-        aria-label={label}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
@@ -95,9 +94,14 @@ export const ActionMenu = ({
           e.stopPropagation();
           setOpen((v) => !v);
         }}
-        className={`inline-flex h-8 min-w-8 cursor-pointer items-center justify-center gap-1 rounded-radius-md px-1.5 text-color-text-subtle transition-all duration-150 hover:bg-color-bg-hover hover:text-color-text-main active:scale-95 ${
-          open ? "bg-color-bg-hover text-color-text-main" : ""
-        }`}
+        aria-label={trigger ? undefined : label}
+        className={
+          trigger
+            ? "inline-flex cursor-pointer rounded-radius-md transition-all duration-150 hover:brightness-[0.97] active:scale-[0.97]"
+            : `inline-flex h-8 min-w-8 cursor-pointer items-center justify-center gap-1 rounded-radius-md px-1.5 text-color-text-subtle transition-all duration-150 hover:bg-color-bg-hover hover:text-color-text-main active:scale-95 ${
+                open ? "bg-color-bg-hover text-color-text-main" : ""
+              }`
+        }
       >
         {trigger ?? <DotsIcon size={18} />}
       </button>

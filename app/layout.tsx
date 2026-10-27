@@ -102,6 +102,7 @@ export default async function RootLayout({
             everything else) renders in the right theme immediately. No saved
             choice means "system" (see src/utils/theme.ts). */}
         <script
+          suppressHydrationWarning
           nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}document.documentElement.dataset.theme=t;}catch(e){}`,

@@ -260,7 +260,12 @@ button {
     text-rendering: optimizeLegibility;
   }
 
-  html[lang="de"] {
+  /* Long German words wrap in body text; headings and labels never get
+     hyphenated mid-word. */
+  html[lang="de"] p,
+  html[lang="de"] td,
+  html[lang="de"] dd,
+  html[lang="de"] li {
     hyphens: auto;
   }
 
@@ -769,4 +774,13 @@ button {
   .interactive-card:hover {
     transform: none;
   }
+}
+
+@keyframes bellRing {
+  0%, 100% { transform: rotate(0); }
+  15% { transform: rotate(14deg); }
+  30% { transform: rotate(-12deg); }
+  45% { transform: rotate(8deg); }
+  60% { transform: rotate(-5deg); }
+  75% { transform: rotate(2deg); }
 }

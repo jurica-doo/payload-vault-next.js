@@ -1,5 +1,6 @@
 "use client";
 
+import { DocumentToolbar } from "../../components/documentToolbar/DocumentToolbar";
 import JSZip from "jszip";
 import { usePathname } from "next/navigation";
 import { useTitle } from "../../context/title/TitleContext";
@@ -21,7 +22,6 @@ import {
 import { Dropdown } from "../../components/dropdown/Dropdown";
 import { ContentCard } from "../../components/contentCard/ContentCard";
 import { TotalIncomeCard } from "../../components/totalIncomeCard/TotalIncomeCard";
-import { SearchBar } from "../../components/searchBar/SearchBar";
 import { usePdfs } from "../../hooks/usePdf/UsePdfs";
 import { useAuth } from "../../context/AuthContext";
 import { useYear } from "../../hooks/year/UseYear";
@@ -29,7 +29,6 @@ import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { formatAllPdfs } from "./utils";
 import { PageSkeletonLoader } from "../../components/skeletonLoader/PageSkeletonLoader";
 import { DocumentSkeletonLoader } from "../../components/skeletonLoader/DocumentSkeletonLoader";
-import { Button } from "../../components/button/Button";
 import { EmptyState } from "../../components/emptyState/EmptyState";
 import { useBanner } from "../../context/banner/BannerContext";
 import { useModal } from "../../context/modal/ModalContext";
@@ -345,124 +344,91 @@ export const AllPdfsPage = () => {
   };
 
   return (
-    <main className="flex flex-col mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8 gap-10 pb-25">
+    <div className="flex flex-col gap-6">
       <TotalIncomeCard
         title={param === "einnahmen" ? "Gesamteinnahmen" : "Gesamtkosten"}
-        subtitle={contentCardData.totalPdf + " · Dokumente"}
+        subtitle={contentCardData.totalPdf + " Dokumente"}
         totalIncome={contentCardData.totalIncome}
         variant={param === "einnahmen" ? "income" : "expense"}
       />
-      <div className="flex flex-col gap-2">
-        <div className="grid md:grid-cols-2 gap-2">
-          <Dropdown
-            label="Sortieren nach"
-            options={paycheckFilterOptions}
-            onSelect={(v) => {
-              bulk.exitSelectionMode();
-              setSortSelected(v);
-            }}
-            value={sortSelected}
-          />
-          <Dropdown
-            label="Kategorie auswählen"
-            options={categoryOptions}
-            onSelect={(v) => {
-              bulk.exitSelectionMode();
-              setCategorySelected(v);
-            }}
-            value={categorySelected}
-          />
-          <Dropdown
-            label="Startmonat auswählen"
-            options={monthOptions}
-            onSelect={(v) => {
-              bulk.exitSelectionMode();
-              setStartMonthSelected(v);
-              // Keep the range valid: end month can never precede start month.
-              if (
-                monthOptions.indexOf(endMonthSelected) < monthOptions.indexOf(v)
-              ) {
+      <DocumentToolbar
+        search={{
+          value: searchQuery,
+          onChange: (v) => {
+            bulk.exitSelectionMode();
+            setSearchQuery(v);
+          },
+        }}
+        isFiltered={isFiltered}
+        onReset={handleResetFilters}
+        onDownloadAll={() => {
+          bulk.exitSelectionMode();
+          handleDownloadAll();
+        }}
+        onExportCsv={() => {
+          bulk.exitSelectionMode();
+          handleExportCsv();
+        }}
+        selection={{
+          isSelecting: bulk.isSelecting,
+          onToggle: bulk.isSelecting ? bulk.exitSelectionMode : bulk.enterSelectionMode,
+        }}
+        resultCount={filteredPdfs.length}
+        filters={
+          <>
+            <Dropdown
+              label="Sortierung"
+              options={paycheckFilterOptions}
+              onSelect={(v) => {
+                bulk.exitSelectionMode();
+                setSortSelected(v);
+              }}
+              value={sortSelected}
+            />
+            <Dropdown
+              label="Kategorie"
+              options={categoryOptions}
+              onSelect={(v) => {
+                bulk.exitSelectionMode();
+                setCategorySelected(v);
+              }}
+              value={categorySelected}
+            />
+            <Dropdown
+              label="Von"
+              options={monthOptions}
+              onSelect={(v) => {
+                bulk.exitSelectionMode();
+                setStartMonthSelected(v);
+                // Keep the range valid: end month can never precede start month.
+                if (
+                  monthOptions.indexOf(endMonthSelected) < monthOptions.indexOf(v)
+                ) {
+                  setEndMonthSelected(v);
+                }
+              }}
+              value={startMonthSelected}
+            />
+            <Dropdown
+              label="Bis"
+              options={endMonthOptions}
+              onSelect={(v) => {
+                bulk.exitSelectionMode();
                 setEndMonthSelected(v);
-              }
-            }}
-            value={startMonthSelected}
-          />
-          <Dropdown
-            label="Endmonat auswählen"
-            options={endMonthOptions}
-            onSelect={(v) => {
-              bulk.exitSelectionMode();
-              setEndMonthSelected(v);
-            }}
-            value={endMonthSelected}
-          />
-        </div>
-        <div className="grid grid-cols-1">
-          <SearchBar
-            placeholder="Dokumente suchen..."
-            onChange={(v) => {
-              bulk.exitSelectionMode();
-              setSearchQuery(v);
-            }}
-            value={searchQuery}
-            debounceMs={200}
-            title="Dokumente suchen"
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 items-center gap-3">
-        <Button
-          onClick={handleResetFilters}
-          text="Filter zurücksetzen"
-          size="medium"
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Button
-            onClick={() => {
-              bulk.exitSelectionMode();
-              handleDownloadAll();
-            }}
-            variant="secondary"
-            text={
-              isFiltered
-                ? "Gefilterte Dokumente herunterladen"
-                : "Alle Dokumente herunterladen"
-            }
-            size="medium"
-          />
-          <Button
-            onClick={() => {
-              bulk.exitSelectionMode();
-              handleExportCsv();
-            }}
-            variant="secondary"
-            text={
-              isFiltered
-                ? "Gefilterte Daten als CSV exportieren"
-                : "Alle Daten als CSV exportieren"
-            }
-            size="medium"
-          />
-          <Button
-            onClick={
-              bulk.isSelecting
-                ? bulk.exitSelectionMode
-                : bulk.enterSelectionMode
-            }
-            variant="secondary"
-            text={bulk.isSelecting ? "Auswahl beenden" : "Auswählen"}
-            size="medium"
-          />
-        </div>
-      </div>
+              }}
+              value={endMonthSelected}
+            />
+          </>
+        }
+      />
       {isLoading ? (
         <DocumentSkeletonLoader />
       ) : (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2.5 stagger">
           {filteredPdfs.length === 0 ? (
             <EmptyState
               message="Keine Dokumente gefunden"
-              hint="Versuche andere Filter oder lade ein neues Dokument hoch."
+              hint="Passen Sie die Filter an oder laden Sie ein neues Dokument hoch."
             />
           ) : (
             filteredPdfs.map((pdf, index) => (
@@ -498,6 +464,6 @@ export const AllPdfsPage = () => {
           onCancel={bulk.exitSelectionMode}
         />
       )}
-    </main>
+    </div>
   );
 };

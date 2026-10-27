@@ -129,7 +129,7 @@ export const Sidebar = ({
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-color-border-light bg-color-bg-card pt-[env(safe-area-inset-top)] transition-[width,transform] duration-200 ease-out lg:translate-x-0 ${
           mobileOpen ? "translate-x-0 shadow-shadow-strong" : "-translate-x-full"
-        } w-[17rem] ${collapsed ? "lg:w-[4.25rem]" : "lg:w-[15.5rem]"}`}
+        } w-[17rem] ${collapsed ? "lg:w-[4.25rem]" : "lg:w-[16.5rem]"}`}
       >
         <div
           className={`flex h-14 shrink-0 items-center border-b border-color-border-light ${

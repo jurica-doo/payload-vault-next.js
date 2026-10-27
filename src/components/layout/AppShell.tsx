@@ -111,7 +111,7 @@ export const AppShell = ({
 
       <div
         className={`flex min-h-screen flex-col transition-[padding] duration-200 ease-out ${
-          collapsed ? "lg:pl-[4.25rem]" : "lg:pl-[15.5rem]"
+          collapsed ? "lg:pl-[4.25rem]" : "lg:pl-[16.5rem]"
         }`}
       >
         <HeaderHome
