@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -17,7 +18,6 @@ import { berlinToday, formatDate, formatDateTime } from "../../utils/format";
 import { Select } from "../leads/LeadForm";
 import { SEND_STATUS, SUPPRESSION_REASON, card } from "./emailLabels";
 
-const errText = (e: unknown) => (e instanceof Error ? e.message : "");
 const DAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 const CAMPAIGN_STATUS: StatusMap<string> = {
   draft: { label: "Entwurf", tone: "neutral" }, submitted: { label: "wartet auf Freigabe", tone: "warning" },
@@ -86,7 +86,7 @@ export const CampaignsSection = () => {
   const templates = (tpl?.templates ?? []).filter((t) => !t.archived_at);
   const templateId = f.template || templates[0]?.id || "";
   const versionNo = (id: string | null) => tpl?.versions.find((v) => v.id === id)?.version;
-  const run = async (fn: () => Promise<unknown>) => { try { await fn(); } catch (e) { showBanner("Nicht ausgeführt", errText(e), "error"); } };
+  const run = async (fn: () => Promise<unknown>) => { try { await fn(); } catch (e) { showBanner("Nicht ausgeführt", errorText(e), "error"); } };
   const withReason = (id: string, action: string, title: string) => openModal({
     title, children: <ReasonConfirmForm message="Wird mit Begründung protokolliert." onCancel={closeModal}
       onConfirm={async (reason) => { await ops.campaignAction.mutateAsync({ id, action, reason }); closeModal(); }} />,
@@ -141,7 +141,7 @@ export const TestSendButton = ({ versionId }: { versionId: string }) => {
         await ops.sendTest.mutateAsync(versionId);
         showBanner("Testmail geplant", "Sie geht an Ihre eigene Adresse, sobald ein E-Mail-Anbieter angebunden ist.", "success");
       } catch (e) {
-        showBanner("Nicht geplant", errText(e), "error");
+        showBanner("Nicht geplant", errorText(e), "error");
       }
     }} />
   );
@@ -159,7 +159,7 @@ export const SuppressionsSection = () => {
       <div className="flex flex-wrap items-end gap-3">
         <InputField label="E-Mail-Adresse sperren" placeholder="name@beispiel.de" value={email} onChange={setEmail} />
         <Button text="Sperren" variant="secondary" isDisabled={!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())} onClick={async () => {
-          try { await ops.setSuppression.mutateAsync({ email, suppressed: true }); setEmail(""); } catch (e) { showBanner("Nicht gespeichert", errText(e), "error"); }
+          try { await ops.setSuppression.mutateAsync({ email, suppressed: true }); setEmail(""); } catch (e) { showBanner("Nicht gespeichert", errorText(e), "error"); }
         }} />
       </div>
       <ul className="text-sm">

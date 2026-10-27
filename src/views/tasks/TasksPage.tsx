@@ -1,5 +1,7 @@
 "use client";
 
+import { useErrorToast } from "../../hooks/useErrorToast";
+import { errorText } from "../../utils/dbErrors";
 import { ActivityIcon, PlusIcon } from "../../components/icons";
 import { ButtonLink } from "../../components/button/ButtonLink";
 import { PageActions } from "../../components/pageHeader/PageActions";
@@ -63,6 +65,7 @@ export function sortTasks(tasks: Task[], now = nowIso()) {
 
 /** Shared task list (§11): own tasks, plus the team's for leaders. */
 export const TasksPage = () => {
+  const onFail = useErrorToast();
   const { permissions } = usePermissions();
   const { data = [], isLoading, setStatus } = useTasks();
   const { openModal, closeModal } = useModal();
@@ -83,7 +86,7 @@ export const TasksPage = () => {
             className="mt-1"
             checked={t.status === "done"}
             disabled={t.status === "cancelled"}
-            onChange={(e) => setStatus.mutate({ id: t.id, status: e.target.checked ? "done" : "open" })}
+            onChange={(e) => setStatus.mutate({ id: t.id, status: e.target.checked ? "done" : "open" }, { onError: onFail("Aufgabe nicht aktualisiert") })}
           />
           <span>
             <span className={`text-sm ${t.status !== "open" ? "line-through text-color-text-subtle" : "text-color-text-main"}`}>{t.title}</span>
@@ -169,7 +172,7 @@ const TaskForm = ({ onDone }: { onDone: () => void }) => {
         showBanner("Aufgabe angelegt", title, "success");
         onDone();
       } catch (err) {
-        showBanner("Nicht gespeichert", err instanceof Error ? err.message : "", "error");
+        showBanner("Nicht gespeichert", errorText(err), "error");
       }
     }}>
       <InputField label="Titel" placeholder="z. B. Unterlagen anfordern" value={title} onChange={setTitle} isRequired />

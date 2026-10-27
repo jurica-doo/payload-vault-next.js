@@ -32,7 +32,7 @@ export const SalesShell = ({ children }: { children: ReactNode }) => {
 
   return (
     <AppShell
-      title={meta?.title ?? (allowed ? current.label : "Vertrieb")}
+      title={meta?.title ?? (allowed ? current.label : "Kein Zugriff")}
       actions={permissions.employeeId ? <NotificationBell /> : undefined}
     >
       {allowed ? (

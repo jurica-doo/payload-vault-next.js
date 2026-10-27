@@ -454,7 +454,7 @@ export const AllExpensesPdfsPage = () => {
                 searchQuery={searchQuery}
                 id={pdf.id}
                 onDelete={(id) =>
-                  removeFile.mutate({ id, imageUrl: pdf.image_url })
+                  removeFile.mutateAsync({ id, imageUrl: pdf.image_url })
                 }
                 onEdit={handleEditExpense}
                 products={pdf.products}

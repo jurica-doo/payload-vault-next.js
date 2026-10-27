@@ -1,5 +1,6 @@
 "use client";
 
+import { useErrorToast } from "../../hooks/useErrorToast";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { BellIcon, SettingsIcon } from "../icons";
@@ -25,6 +26,7 @@ const MUTABLE = [
  * exceptions, reassignments) can't be muted; the database ignores attempts.
  */
 export const NotificationBell = () => {
+  const onFail = useErrorToast();
   const { data = [], markRead, mute } = useNotifications(true);
   const [open, setOpen] = useState(false);
   const [settings, setSettings] = useState(false);
@@ -73,7 +75,7 @@ export const NotificationBell = () => {
               Benachrichtigungen
             </p>
             <div className="flex items-center gap-1">
-              <button type="button" className="ui-link-button text-xs! disabled:cursor-not-allowed disabled:opacity-40" onClick={() => markRead.mutate(null)} disabled={!unread}>
+              <button type="button" className="ui-link-button text-xs! disabled:cursor-not-allowed disabled:opacity-40" onClick={() => markRead.mutate(null, { onError: onFail("Nicht als gelesen markiert") })} disabled={!unread}>
                 Alle gelesen
               </button>
               <button
@@ -88,7 +90,7 @@ export const NotificationBell = () => {
             </div>
           </div>
           {settings ? (
-            <form className="flex flex-col gap-2 p-4 text-sm animate-fade-in" onSubmit={(e) => { e.preventDefault(); mute.mutate(muted); setSettings(false); }}>
+            <form className="flex flex-col gap-2 p-4 text-sm animate-fade-in" onSubmit={(e) => { e.preventDefault(); mute.mutate(muted, { onError: onFail("Einstellungen nicht gespeichert") }); setSettings(false); }}>
               <p className="text-xs text-color-text-subtle">Stummschalten (Freigaben und Prüffälle bleiben immer sichtbar):</p>
               {MUTABLE.map((m) => (
                 <label key={m.kind} className="flex cursor-pointer items-center gap-2.5 text-color-text-main">

@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { cardClass } from "../../components/card/card.const";
 import Link from "next/link";
@@ -23,7 +24,6 @@ import { Select } from "../leads/LeadForm";
 const card = cardClass;
 const KIND_LABEL: Record<string, string> = { access: "Auskunft", rectification: "Berichtigung", erasure: "Löschung", objection: "Widerspruch" };
 const VIA_LABEL: Record<string, string> = { email: "E-Mail", letter: "Brief", phone: "Telefon", in_person: "persönlich", portal: "Portal" };
-const errText = (e: unknown) => (e instanceof Error ? e.message : "");
 
 /** Parses "K-00012", "L-7" or "12" into a number. */
 export function parseRecordNo(input: string): number | null {
@@ -166,7 +166,7 @@ const NewRequestForm = () => {
             });
             setF((x) => ({ ...x, no: "", note: "" }));
           } catch (e) {
-            showBanner("Nicht gespeichert", errText(e), "error");
+            showBanner("Nicht gespeichert", errorText(e), "error");
           }
         }} />
       </div>
@@ -199,7 +199,7 @@ const RequestRow = ({ r }: { r: PrivacyRequest }) => {
               const data = await p.exportData.mutateAsync(r.id);
               downloadJson(`auskunft-DS-${r.request_no}.json`, data);
             } catch (e) {
-              showBanner("Export fehlgeschlagen", errText(e), "error");
+              showBanner("Export fehlgeschlagen", errorText(e), "error");
             }
           }}>Daten exportieren</button>
         )}
@@ -242,7 +242,7 @@ const EraseConfirm = ({ onConfirm, onCancel }: { onConfirm: () => Promise<void>;
       <div className="flex gap-3">
         <Button text="Endgültig pseudonymisieren" variant="decline" isLoading={busy} isDisabled={text !== "LÖSCHEN"} onClick={async () => {
           setBusy(true);
-          try { await onConfirm(); } catch (e) { showBanner("Nicht ausgeführt", errText(e), "error"); } finally { setBusy(false); }
+          try { await onConfirm(); } catch (e) { showBanner("Nicht ausgeführt", errorText(e), "error"); } finally { setBusy(false); }
         }} />
         <Button text="Abbrechen" variant="secondary" onClick={onCancel} />
       </div>

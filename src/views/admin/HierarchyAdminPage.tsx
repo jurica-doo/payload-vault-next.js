@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -53,7 +54,7 @@ export const HierarchyAdminPage = () => {
       setManagerId(undefined);
       showBanner("Gespeichert", `Neue Zuordnung ab ${formatDate(effectiveFrom)}.`, "success");
     } catch (e) {
-      setFormError(e instanceof Error ? e.message : undefined);
+      setFormError(errorText(e));
     }
   };
 

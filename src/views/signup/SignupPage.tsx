@@ -1,5 +1,6 @@
 "use client";
 
+import { authErrorMessage } from "../../utils/authErrors";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -59,11 +60,7 @@ export const SignUpPage = () => {
     });
 
     if (signUpError) {
-      setError(
-        signUpError.message.includes("User already registered")
-          ? "Ein Konto mit dieser E-Mail-Adresse existiert bereits."
-          : "Registrierung fehlgeschlagen. Bitte versuchen Sie es später erneut.",
-      );
+      setError(authErrorMessage(signUpError, "signup"));
     } else if (
       data.user?.identities?.length === 0 ||
       (data.user &&
@@ -94,7 +91,7 @@ export const SignUpPage = () => {
     >
           {error && (
             <div className="mb-5 animate-slide-down">
-              <Banner bannerType="error" title={error} description="" />
+              <Banner bannerType="error" title="Registrierung nicht möglich" description={error} />
             </div>
           )}
 

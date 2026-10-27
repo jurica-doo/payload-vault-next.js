@@ -12,7 +12,7 @@ import { ProvisionalRuleNotice } from "../../components/provisionalRuleNotice/Pr
 import { AeValue, MoneyValue, PointsValue } from "../../components/values/Values";
 import { useRules } from "../../hooks/useRules/useRules";
 import { calculatePoints } from "../../domain/points";
-import { dbErrorMessage } from "../../utils/dbErrors";
+import { dbErrorMessage, errorText } from "../../utils/dbErrors";
 import { parseGermanDecimal } from "../../utils/format";
 import type { ProductionInput } from "../../hooks/useProduction/useProduction";
 
@@ -95,7 +95,7 @@ export const ProductionForm = ({
         submitNow,
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : undefined);
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }

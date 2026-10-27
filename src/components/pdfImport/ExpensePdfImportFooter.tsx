@@ -1,3 +1,4 @@
+import { errorText } from "../../utils/dbErrors";
 import { useAuth } from "../../context/AuthContext";
 import { useExpenseConfirmUploadModal } from "../../hooks/modal/UseExpenseConfirmUploadModal";
 import {
@@ -47,7 +48,10 @@ export const ExpensePdfImportFooter = () => {
     }
 
     return {
-      reason: "Import fehlgeschlagen. Bitte Datei prüfen und erneut versuchen.",
+      reason: errorText(
+        error,
+        "Der Beleg konnte nicht verarbeitet werden. Bitte prüfen Sie die Datei und versuchen Sie es erneut.",
+      ),
       errorType: "unknown",
     };
   };
@@ -67,11 +71,11 @@ export const ExpensePdfImportFooter = () => {
       );
     } else if (confirmed === 0 && declined > 0) {
       showBanner(
-        "Alle abgelehnt",
+        "Belege verworfen",
         declined === 1
-          ? "1 Beleg wurde abgelehnt."
-          : `${declined} Belege wurden abgelehnt.`,
-        "error",
+          ? "Der Beleg wurde nicht gespeichert."
+          : `${declined} Belege wurden nicht gespeichert.`,
+        "info",
       );
     } else if (confirmed > 0 && declined > 0) {
       showBanner(
@@ -94,8 +98,8 @@ export const ExpensePdfImportFooter = () => {
     } catch (error) {
       console.error("Error confirming receipt:", error);
       showBanner(
-        "Fehler",
-        `Bestätigung fehlgeschlagen: ${truncateName(payload.file_name)}`,
+        `„${truncateName(payload.file_name)}“ nicht gespeichert`,
+        errorText(error, "Der Beleg konnte nicht gespeichert werden. Bitte laden Sie ihn erneut hoch."),
         "error",
       );
     }
@@ -211,10 +215,14 @@ export const ExpensePdfImportFooter = () => {
           );
 
           const title = allExtraction
-            ? "Extraktion fehlgeschlagen"
-            : "Import fehlgeschlagen";
+            ? "Beleg nicht erkannt"
+            : "Upload fehlgeschlagen";
 
-          const description = `${failedFiles.length} Datei${failedFiles.length > 1 ? "en" : ""} konnten nicht verarbeitet werden.`;
+          // One file: say exactly why. Several: count plus the first reason.
+          const description =
+            failedFiles.length === 1
+              ? `${truncateName(failedFiles[0].name)}: ${failedFiles[0].reason}`
+              : `${failedFiles.length} Dateien konnten nicht verarbeitet werden – z. B. ${truncateName(failedFiles[0].name)}: ${failedFiles[0].reason}`;
 
           showBanner(title, description, "error");
         }

@@ -316,7 +316,7 @@ export const OtherExpensesPages = ({ title }: CategoryProps) => {
                 openLink={pdf.signed_url}
                 id={pdf.id}
                 onDelete={(id) =>
-                  removeFile.mutate({ id, imageUrl: pdf.image_url })
+                  removeFile.mutateAsync({ id, imageUrl: pdf.image_url })
                 }
                 onEdit={handleEditExpense}
                 products={pdf.products}

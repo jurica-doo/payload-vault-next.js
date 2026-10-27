@@ -1,3 +1,4 @@
+import { errorText } from "../../utils/dbErrors";
 import { ModalActions } from "./ModalActions";
 import { useState } from "react";
 import { Button } from "../button/Button";
@@ -37,11 +38,7 @@ export const PasswordChangeForm = ({
     try {
       await onSave(result.data.password);
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An error occurred while changing the password.");
-      }
+      setError(errorText(err, "Das Passwort konnte nicht geändert werden. Bitte versuchen Sie es erneut."));
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +47,7 @@ export const PasswordChangeForm = ({
   return (
     <div className="flex flex-col gap-5">
       <div className="w-full sm:w-70">
-        {error && <Banner bannerType="error" description="" title={error} />}
+        {error && <Banner bannerType="error" title="Passwort nicht geändert" description={error} />}
       </div>
       <PasswordInput
         label="Neues Passwort"

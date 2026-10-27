@@ -40,6 +40,7 @@ vi.mock("../../hooks/useActivities/useActivities", () => ({
 vi.mock("../../hooks/useLeads/useLeads", () => ({
   useTeamSignals: () => ({ data: [{ code: "overdue_tasks", severity: "warning", name: "Fritz FB", count: 6 }] }),
 }));
+vi.mock("../../context/banner/BannerContext", () => ({ useBanner: () => ({ showBanner: vi.fn() }) }));
 vi.mock("../../components/charts/TrendChart", () => ({ TrendChart: ({ caption }: { caption: string }) => <figure>{caption}</figure> }));
 
 const { DashboardPage } = await import("./DashboardPage");

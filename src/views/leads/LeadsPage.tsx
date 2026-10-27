@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { ChartBarIcon, PlusIcon } from "../../components/icons";
 import { ButtonLink } from "../../components/button/ButtonLink";
 import { PageActions } from "../../components/pageHeader/PageActions";
@@ -89,11 +90,11 @@ export const LeadsPage = () => {
           })} />
         </PageActions>
       </div>
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <input type="search" aria-label="Suche" placeholder="Name, Firma, L-Nummer, Telefon" value={query} onChange={(e) => setQuery(e.target.value)}
-          className="min-w-60 flex-1 ui-input" />
+          className="ui-input min-w-0 flex-1 sm:min-w-60" />
         <select aria-label="Phase" value={stage} onChange={(e) => setStage(e.target.value)}
-          className="ui-input">
+          className="ui-input sm:w-56">
           <option value="">Alle Phasen</option>
           {(config?.stages ?? []).map((s) => <option key={s.code} value={s.code}>{s.name_de}</option>)}
         </select>
@@ -101,7 +102,7 @@ export const LeadsPage = () => {
       <DataTable
         rows={rows}
         isLoading={isLoading}
-        error={error ? error.message : null}
+        error={error ? errorText(error) : null}
         getRowId={(l) => l.id}
         onRowClick={(l) => router.push(`/vertrieb/leads/${l.id}`)}
         emptyMessage="Keine Leads in dieser Ansicht"

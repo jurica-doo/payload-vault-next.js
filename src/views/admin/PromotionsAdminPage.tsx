@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { DataTable } from "../../components/dataTable/DataTable";
 import { MfaRequiredNotice } from "../../components/mfa/MfaRequiredNotice";
 import { ReasonConfirmForm } from "../../components/reasonConfirm/ReasonConfirmForm";
@@ -53,7 +54,7 @@ export const PromotionsAdminPage = () => {
       getRowId={(q) => q.employee_id}
       caption="Qualifizierte Mitarbeitende"
       isLoading={isLoading}
-      error={error ? error.message : null}
+      error={error ? errorText(error) : null}
       emptyMessage="Derzeit ist niemand qualifiziert."
       columns={[
         { id: "name", header: "Name", cell: (q) => `${q.name} (${q.employee_no})`, sortValue: (q) => q.name },

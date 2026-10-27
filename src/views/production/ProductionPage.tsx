@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { PlusIcon, UploadIcon } from "../../components/icons";
 import { ButtonLink } from "../../components/button/ButtonLink";
 import { ActionMenu } from "../../components/actionMenu/ActionMenu";
@@ -54,7 +55,7 @@ export const ProductionPage = () => {
       await fn();
       showBanner("Erledigt", success, "success");
     } catch (e) {
-      showBanner("Fehlgeschlagen", e instanceof Error ? e.message : "", "error");
+      showBanner("Aktion nicht ausgeführt", errorText(e), "error");
     }
   };
 
@@ -139,7 +140,7 @@ export const ProductionPage = () => {
         getRowId={(r) => r.id!}
         caption="Produktion"
         isLoading={isLoading}
-        error={error ? error.message : null}
+        error={error ? errorText(error) : null}
         emptyMessage="Noch keine Produktion erfasst"
         onRowClick={openDetails}
         pagination={data ? { page, pageSize: data.pageSize, total: data.total, onPageChange: setPage } : undefined}

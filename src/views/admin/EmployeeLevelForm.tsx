@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { ModalActions } from "../../components/modal/ModalActions";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -41,7 +42,7 @@ export const EmployeeLevelForm = ({
     try {
       await onSubmit(level, from, reason.trim());
     } catch (e) {
-      setError(e instanceof Error ? e.message : undefined);
+      setError(errorText(e));
     } finally {
       setBusy(false);
     }

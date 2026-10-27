@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -37,7 +38,7 @@ export const ConvertLead = ({ lead }: { lead: Lead }) => {
       const id = await convertLead.mutateAsync({ leadId: lead.id, confirmDuplicates: confirmed });
       router.push(`/vertrieb/kunden/${id}`);
     } catch (e) {
-      showBanner("Nicht umgewandelt", e instanceof Error ? e.message : "", "error");
+      showBanner("Nicht umgewandelt", errorText(e), "error");
     }
   };
 

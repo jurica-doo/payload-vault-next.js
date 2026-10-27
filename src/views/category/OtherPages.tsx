@@ -260,7 +260,7 @@ export const OtherPages = ({ title }: CategoryProps) => {
                 downloadLink={pdf.signedUrl}
                 openLink={pdf.openLink}
                 id={pdf.id}
-                onDelete={(id) => removePdf.mutate(id)}
+                onDelete={(id) => removePdf.mutateAsync(id)}
               />
             ))
           )}

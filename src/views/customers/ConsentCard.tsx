@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -36,7 +37,7 @@ export const ConsentCard = ({ customer, canWork }: { customer: Customer; canWork
       });
       setForm((x) => ({ ...x, evidence: "" }));
     } catch (e) {
-      showBanner("Nicht gespeichert", e instanceof Error ? e.message : "", "error");
+      showBanner("Nicht gespeichert", errorText(e), "error");
     }
   };
 

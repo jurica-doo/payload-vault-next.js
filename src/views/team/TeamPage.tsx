@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import Link from "next/link";
 import { useState } from "react";
@@ -26,7 +27,7 @@ export const TeamPage = () => {
 
   if (isLoading) return <LoadingState label="Struktur wird geladen…" />;
   if (error || !structure) {
-    return <EmptyState message="Die Struktur konnte nicht geladen werden." hint={error?.message} />;
+    return <EmptyState message="Die Struktur konnte nicht geladen werden." hint={error ? errorText(error) : undefined} />;
   }
 
   // Roots start expanded so a leader sees their direct reports at once.

@@ -1,5 +1,6 @@
 "use client";
 
+import { authErrorMessage } from "../../utils/authErrors";
 import { useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabase";
@@ -37,9 +38,7 @@ export const ResetPasswordPage = () => {
     });
 
     if (error) {
-      setError(
-        "Der Link konnte nicht gesendet werden. Bitte versuchen Sie es später erneut.",
-      );
+      setError(authErrorMessage(error, "reset"));
     } else {
       setIsSent(true);
     }
@@ -76,7 +75,7 @@ export const ResetPasswordPage = () => {
     >
           {error && (
             <div className="mb-5 animate-slide-down">
-              <Banner bannerType="error" title={error} description="" />
+              <Banner bannerType="error" title="Link nicht gesendet" description={error} />
             </div>
           )}
 

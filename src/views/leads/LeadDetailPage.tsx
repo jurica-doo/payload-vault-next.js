@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { DetailLayout, RecordHeader } from "../../components/detailLayout/DetailLayout";
 import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { LoadingState } from "../../components/loadingState/LoadingState";
@@ -35,7 +36,6 @@ import { ConvertLead } from "./ConvertLead";
 import { SLA_BADGE } from "./LeadsPage";
 
 const card = cardClass;
-const errText = (e: unknown) => (e instanceof Error ? e.message : "");
 
 /** One lead (§9.1): pipeline, details, next step, assignment, activities, history. */
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -154,7 +154,7 @@ const StageCard = ({ lead, stages, hasAppointment, hasHeldAppointment }: {
                 await setStage.mutateAsync({ id: lead.id, stage: target, note, lossReason: loss || null });
                 setTarget(""); setNote(""); setLoss("");
               } catch (e) {
-                showBanner("Nicht gespeichert", errText(e), "error");
+                showBanner("Nicht gespeichert", errorText(e), "error");
               }
             }} />
         </div>
@@ -188,7 +188,7 @@ const NextStepCard = ({ lead }: { lead: Lead }) => {
             await update.mutateAsync({ id: lead.id, data: { next_action: text.trim() || null, next_action_at: berlinLocalToUtcIso(date, time.padStart(5, "0")) } });
             setDate("");
           } catch (e) {
-            showBanner("Nicht gespeichert", errText(e), "error");
+            showBanner("Nicht gespeichert", errorText(e), "error");
           }
         }} />
       </div>
@@ -255,7 +255,7 @@ const EditLeadForm = ({ lead, onDone }: { lead: Lead; onDone: () => void }) => {
         } });
         onDone();
       } catch (err) {
-        showBanner("Nicht gespeichert", errText(err), "error");
+        showBanner("Nicht gespeichert", errorText(err), "error");
       }
     }}>
       <div className="grid gap-3 sm:grid-cols-3">
@@ -318,7 +318,7 @@ const AssignmentCard = ({ lead, name, history }: {
                   showBanner("Zugewiesen", r.appointments_moved ? `${r.appointments_moved} anstehende(r) Termin(e) übertragen.` : "", "success");
                   setOwner(null); setReason("");
                 } catch (e) {
-                  showBanner("Nicht zugewiesen", errText(e), "error");
+                  showBanner("Nicht zugewiesen", errorText(e), "error");
                 }
               }} />
           </div>
@@ -352,7 +352,7 @@ const DuplicatesCard = ({ lead }: { lead: Lead }) => {
               phone: lead.phone, email: lead.email, exclude: lead.id,
             }));
           } catch (e) {
-            showBanner("Prüfung fehlgeschlagen", errText(e), "error");
+            showBanner("Prüfung fehlgeschlagen", errorText(e), "error");
           }
         }}>Prüfen</button>
       </div>

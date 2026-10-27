@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -48,7 +49,7 @@ export const RulesAdminPage = () => {
   const canWrite = permissions.isAdmin && permissions.hasMfa;
 
   if (isLoading) return <LoadingState label="Regeln werden geladen…" />;
-  if (error || !data) return <p className="text-sm text-color-error-text">{error?.message ?? "Fehler beim Laden."}</p>;
+  if (error || !data) return <p className="text-sm text-color-error-text">{error ? errorText(error) : "Die Regeln konnten nicht geladen werden. Bitte laden Sie die Seite neu."}</p>;
 
   return (
     <div className="flex flex-col gap-6">
@@ -80,7 +81,7 @@ const RuleSection = ({ kind, title, data, canWrite }: { kind: Kind; title: strin
       await createDraft.mutateAsync({ kind, label, effectiveFrom });
       setLabel("");
     } catch (e) {
-      setFormError(e instanceof Error ? e.message : undefined);
+      setFormError(errorText(e));
     }
   };
 
@@ -271,7 +272,7 @@ const LevelDraftEditor = ({
       await updateLevel.mutateAsync({ versionId: draftId, row: next });
       setEdits((e) => ({ ...e, [r.code]: {} }));
     } catch (e) {
-      showBanner("Nicht gespeichert", e instanceof Error ? e.message : "", "error");
+      showBanner("Nicht gespeichert", errorText(e), "error");
     }
   };
 
@@ -326,7 +327,7 @@ const ConversionDraftEditor = ({
       });
       setEdits((e) => ({ ...e, [r.category_code]: {} }));
     } catch (e) {
-      showBanner("Nicht gespeichert", e instanceof Error ? e.message : "", "error");
+      showBanner("Nicht gespeichert", errorText(e), "error");
     }
   };
 

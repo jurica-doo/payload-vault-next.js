@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { MailIcon, PlusIcon, ShieldIcon } from "../../components/icons";
 import { ButtonLink } from "../../components/button/ButtonLink";
 import { PageActions } from "../../components/pageHeader/PageActions";
@@ -70,7 +71,7 @@ export const CustomersPage = () => {
       <DataTable
         rows={rows}
         isLoading={isLoading}
-        error={error ? error.message : null}
+        error={error ? errorText(error) : null}
         getRowId={(c) => c.id}
         onRowClick={(c) => router.push(`/vertrieb/kunden/${c.id}`)}
         emptyMessage="Keine Kunden in dieser Ansicht"

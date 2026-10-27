@@ -1,3 +1,4 @@
+import { errorText } from "../../utils/dbErrors";
 import { useAuth } from "../../context/AuthContext";
 import { useImportPdfModal } from "../../hooks/modal/UseImportPdfModal";
 import { useConfirmUploadModal } from "../../hooks/modal/UseConfirmUploadModal";
@@ -68,7 +69,10 @@ export const PdfImportFooter = () => {
     }
 
     return {
-      reason: "Import fehlgeschlagen. Bitte Datei prüfen und erneut versuchen.",
+      reason: errorText(
+        error,
+        "Das Dokument konnte nicht verarbeitet werden. Bitte prüfen Sie die Datei und versuchen Sie es erneut.",
+      ),
       errorType: "unknown",
     };
   };
@@ -89,11 +93,11 @@ export const PdfImportFooter = () => {
       );
     } else if (confirmed === 0 && declined > 0) {
       showBanner(
-        "Uploads abgelehnt",
+        "Dokumente verworfen",
         declined === 1
-          ? "Die PDF-Datei wurde abgelehnt."
-          : `${declined} Dateien wurden abgelehnt.`,
-        "error",
+          ? "Das Dokument wurde nicht gespeichert."
+          : `${declined} Dokumente wurden nicht gespeichert.`,
+        "info",
       );
     } else if (confirmed > 0 && declined > 0) {
       showBanner(
@@ -116,8 +120,8 @@ export const PdfImportFooter = () => {
     } catch (error) {
       console.error("Error confirming upload:", error);
       showBanner(
-        "Fehler",
-        `Bestätigung fehlgeschlagen: ${truncateName(upload.fileName)}`,
+        `„${truncateName(upload.fileName)}“ nicht gespeichert`,
+        errorText(error, "Das Dokument konnte nicht gespeichert werden. Bitte laden Sie es erneut hoch."),
         "error",
       );
     }
@@ -208,16 +212,18 @@ export const PdfImportFooter = () => {
           );
 
           const title = allDuplicates
-            ? "Duplikat erkannt"
+            ? "Bereits vorhanden"
             : allExtraction
-              ? "Extraktion fehlgeschlagen"
-              : "Import fehlgeschlagen";
+              ? "Dokument nicht erkannt"
+              : "Upload fehlgeschlagen";
 
-          const description = allDuplicates
-            ? failedFiles.length === 1
+          // One file: say exactly why. Several: count plus the first reason.
+          const description =
+            failedFiles.length === 1
               ? `${truncateName(failedFiles[0].name)}: ${failedFiles[0].reason}`
-              : `${failedFiles.length} Dateien existieren bereits.`
-            : `${failedFiles.length} Datei${failedFiles.length > 1 ? "en" : ""} konnten nicht verarbeitet werden.`;
+              : allDuplicates
+                ? `${failedFiles.length} Dateien existieren bereits.`
+                : `${failedFiles.length} Dateien konnten nicht verarbeitet werden – z. B. ${truncateName(failedFiles[0].name)}: ${failedFiles[0].reason}`;
 
           showBanner(title, description, "error");
         }

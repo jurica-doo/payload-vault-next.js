@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { PlusIcon } from "../../components/icons";
 import { ActionMenu } from "../../components/actionMenu/ActionMenu";
 import { AwardIcon, XIcon } from "../../components/icons";
@@ -144,7 +145,7 @@ export const EmployeesAdminPage = () => {
       await resendInvite.mutateAsync(employee.id);
       showBanner("Einladung versendet", employee.email, "success");
     } catch (e) {
-      showBanner("Einladung fehlgeschlagen", e instanceof Error ? e.message : "", "error");
+      showBanner("Einladung fehlgeschlagen", errorText(e), "error");
     }
   };
 
@@ -166,7 +167,7 @@ export const EmployeesAdminPage = () => {
         getRowId={(e) => e.id}
         caption="Mitarbeitende"
         isLoading={isLoading}
-        error={error ? error.message : null}
+        error={error ? errorText(error) : null}
         emptyMessage={needle ? "Keine Treffer" : "Noch keine Mitarbeitenden angelegt"}
         columns={[
           {

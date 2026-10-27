@@ -1,5 +1,7 @@
 "use client";
 
+import { useErrorToast } from "../../hooks/useErrorToast";
+import { errorText } from "../../utils/dbErrors";
 import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { GaugeIcon } from "../../components/icons";
 import { LoadingState } from "../../components/loadingState/LoadingState";
@@ -43,7 +45,7 @@ export const DashboardPage = () => {
   return (
     <div className="flex flex-col gap-6">
       {isEmployee && <MyActions employeeId={permissions.employeeId!} />}
-      {isEmployee && (me.data ? <MySection d={me.data} /> : me.isLoading ? <DashboardSkeleton /> : <ErrorBlock variant="inline" message={me.error?.message ?? "Ihr Dashboard konnte nicht geladen werden."} onRetry={() => me.refetch()} />)}
+      {isEmployee && (me.data ? <MySection d={me.data} /> : me.isLoading ? <DashboardSkeleton /> : <ErrorBlock variant="inline" message={me.error ? errorText(me.error) : "Ihr Dashboard konnte nicht geladen werden."} onRetry={() => me.refetch()} />)}
       {!isEmployee && (
         <div className="ui-card">
           <EmptyState
@@ -254,6 +256,7 @@ const AdminSection = ({ d }: { d: AdminDashboard }) => {
 
 /** Agreed coaching actions show up on the employee's dashboard (§8.4). */
 const MyActions = ({ employeeId }: { employeeId: string }) => {
+  const onFail = useErrorToast();
   const { data, setActionStatus } = useCoaching(employeeId);
   const open = (data?.actions ?? []).filter((a) => a.status === "open" && a.owner_id === employeeId);
   if (open.length === 0) return null;
@@ -264,7 +267,7 @@ const MyActions = ({ employeeId }: { employeeId: string }) => {
         {open.map((a) => (
           <li key={a.id}>
             <label className="flex items-center gap-2">
-              <input type="checkbox" onChange={() => setActionStatus.mutate({ id: a.id, status: "done" })} />
+              <input type="checkbox" onChange={() => setActionStatus.mutate({ id: a.id, status: "done" }, { onError: onFail("Maßnahme nicht aktualisiert") })} />
               {a.title}
               {a.due_on && <span className="text-xs text-color-text-subtle">bis {formatDate(a.due_on)}</span>}
             </label>

@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
@@ -88,7 +89,7 @@ export const LeadForm = ({ onDone }: { onDone: (id: string) => void }) => {
       const id = await create.mutateAsync({ data, ownerId: toPool ? null : owner, toPool, confirmDuplicates: confirmed });
       onDone(id);
     } catch (err) {
-      showBanner("Nicht gespeichert", err instanceof Error ? err.message : "", "error");
+      showBanner("Nicht gespeichert", errorText(err), "error");
     }
   };
 

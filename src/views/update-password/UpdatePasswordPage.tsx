@@ -1,5 +1,6 @@
 "use client";
 
+import { authErrorMessage } from "../../utils/authErrors";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -39,9 +40,7 @@ export const UpdatePasswordPage = () => {
     });
 
     if (error) {
-      setError(
-        "Passwort konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
-      );
+      setError(authErrorMessage(error, "update"));
     } else {
       setIsUpdated(true);
     }
@@ -77,7 +76,7 @@ export const UpdatePasswordPage = () => {
     >
           {error && (
             <div className="mb-5 animate-slide-down">
-              <Banner bannerType="error" title={error} description="" />
+              <Banner bannerType="error" title="Passwort nicht gespeichert" description={error} />
             </div>
           )}
 

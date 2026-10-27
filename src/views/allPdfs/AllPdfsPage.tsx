@@ -442,7 +442,7 @@ export const AllPdfsPage = () => {
                 openLink={pdf.openLink}
                 searchQuery={searchQuery}
                 id={pdf.id}
-                onDelete={(id) => removePdf.mutate(id)}
+                onDelete={(id) => removePdf.mutateAsync(id)}
                 onEdit={handleEditPdf}
                 isSelecting={bulk.isSelecting}
                 isSelected={bulk.isSelected(pdf.id)}

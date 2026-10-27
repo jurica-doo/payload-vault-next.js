@@ -1,3 +1,4 @@
+import { errorText } from "../../utils/dbErrors";
 import { ModalActions } from "./ModalActions";
 import { useState } from "react";
 import { Button } from "../button/Button";
@@ -28,10 +29,10 @@ export const DeleteConfirmationForm = ({
         `Die Datei wurde erfolgreich gelöscht: "${fileName}"`,
         "success",
       );
-    } catch {
+    } catch (err) {
       showBanner(
-        "Fehler",
-        `Beim Löschen der Datei ist ein Fehler aufgetreten.: "${fileName}".`,
+        "Löschen fehlgeschlagen",
+        errorText(err, `„${fileName}“ konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.`),
         "error",
       );
     } finally {

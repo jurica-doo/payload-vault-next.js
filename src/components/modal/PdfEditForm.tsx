@@ -1,3 +1,4 @@
+import { errorText } from "../../utils/dbErrors";
 import { useState } from "react";
 import { Button } from "../button/Button";
 import { Dropdown } from "../dropdown/Dropdown";
@@ -64,10 +65,10 @@ export const PdfEditForm = ({
         "success",
       );
       onCancel();
-    } catch {
+    } catch (err) {
       showBanner(
-        "Fehler",
-        `Beim Aktualisieren von "${fileName}" ist ein Fehler aufgetreten.`,
+        "Änderungen nicht gespeichert",
+        errorText(err, `„${fileName}“ konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.`),
         "error",
       );
     } finally {

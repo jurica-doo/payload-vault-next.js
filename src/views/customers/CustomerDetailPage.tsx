@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { DetailLayout, RecordHeader } from "../../components/detailLayout/DetailLayout";
 import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { LoadingState } from "../../components/loadingState/LoadingState";
@@ -27,7 +28,6 @@ import { ServiceCard } from "./ServiceCard";
 import { EmailHistoryCard } from "./EmailHistoryCard";
 
 export const card = cardClass;
-const errText = (e: unknown) => (e instanceof Error ? e.message : "");
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const CustomerDetailPage = ({ customerId }: { customerId: string }) =>
@@ -141,7 +141,7 @@ const FollowUpCard = ({ c }: { c: Customer }) => {
       await update.mutateAsync({ id: c.id, data: { next_follow_up_at: value } });
       setDate("");
     } catch (e) {
-      showBanner("Nicht gespeichert", errText(e), "error");
+      showBanner("Nicht gespeichert", errorText(e), "error");
     }
   };
   return (
@@ -193,7 +193,7 @@ const AdviserCard = ({ c, name, history, canWork }: {
                 await assign.mutateAsync({ id: c.id, ownerId: owner as string, reason });
                 setOwner(null); setReason("");
               } catch (e) {
-                showBanner("Nicht zugewiesen", errText(e), "error");
+                showBanner("Nicht zugewiesen", errorText(e), "error");
               }
             }} />
           </div>

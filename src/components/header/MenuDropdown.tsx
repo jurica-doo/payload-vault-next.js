@@ -1,5 +1,7 @@
 "use client";
 
+import { authErrorMessage } from "../../utils/authErrors";
+import { UserFacingError } from "../../utils/dbErrors";
 import { useState, useEffect, type ComponentType } from "react";
 import { useChangePasswordModal } from "../../hooks/modal/UsePasswordChangeModal";
 import { useRouter } from "next/navigation";
@@ -82,19 +84,7 @@ export const MenuDropdown = ({
       password: newPassword,
     });
 
-    if (error) {
-      if (
-        error.message.toLowerCase().includes("same") ||
-        error.message.toLowerCase().includes("different")
-      ) {
-        throw new Error(
-          "Das neue Passwort darf nicht mit Ihrem aktuellen Passwort identisch sein.",
-        );
-      }
-      throw new Error(
-        "Das Passwort konnte nicht geändert werden. Bitte versuchen Sie es erneut.",
-      );
-    }
+    if (error) throw new UserFacingError(authErrorMessage(error, "update"));
 
     showBanner(
       "Passwort geändert",

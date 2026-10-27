@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { ButtonLink } from "../../components/button/ButtonLink";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
@@ -77,7 +78,7 @@ export const CommissionPage = () => {
       await logExport("statement", month, entries.length);
       downloadCsv(ledgerCsv(entries), `provisionen_${month.slice(0, 7)}.csv`);
     } catch (e) {
-      showBanner("Export fehlgeschlagen", e instanceof Error ? e.message : "", "error");
+      showBanner("Export fehlgeschlagen", errorText(e), "error");
     }
   };
 
@@ -107,7 +108,7 @@ export const CommissionPage = () => {
       ) : isLoading ? (
         <LoadingState label="Abrechnung wird geladen…" />
       ) : error || !statement ? (
-        <EmptyState message="Die Abrechnung konnte nicht geladen werden." hint={error?.message} />
+        <EmptyState message="Die Abrechnung konnte nicht geladen werden." hint={error ? errorText(error) : undefined} />
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

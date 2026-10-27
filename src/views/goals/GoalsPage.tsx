@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { Tabs } from "../../components/tabs/Tabs";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
@@ -108,7 +109,7 @@ const GoalEditor = ({ month, goal }: { month: string; goal: Goal | undefined }) 
       if (andSubmit) await submit.mutateAsync({ goalId: id, comment });
       showBanner(andSubmit ? "Eingereicht" : "Gespeichert", monthLabel(month), "success");
     } catch (e) {
-      setError(e instanceof Error ? e.message : undefined);
+      setError(errorText(e));
     }
   };
 

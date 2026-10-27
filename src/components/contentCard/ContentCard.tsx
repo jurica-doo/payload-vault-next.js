@@ -141,7 +141,7 @@ export const ContentCard = (props: CombinedContentCardProps) => {
           <DeleteConfirmationForm
             fileName={title}
             onConfirm={async () => {
-              onDelete(id);
+              await onDelete(id);
               closeModal();
             }}
             onCancel={closeModal}

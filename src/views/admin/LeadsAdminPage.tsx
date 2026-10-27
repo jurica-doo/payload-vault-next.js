@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
@@ -19,7 +20,6 @@ import { Select } from "../leads/LeadForm";
 
 const card = cardClass;
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-const errText = (e: unknown) => (e instanceof Error ? e.message : "");
 
 /** Lead configuration (§9.2, §9.3): everything Profina decides, nothing hard-coded. */
 export const LeadsAdminPage = () => {
@@ -88,7 +88,7 @@ const SlaCard = ({ config }: { config: LeadConfig }) => {
                   }, reason });
                   closeModal();
                 } catch (e) {
-                  showBanner("Nicht gespeichert", errText(e), "error");
+                  showBanner("Nicht gespeichert", errorText(e), "error");
                 }
               }} />
           ),
@@ -141,7 +141,7 @@ const StagesCard = ({ config }: { config: LeadConfig }) => {
                                 await updateStage.mutateAsync({ code: s.code, requiredFields: d.required, allowSkip: d.skip, active: d.active, reason });
                                 closeModal();
                               } catch (e) {
-                                showBanner("Nicht gespeichert", errText(e), "error");
+                                showBanner("Nicht gespeichert", errorText(e), "error");
                               }
                             }} />
                         ),
@@ -171,7 +171,7 @@ const SourcesCard = ({ config }: { config: LeadConfig }) => {
   const [amount, setAmount] = useState("");
   const sourceName = new Map(config.sources.map((s) => [s.id, s.name]));
   const run = async (fn: () => Promise<unknown>) => {
-    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", errText(e), "error"); }
+    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", errorText(e), "error"); }
   };
   return (
     <section className={card}>
@@ -221,7 +221,7 @@ const HolidaysCard = ({ config }: { config: LeadConfig }) => {
   const [region, setRegion] = useState(config.sla.holiday_region);
   const [name, setName] = useState("");
   const run = async (fn: () => Promise<unknown>) => {
-    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", errText(e), "error"); }
+    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", errorText(e), "error"); }
   };
   const upcoming = config.holidays.filter((h) => h.day >= berlinToday());
   return (

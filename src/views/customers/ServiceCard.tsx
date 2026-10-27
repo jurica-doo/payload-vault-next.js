@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -49,7 +50,7 @@ export const ServiceCard = ({ customer, canWork }: { customer: Customer; canWork
     : [];
   const valid = f.title.trim().length >= 3 && (isRenewal ? Boolean(contract) : Boolean(f.due));
   const run = async (fn: () => Promise<unknown>) => {
-    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", e instanceof Error ? e.message : "", "error"); }
+    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", errorText(e), "error"); }
   };
 
   return (

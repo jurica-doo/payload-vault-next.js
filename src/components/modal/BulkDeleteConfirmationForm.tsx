@@ -1,3 +1,4 @@
+import { errorText } from "../../utils/dbErrors";
 import { ModalActions } from "./ModalActions";
 import { useState } from "react";
 import { Button } from "../button/Button";
@@ -26,10 +27,10 @@ export const BulkDeleteConfirmationForm = ({
         `${count} Dokument${count > 1 ? "e" : ""} erfolgreich gelöscht.`,
         "success",
       );
-    } catch {
+    } catch (err) {
       showBanner(
-        "Fehler",
-        "Beim Löschen der Dokumente ist ein Fehler aufgetreten.",
+        "Löschen fehlgeschlagen",
+        errorText(err, "Die Dokumente konnten nicht gelöscht werden. Bitte versuchen Sie es erneut."),
         "error",
       );
     } finally {

@@ -18,7 +18,7 @@ import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useEmployees } from "../../hooks/useEmployees/useEmployees";
 import { logExport, useFinance } from "../../hooks/useCommission/useCommission";
 import { downloadCsv } from "../../utils/csvExport";
-import { dbErrorMessage } from "../../utils/dbErrors";
+import { errorText } from "../../utils/dbErrors";
 import { formatDateTime, parseGermanDecimal } from "../../utils/format";
 import { currentMonth, periodStatus } from "./CommissionPage";
 import { overviewCsv } from "./statementCsv";
@@ -87,7 +87,7 @@ export const FinancePage = () => {
       await logExport("statement_overview", month, rows.length);
       downloadCsv(overviewCsv(rows), `abrechnung_${month.slice(0, 7)}.csv`);
     } catch (e) {
-      showBanner("Export fehlgeschlagen", e instanceof Error ? e.message : "", "error");
+      showBanner("Export fehlgeschlagen", errorText(e), "error");
     }
   };
 
@@ -105,7 +105,7 @@ export const FinancePage = () => {
       showBanner("Zuschuss gespeichert", "", "success");
       setSubAmount(""); setSubNote(""); setSubReason(""); setSubOverride("");
     } catch (e) {
-      setSubError(e instanceof Error ? e.message : dbErrorMessage(null));
+      setSubError(errorText(e));
     }
   };
 
@@ -141,7 +141,7 @@ export const FinancePage = () => {
           getRowId={(r) => r.recipient_id}
           caption="Abrechnungsübersicht"
           isLoading={overview.isLoading}
-          error={overview.error ? overview.error.message : null}
+          error={overview.error ? errorText(overview.error) : null}
           emptyMessage="Keine Buchungen oder Zuschüsse in diesem Monat"
           columns={[
             { id: "name", header: "Name", cell: (r) => `${r.recipient_name} (${r.employee_no})`, sortValue: (r) => r.recipient_name },
@@ -187,7 +187,7 @@ export const FinancePage = () => {
                           const n = await retry.mutateAsync(x.entity_id);
                           showBanner("Gebucht", `${n} Buchungen erstellt.`, "success");
                         } catch (e) {
-                          showBanner("Noch nicht buchbar", e instanceof Error ? e.message : dbErrorMessage(null), "error");
+                          showBanner("Noch nicht buchbar", errorText(e), "error");
                         }
                       }} />
                     <Button text="Verwerfen" size="small" variant="decline" isDisabled={!canWrite}

@@ -1,5 +1,7 @@
 "use client";
 
+import { useErrorToast } from "../../hooks/useErrorToast";
+import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -47,7 +49,7 @@ const Profile = ({ employeeId }: { employeeId: string }) => {
   const isManager = permissions.employeeId !== employeeId && permissions.isLeader;
 
   if (isLoading) return <LoadingState label="Profil wird geladen…" />;
-  if (error || !p) return <EmptyState message="Profil nicht verfügbar." hint={error?.message} />;
+  if (error || !p) return <EmptyState message="Profil nicht verfügbar." hint={error ? errorText(error) : undefined} />;
 
   const last3 = p.trend.slice(-3).reduce((s, t) => s + Number(t.points), 0);
   return (
@@ -101,6 +103,7 @@ const Profile = ({ employeeId }: { employeeId: string }) => {
 type CoachingHook = ReturnType<typeof useCoaching>;
 
 const CoachingSection = ({ coaching, isManager }: { coaching: CoachingHook; isManager: boolean }) => {
+  const onFail = useErrorToast();
   const { showBanner } = useBanner();
   const { permissions } = usePermissions();
   const [summary, setSummary] = useState("");
@@ -121,7 +124,7 @@ const CoachingSection = ({ coaching, isManager }: { coaching: CoachingHook; isMa
       setSummary(""); setActionTitle(""); setActionDue(""); setNextReview("");
       showBanner("Gespräch gespeichert", "", "success");
     } catch (e) {
-      showBanner("Nicht gespeichert", e instanceof Error ? e.message : "", "error");
+      showBanner("Nicht gespeichert", errorText(e), "error");
     }
   };
 
@@ -139,7 +142,7 @@ const CoachingSection = ({ coaching, isManager }: { coaching: CoachingHook; isMa
                 <li key={a.id} className="flex flex-wrap items-center justify-between gap-2">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" checked={a.status === "done"} disabled={!canToggle || a.status === "cancelled"}
-                      onChange={(e) => coaching.setActionStatus.mutate({ id: a.id, status: e.target.checked ? "done" : "open" })} />
+                      onChange={(e) => coaching.setActionStatus.mutate({ id: a.id, status: e.target.checked ? "done" : "open" }, { onError: onFail("Maßnahme nicht aktualisiert") })} />
                     <span className={a.status === "done" ? "line-through" : ""}>{a.title}</span>
                   </label>
                   <span className={`text-xs ${a.status === "open" && a.due_on && a.due_on < berlinToday() ? "text-color-error-text" : "text-color-text-subtle"}`}>
@@ -205,7 +208,7 @@ const CoachingSection = ({ coaching, isManager }: { coaching: CoachingHook; isMa
                     setNote("");
                     showBanner("Notiz gespeichert", "", "success");
                   } catch (e) {
-                    showBanner("Notiz nicht gespeichert", e instanceof Error ? e.message : "Bitte erneut versuchen.", "error");
+                    showBanner("Notiz nicht gespeichert", errorText(e), "error");
                   }
                 }} />
             </div>

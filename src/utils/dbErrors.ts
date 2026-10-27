@@ -105,6 +105,7 @@ const MESSAGES: Record<string, string> = {
   stage_in_use: "In dieser Phase befinden sich noch Leads.",
   invalid_input: "Bitte prüfen Sie Ihre Eingaben.",
   append_only: "Verlaufseinträge können nicht geändert werden.",
+  "calendar exhausted": "Für die Frist konnte kein Arbeitstag ermittelt werden. Bitte die Feiertage in den Lead-Einstellungen prüfen.",
   calendar_exhausted: "Für die Frist konnte kein Arbeitstag ermittelt werden. Bitte die Feiertage in den Lead-Einstellungen prüfen.",
 
   // customers
@@ -240,11 +241,24 @@ function storageMessage(e: ErrorLike): string | undefined {
   return undefined;
 }
 
+// Our own German output, so an already-mapped message passes through even
+// if something re-wrapped it in a plain Error.
+const KNOWN_TEXTS = new Set<string>([
+  ...Object.values(MESSAGES),
+  ...Object.values(CODE_MESSAGES),
+  GENERIC_ERROR,
+  NETWORK_ERROR,
+  STORAGE_TOO_LARGE,
+  STORAGE_BAD_TYPE,
+  STORAGE_DUPLICATE,
+]);
+
 export function dbErrorMessage(error: unknown): string {
   if (error instanceof UserFacingError) return error.message;
   const e = error as ErrorLike;
   const key = str(e?.message);
   if (Object.hasOwn(MESSAGES, key)) return MESSAGES[key];
+  if (KNOWN_TEXTS.has(key)) return key;
   if (isNetworkError(error)) return NETWORK_ERROR;
   const storage = storageMessage(e);
   if (storage) return storage;

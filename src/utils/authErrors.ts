@@ -5,7 +5,7 @@ import { isNetworkError, NETWORK_ERROR } from "./dbErrors";
  * `AuthError.code` (supabase-js v2), with message fallbacks for older
  * GoTrue versions. Login never says whether an account exists.
  */
-export type AuthContext = "login" | "reset" | "update" | "signup" | "mfa";
+export type AuthContext = "login" | "reset" | "update" | "signup" | "mfa" | "mfa_code";
 
 const RATE_LIMIT =
   "Zu viele Versuche in kurzer Zeit. Bitte warten Sie einige Minuten und versuchen Sie es dann erneut.";
@@ -44,6 +44,7 @@ const DEFAULTS: Record<AuthContext, string> = {
   update: "Das Passwort konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
   signup: "Die Registrierung hat nicht geklappt. Bitte versuchen Sie es erneut.",
   mfa: "Die Zwei-Faktor-Anmeldung hat nicht geklappt. Bitte versuchen Sie es erneut.",
+  mfa_code: "Der Code ist falsch oder abgelaufen. Bitte geben Sie den aktuellen Code aus Ihrer App ein.",
 };
 
 type AuthErrorLike = { code?: unknown; message?: unknown; status?: unknown } | null | undefined;
@@ -60,8 +61,9 @@ export function authErrorMessage(error: unknown, context: AuthContext): string {
   if (msg.includes("already registered")) return CODES.user_already_exists;
   if (msg.includes("different from the old password") || msg.includes("same password")) return CODES.same_password;
   if (msg.includes("password should") || msg.includes("weak")) return CODES.weak_password;
-  if (msg.includes("expired")) return context === "mfa" ? CODES.mfa_challenge_expired : CODES.otp_expired;
-  if (context === "mfa" && (msg.includes("invalid") || msg.includes("code"))) return CODES.mfa_verification_failed;
+  const isMfa = context === "mfa" || context === "mfa_code";
+  if (msg.includes("expired")) return isMfa ? CODES.mfa_challenge_expired : CODES.otp_expired;
+  if (isMfa && (msg.includes("invalid") || msg.includes("code"))) return CODES.mfa_verification_failed;
   // The signup trigger raises a German sentence; GoTrue wraps it.
   if (msg.includes("database error saving new user") || msg.includes("freigegebene e-mail"))
     return "Registrierung ist derzeit nur für freigegebene E-Mail-Adressen möglich.";

@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -54,7 +55,7 @@ export const ActivityPanel = ({ filter = {}, canLog = true }: { filter?: Activit
         {options.map((o) => (
           <button key={o} type="button" disabled={setOutcome.isPending}
             className="cursor-pointer rounded-full border border-color-border-light px-2 py-0.5 text-xs hover:border-color-primary"
-            onClick={() => setOutcome.mutate({ id: a.id, outcome: o }, { onError: (e) => showBanner("Nicht gespeichert", e.message, "error") })}>
+            onClick={() => setOutcome.mutate({ id: a.id, outcome: o }, { onError: (e) => showBanner("Nicht gespeichert", errorText(e), "error") })}>
             {OUTCOME[o].label}
           </button>
         ))}
@@ -122,7 +123,7 @@ const ActivityForm = ({ filter }: { filter: ActivityFilter }) => {
         });
         setNotes(""); setOutcomeValue(""); setTime("");
       } catch (err) {
-        showBanner("Nicht gespeichert", err instanceof Error ? err.message : "", "error");
+        showBanner("Nicht gespeichert", errorText(err), "error");
       }
     }}>
       <div className="grid gap-3 sm:grid-cols-4">

@@ -38,7 +38,8 @@ type CombinedContentCardProps = {
   openLink?: string;
   searchQuery?: string;
   id?: string;
-  onDelete?: (id: string) => void;
+  /** May return a promise; the delete dialog waits for it and reports failures. */
+  onDelete?: (id: string) => void | Promise<unknown>;
   onEdit?: (id: string) => void;
   products?: StoredProduct[];
   vendorName?: string;

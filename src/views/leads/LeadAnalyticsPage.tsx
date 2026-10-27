@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { Tabs } from "../../components/tabs/Tabs";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { cardClass } from "../../components/card/card.const";
@@ -50,7 +51,7 @@ export const LeadAnalyticsPage = () => {
         <Tabs ariaLabel="Auswertungsbereich" value={scope} onChange={setScope} items={scopes.map((s) => ({ value: s.id, label: s.label }))} />
       </div>
       {!range ? <p className="text-sm">Bitte einen gültigen Zeitraum wählen.</p>
-        : error ? <p role="alert" className="text-sm text-color-error-text">{error.message}</p>
+        : error ? <p role="alert" className="text-sm text-color-error-text">{errorText(error)}</p>
         : isLoading || !data ? <LoadingState />
         : data.totals.leads === 0 ? <EmptyState message="Im gewählten Zeitraum sind keine Leads eingegangen." />
         : <Report d={data} scope={scope} />}

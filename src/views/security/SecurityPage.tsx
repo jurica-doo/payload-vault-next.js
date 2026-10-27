@@ -1,5 +1,7 @@
 "use client";
 
+import { authErrorMessage } from "../../utils/authErrors";
+import { errorText } from "../../utils/dbErrors";
 import type React from "react";
 import { ShieldIcon } from "../../components/icons";
 import { StatusBadge } from "../../components/statusBadge/StatusBadge";
@@ -40,7 +42,10 @@ export const SecurityPage = () => {
       supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
     ]);
     if (error) {
-      setState({ kind: "error", message: "Status konnte nicht geladen werden." });
+      setState({
+        kind: "error",
+        message: errorText(error, "Der Status Ihrer Zwei-Faktor-Anmeldung konnte nicht geladen werden. Bitte laden Sie die Seite neu."),
+      });
       return;
     }
     const verified = factors.totp.find((f) => f.status === "verified");
@@ -71,8 +76,8 @@ export const SecurityPage = () => {
       });
       if (error || !enrolled) throw error;
       setState({ kind: "enrolling", factorId: enrolled.id, qrCode: enrolled.totp.qr_code, secret: enrolled.totp.secret });
-    } catch {
-      showBanner("Fehler", "Die Einrichtung konnte nicht gestartet werden.", "error");
+    } catch (e) {
+      showBanner("Einrichtung nicht gestartet", authErrorMessage(e, "mfa"), "error");
     } finally {
       setBusy(false);
     }
@@ -88,7 +93,7 @@ export const SecurityPage = () => {
     const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code: trimmed });
     setBusy(false);
     if (error) {
-      setCodeError("Der Code ist ungültig oder abgelaufen. Bitte den aktuellen Code eingeben.");
+      setCodeError(authErrorMessage(error, "mfa_code"));
       return;
     }
     setCode("");

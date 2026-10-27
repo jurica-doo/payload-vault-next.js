@@ -1,3 +1,4 @@
+import { GENERIC_ERROR, UserFacingError } from "../../utils/dbErrors";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CurrencyInput, parseGermanDecimal } from "./FormFields";
@@ -59,10 +60,20 @@ describe("ReasonConfirmForm", () => {
   });
 
   it("shows the server error and stays open", async () => {
-    const onConfirm = vi.fn().mockRejectedValue(new Error("Keine Berechtigung"));
+    // Hooks reject with already-translated UserFacingErrors (throwDbError).
+    const onConfirm = vi.fn().mockRejectedValue(new UserFacingError("Keine Berechtigung"));
     render(<ReasonConfirmForm message="?" onConfirm={onConfirm} onCancel={() => {}} />);
     fireEvent.change(screen.getByLabelText(/Begründung/), { target: { value: "Ausreichend lange Begründung" } });
     fireEvent.click(screen.getByRole("button", { name: "Bestätigen" }));
     expect(await screen.findByText("Keine Berechtigung")).toBeInTheDocument();
+  });
+
+  it("never shows raw database text", async () => {
+    const onConfirm = vi.fn().mockRejectedValue(new Error('duplicate key value violates unique constraint "ledger_unique_entry"'));
+    render(<ReasonConfirmForm message="?" onConfirm={onConfirm} onCancel={() => {}} />);
+    fireEvent.change(screen.getByLabelText(/Begründung/), { target: { value: "Ausreichend lange Begründung" } });
+    fireEvent.click(screen.getByRole("button", { name: "Bestätigen" }));
+    expect(await screen.findByText(GENERIC_ERROR)).toBeInTheDocument();
+    expect(screen.queryByText(/ledger_unique_entry/)).not.toBeInTheDocument();
   });
 });

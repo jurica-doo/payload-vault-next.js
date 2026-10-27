@@ -1,5 +1,6 @@
 "use client";
 
+import { authErrorMessage } from "../../utils/authErrors";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -49,7 +50,7 @@ export const LoginPage = () => {
     });
 
     if (error) {
-      setError("Ungültige Anmeldedaten oder Passwort");
+      setError(authErrorMessage(error, "login"));
     }
 
     setLoading(false);
@@ -71,7 +72,7 @@ export const LoginPage = () => {
     >
           {error && (
             <div className="mb-5 animate-slide-down">
-              <Banner bannerType="error" title={error} description="" />
+              <Banner bannerType="error" title="Anmeldung nicht möglich" description={error} />
             </div>
           )}
 

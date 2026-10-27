@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { ModalActions } from "../modal/ModalActions";
 import { useState } from "react";
 import { Button } from "../button/Button";
@@ -49,7 +50,7 @@ export const ReasonConfirmForm = ({
     try {
       await onConfirm(trimmed);
     } catch (e) {
-      setError(e instanceof Error && e.message ? e.message : "Aktion fehlgeschlagen.");
+      setError(errorText(e));
     } finally {
       setIsLoading(false);
     }

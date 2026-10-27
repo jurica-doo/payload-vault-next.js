@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { ModalActions } from "../../components/modal/ModalActions";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -55,7 +56,7 @@ export const EmployeeCreateForm = ({
     try {
       await onSubmit(parsed.data);
     } catch (e) {
-      setErrors({ form: e instanceof Error ? e.message : undefined });
+      setErrors({ form: errorText(e) });
     } finally {
       setIsLoading(false);
     }

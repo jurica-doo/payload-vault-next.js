@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -94,7 +95,7 @@ export const ContractsCard = ({ customer, canWork }: { customer: Customer; canWo
               try {
                 await linkExternal.mutateAsync({ sourceSystem: "portal", externalId: extId.trim() });
               } catch (e) {
-                showBanner("Nicht gespeichert", e instanceof Error ? e.message : "", "error");
+                showBanner("Nicht gespeichert", errorText(e), "error");
               }
             }} />
         </div>
@@ -128,7 +129,7 @@ const ContractForm = ({ customerId, onDone }: { customerId: string; onDone: () =
         });
         onDone();
       } catch (err) {
-        showBanner("Nicht gespeichert", err instanceof Error ? err.message : "", "error");
+        showBanner("Nicht gespeichert", errorText(err), "error");
       }
     }}>
       <div className="grid gap-3 sm:grid-cols-3">

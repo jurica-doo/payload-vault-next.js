@@ -1,5 +1,6 @@
 "use client";
 
+import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
 import { EmptyState } from "../../components/emptyState/EmptyState";
@@ -62,7 +63,7 @@ export const CareerPage = () => {
       {isLoading ? (
         <LoadingState label="Fortschritt wird berechnet…" />
       ) : error || !data ? (
-        <EmptyState message="Der Fortschritt konnte nicht geladen werden." hint={error?.message} />
+        <EmptyState message="Der Fortschritt konnte nicht geladen werden." hint={error ? errorText(error) : undefined} />
       ) : (
         <ProgressView progress={data} />
       )}

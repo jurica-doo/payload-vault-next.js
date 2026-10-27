@@ -1,5 +1,6 @@
 "use client";
 
+import { useErrorToast } from "../../hooks/useErrorToast";
 import type React from "react";
 
 import { AppShell } from "../../components/layout/AppShell";
@@ -19,6 +20,7 @@ import { IncomeGoalTracking } from "./IncomeGoalTracking";
 import type { ExpenseCategory } from "../../hooks/useExpenses/types";
 
 export const AnalyticsPage = () => {
+  const onFail = useErrorToast();
   const { user } = useAuth();
   const { year } = useYear();
 
@@ -61,11 +63,11 @@ export const AnalyticsPage = () => {
       year,
       category,
       budget_amount: amount,
-    });
+    }, { onError: onFail("Budget nicht gespeichert") });
   };
 
   const handleBudgetRemove = (id: string) => {
-    removeTarget.mutate(id);
+    removeTarget.mutate(id, { onError: onFail("Budget nicht gelöscht") });
   };
 
   const handleGoalUpsert = (month: number | null, amount: number) => {
@@ -75,11 +77,11 @@ export const AnalyticsPage = () => {
       year,
       month,
       goal_amount: amount,
-    });
+    }, { onError: onFail("Ziel nicht gespeichert") });
   };
 
   const handleGoalRemove = (id: string) => {
-    removeGoal.mutate(id);
+    removeGoal.mutate(id, { onError: onFail("Ziel nicht gelöscht") });
   };
 
   const shell = (content: React.ReactNode) => (

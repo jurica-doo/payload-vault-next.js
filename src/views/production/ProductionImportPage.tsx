@@ -11,7 +11,7 @@ import { useBanner } from "../../context/banner/BannerContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useProductionImport, type ImportRowInput } from "../../hooks/useProduction/useProduction";
 import { mapProductionCsv, parseCsv, REQUIRED_FIELDS } from "../../domain/csvImport";
-import { dbErrorMessage } from "../../utils/dbErrors";
+import { dbErrorMessage, errorText } from "../../utils/dbErrors";
 
 const MAX_BYTES = 2 * 1024 * 1024;
 
@@ -55,7 +55,7 @@ export const ProductionImportPage = () => {
       const result = await stage.mutateAsync({ sourceSystem, fileName: file.name, rows: mapped.rows });
       setStaged(result as { batchId: string; rows: StagedRow[] });
     } catch (e) {
-      setProblem(e instanceof Error ? e.message : undefined);
+      setProblem(errorText(e));
     }
   };
 
@@ -134,7 +134,7 @@ export const ProductionImportPage = () => {
                     setStaged(null);
                     setFile(null);
                   } catch (e) {
-                    showBanner("Import fehlgeschlagen", e instanceof Error ? e.message : "", "error");
+                    showBanner("Import fehlgeschlagen", errorText(e), "error");
                   }
                 }}
               />
