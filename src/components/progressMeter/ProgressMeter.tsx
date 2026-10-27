@@ -56,10 +56,10 @@ export const ProgressMeter = ({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(percent)}
-        className="relative h-3 w-full overflow-hidden rounded-full bg-color-bg-dark"
+        className="relative h-2.5 w-full overflow-hidden rounded-full bg-color-bg-alt ring-1 ring-inset ring-color-border-light"
       >
         <div
-          className={`h-full rounded-full transition-all duration-500 ${isMet ? "bg-color-success-border" : "bg-color-primary"}`}
+          className={`h-full rounded-full transition-[width] duration-700 ease-out ${isMet ? "bg-color-success-border" : "bg-gradient-to-r from-color-primary to-color-primary-light"}`}
           style={{ width: `${percent}%` }}
         />
         {markers.map((m) => {

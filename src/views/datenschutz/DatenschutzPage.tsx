@@ -1,17 +1,17 @@
 import Link from "next/link";
-import { VaultIcon } from "../../components/icons";
+import { ChevronLeftIcon } from "../../components/icons";
 import { MiniFooter } from "../../components/footer/MiniFooter";
 
 export const DatenschutzPage = () => {
   return (
     <div className="flex flex-col min-h-screen">
-      <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8 animate-fade-in">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6 lg:px-8 animate-fade-in"><div className="ui-card p-6 sm:p-10">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-color-primary no-underline mb-8 hover:opacity-80 transition-opacity py-3"
+          className="mb-8 inline-flex items-center gap-2 rounded-radius-md py-2 text-sm font-medium text-color-text-subtle no-underline transition-colors hover:text-color-text-main hover:no-underline"
         >
-          <VaultIcon className="w-6 h-6" />
-          <span className="font-semibold text-sm">Zurück zur Startseite</span>
+          <ChevronLeftIcon size={16} />
+          <span>Zurück zur Übersicht</span>
         </Link>
 
         <h1 className="text-color-text-main mb-8">Datenschutzerklärung</h1>
@@ -19,9 +19,9 @@ export const DatenschutzPage = () => {
         <div className="flex flex-col gap-8 text-color-text-secondary text-sm sm:text-base leading-relaxed">
           {/* 1. Überblick */}
           <section>
-            <h3 className="text-color-primary mb-3">
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">
               1. Datenschutz auf einen Blick
-            </h3>
+            </h2>
             <h4 className="text-color-text-main mb-2 text-base font-semibold">
               Allgemeine Hinweise
             </h4>
@@ -92,7 +92,7 @@ export const DatenschutzPage = () => {
 
           {/* 2. Hosting */}
           <section>
-            <h3 className="text-color-primary mb-3">2. Hosting</h3>
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">2. Hosting</h2>
             <p className="text-color-text-secondary">
               Die Inhalte unserer Website werden bei folgendem Anbieter
               gehostet:
@@ -124,9 +124,9 @@ export const DatenschutzPage = () => {
 
           {/* 3. Allgemeine Hinweise und Pflichtinfos */}
           <section>
-            <h3 className="text-color-primary mb-3">
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">
               3. Allgemeine Hinweise und Pflichtinformationen
-            </h3>
+            </h2>
             <h4 className="text-color-text-main mb-2 text-base font-semibold">
               Datenschutz
             </h4>
@@ -264,9 +264,9 @@ export const DatenschutzPage = () => {
 
           {/* 4. Datenerfassung */}
           <section>
-            <h3 className="text-color-primary mb-3">
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">
               4. Datenerfassung auf dieser Website
-            </h3>
+            </h2>
 
             <h4 className="text-color-text-main mb-2 text-base font-semibold">
               Registrierung auf dieser Website
@@ -343,9 +343,9 @@ export const DatenschutzPage = () => {
 
           {/* 5. Externe Dienste */}
           <section>
-            <h3 className="text-color-primary mb-3">
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">
               5. Verwendete externe Dienste und Technologien
-            </h3>
+            </h2>
 
             <h4 className="text-color-text-main mb-2 text-base font-semibold">
               Supabase
@@ -379,7 +379,7 @@ export const DatenschutzPage = () => {
 
           {/* 6. Datensicherheit */}
           <section>
-            <h3 className="text-color-primary mb-3">6. Datensicherheit</h3>
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">6. Datensicherheit</h2>
             <p className="text-color-text-secondary">
               Diese Website nutzt aus Sicherheitsgründen eine
               SSL-/TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennen
@@ -411,9 +411,9 @@ export const DatenschutzPage = () => {
 
           {/* 7. Aktualität */}
           <section>
-            <h3 className="text-color-primary mb-3">
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">
               7. Aktualität und Änderung dieser Datenschutzerklärung
-            </h3>
+            </h2>
             <p className="text-color-text-secondary">
               Diese Datenschutzerklärung ist aktuell gültig und hat den Stand
               April 2026.
@@ -427,7 +427,7 @@ export const DatenschutzPage = () => {
             </p>
           </section>
         </div>
-      </main>
+      </div></main>
       <MiniFooter />
     </div>
   );

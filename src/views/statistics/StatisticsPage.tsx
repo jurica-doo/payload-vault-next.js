@@ -136,7 +136,7 @@ export const StatisticsPage = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <MonthlyChart
                     data={earningsMonthly}
-                    color="var(--color-primary)"
+                    color="var(--chart-1)"
                     label="Monatliche Einnahmen"
                   />
                   <CategoryChart
@@ -155,7 +155,7 @@ export const StatisticsPage = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <MonthlyChart
                     data={expensesMonthly}
-                    color="var(--color-error)"
+                    color="var(--chart-2)"
                     label="Monatliche Ausgaben"
                   />
                   <CategoryChart

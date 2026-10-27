@@ -1,5 +1,6 @@
 "use client";
 
+import { DetailLayout, RecordHeader } from "../../components/detailLayout/DetailLayout";
 import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { cardClass } from "../../components/card/card.const";
@@ -50,38 +51,40 @@ const CustomerDetail = ({ customerId }: { customerId: string }) => {
   const canWork = !c.erased_at && (c.owner_id === permissions.employeeId || permissions.isLeader || permissions.isAdmin);
 
   return (
-    <div className="flex flex-col gap-4">
-      <header className="flex flex-wrap items-baseline gap-2">
-        <h1 className="text-xl font-semibold">{c.erased_at ? "Gelöscht (pseudonymisiert)" : customerName(c)}</h1>
-        <span className="text-sm text-color-text-subtle">{customerNo(c.customer_no)} · {CUSTOMER_STATUS_LABEL[c.status]}{c.archived_at ? " · archiviert" : ""}</span>
-      </header>
-      {c.erased_at && <p className="text-sm text-color-text-secondary">Personenbezogene Daten wurden am {formatDate(c.erased_at.slice(0, 10))} gelöscht. Vertrags- und Abrechnungsbezüge bleiben erhalten.</p>}
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <ProfileCard c={c} canWork={canWork} />
-        <div className="flex flex-col gap-4">
+    <DetailLayout
+      header={
+        <RecordHeader
+          title={c.erased_at ? "Gelöscht (pseudonymisiert)" : customerName(c)}
+          meta={`${customerNo(c.customer_no)} · ${CUSTOMER_STATUS_LABEL[c.status]}${c.archived_at ? " · archiviert" : ""}`}
+        >
+          {c.erased_at && <p className="text-sm text-color-text-secondary">Personenbezogene Daten wurden am {formatDate(c.erased_at.slice(0, 10))} gelöscht. Vertrags- und Abrechnungsbezüge bleiben erhalten.</p>}
+        </RecordHeader>
+      }
+      main={
+        <>
+          <section className={card}>
+            <h2 className="text-base font-semibold">Kontakt- und Beratungshistorie</h2>
+            <ActivityPanel filter={{ linkedType: "customer", linkedId: c.id }} canLog={canWork} />
+            {c.lead_id && (
+              <p className="text-xs text-color-text-subtle">
+                Frühere Aktivitäten als Lead: <Link href={`/vertrieb/leads/${c.lead_id}`}>zum Lead</Link>
+              </p>
+            )}
+          </section>
+          <ContractsCard customer={c} canWork={canWork} />
+          <ServiceCard customer={c} canWork={canWork} />
+          <EmailHistoryCard customerId={c.id} />
+        </>
+      }
+      aside={
+        <>
+          <ProfileCard c={c} canWork={canWork} />
           {canWork && <FollowUpCard c={c} />}
           <AdviserCard c={c} name={name} history={data.assignments} canWork={canWork} />
-        </div>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <ConsentCard customer={c} canWork={canWork} />
-        <ContractsCard customer={c} canWork={canWork} />
-      </div>
-      <ServiceCard customer={c} canWork={canWork} />
-      <EmailHistoryCard customerId={c.id} />
-
-      <section className={card}>
-        <h2 className="text-base font-semibold">Kontakt- und Beratungshistorie</h2>
-        <ActivityPanel filter={{ linkedType: "customer", linkedId: c.id }} canLog={canWork} />
-        {c.lead_id && (
-          <p className="text-xs text-color-text-subtle">
-            Frühere Aktivitäten als Lead: <Link href={`/vertrieb/leads/${c.lead_id}`}>zum Lead</Link>
-          </p>
-        )}
-      </section>
-    </div>
+          <ConsentCard customer={c} canWork={canWork} />
+        </>
+      }
+    />
   );
 };
 

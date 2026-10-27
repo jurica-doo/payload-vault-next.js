@@ -16,7 +16,7 @@ import {
 } from "../../hooks/useAnalytics/forecastUtils";
 import { normalizeProfit } from "../../components/contentCard/ContentCard.utils";
 
-const FORECAST_COLOR = "#f59e0b"; // amber — visually distinct from primary
+const FORECAST_COLOR = "var(--chart-2)"; // orange slot — distinct from the primary teal
 
 type IncomeForecastProps = {
   pdfs: PdfRecord[];

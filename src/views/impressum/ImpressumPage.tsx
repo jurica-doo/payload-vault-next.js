@@ -1,24 +1,24 @@
 import Link from "next/link";
-import { VaultIcon } from "../../components/icons";
+import { ChevronLeftIcon } from "../../components/icons";
 import { MiniFooter } from "../../components/footer/MiniFooter";
 
 export const ImpressumPage = () => {
   return (
     <div className="flex flex-col min-h-screen">
-      <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8 animate-fade-in">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6 lg:px-8 animate-fade-in"><div className="ui-card p-6 sm:p-10">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-color-primary no-underline mb-8 hover:opacity-80 transition-opacity py-3"
+          className="mb-8 inline-flex items-center gap-2 rounded-radius-md py-2 text-sm font-medium text-color-text-subtle no-underline transition-colors hover:text-color-text-main hover:no-underline"
         >
-          <VaultIcon className="w-6 h-6" />
-          <span className="font-semibold text-sm">Zurück zur Startseite</span>
+          <ChevronLeftIcon size={16} />
+          <span>Zurück zur Übersicht</span>
         </Link>
 
         <h1 className="text-color-text-main mb-8">Impressum</h1>
 
         <div className="flex flex-col gap-8 text-color-text-secondary text-sm sm:text-base leading-relaxed">
           <section>
-            <h3 className="text-color-primary mb-3">Angaben gemäß § 5 TMG</h3>
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">Angaben gemäß § 5 TMG</h2>
             <p className="text-color-text-secondary">
               [First and last name]
               <br />
@@ -33,7 +33,7 @@ export const ImpressumPage = () => {
           </section>
 
           <section>
-            <h3 className="text-color-primary mb-3">Kontakt</h3>
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">Kontakt</h2>
             <p className="text-color-text-secondary">
               Telefon: [Phone number]
               <br />
@@ -42,9 +42,9 @@ export const ImpressumPage = () => {
           </section>
 
           <section>
-            <h3 className="text-color-primary mb-3">
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">
               Umsatzsteuer-Identifikationsnummer
-            </h3>
+            </h2>
             <p className="text-color-text-secondary">
               Umsatzsteuer-Identifikationsnummer gemäß § 27 a
               Umsatzsteuergesetz:
@@ -54,9 +54,9 @@ export const ImpressumPage = () => {
           </section>
 
           <section>
-            <h3 className="text-color-primary mb-3">
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">
               Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV
-            </h3>
+            </h2>
             <p className="text-color-text-secondary">
               [First and last name]
               <br />
@@ -67,7 +67,7 @@ export const ImpressumPage = () => {
           </section>
 
           <section>
-            <h3 className="text-color-primary mb-3">EU-Streitschlichtung</h3>
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">EU-Streitschlichtung</h2>
             <p className="text-color-text-secondary">
               Die Europäische Kommission stellt eine Plattform zur
               Online-Streitbeilegung (OS) bereit. Unsere E-Mail-Adresse finden
@@ -81,7 +81,7 @@ export const ImpressumPage = () => {
           </section>
 
           <section>
-            <h3 className="text-color-primary mb-3">Haftung für Inhalte</h3>
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">Haftung für Inhalte</h2>
             <p className="text-color-text-secondary">
               Als Diensteanbieter sind wir gemäß § 7 Abs. 1 TMG für eigene
               Inhalte auf diesen Seiten nach den allgemeinen Gesetzen
@@ -101,7 +101,7 @@ export const ImpressumPage = () => {
           </section>
 
           <section>
-            <h3 className="text-color-primary mb-3">Haftung für Links</h3>
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">Haftung für Links</h2>
             <p className="text-color-text-secondary">
               Unser Angebot enthält Links zu externen Websites Dritter, auf
               deren Inhalte wir keinen Einfluss haben. Deshalb können wir für
@@ -121,7 +121,7 @@ export const ImpressumPage = () => {
           </section>
 
           <section>
-            <h3 className="text-color-primary mb-3">Urheberrecht</h3>
+            <h2 className="mb-3 text-lg font-semibold text-color-text-main">Urheberrecht</h2>
             <p className="text-color-text-secondary">
               Die durch die Seitenbetreiber erstellten Inhalte und Werke auf
               diesen Seiten unterliegen dem deutschen Urheberrecht. Die
@@ -142,7 +142,7 @@ export const ImpressumPage = () => {
             </p>
           </section>
         </div>
-      </main>
+      </div></main>
       <MiniFooter />
     </div>
   );

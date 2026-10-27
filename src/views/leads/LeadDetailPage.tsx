@@ -1,5 +1,6 @@
 "use client";
 
+import { DetailLayout, RecordHeader } from "../../components/detailLayout/DetailLayout";
 import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { cardClass } from "../../components/card/card.const";
@@ -70,41 +71,48 @@ const LeadDetail = ({ leadId }: { leadId: string }) => {
   const hasHeldAppointment = activities.some((a) => a.type === "appointment" && a.outcome === "held");
 
   return (
-    <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold">{leadName(lead)} <span className="text-sm font-normal text-color-text-subtle">{leadNo(lead.lead_no)}</span></h1>
-        <ConvertLead lead={lead} />
-        <StageStepper stages={mainPath} currentId={current?.kind === "open" ? lead.stage : lastOpen} outcome={outcome} />
-      </header>
+    <DetailLayout
+      header={
+        <RecordHeader
+          title={leadName(lead)}
+          meta={`${leadNo(lead.lead_no)}${lead.company && lead.first_name ? ` · ${lead.company}` : ""}`}
+          action={<ConvertLead lead={lead} />}
+        >
+          <StageStepper stages={mainPath} currentId={current?.kind === "open" ? lead.stage : lastOpen} outcome={outcome} />
+        </RecordHeader>
+      }
+      main={
+        <>
+          <section className={card}>
+            <h2 className="text-base font-semibold">Aktivitäten</h2>
+            <ActivityPanel filter={{ linkedType: "lead", linkedId: lead.id }} canLog={!current || !["won", "lost"].includes(current.kind)} />
+          </section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <StageCard lead={lead} stages={stages} hasAppointment={hasAppointment} hasHeldAppointment={hasHeldAppointment} />
-        <NextStepCard lead={lead} />
-        <DetailsCard lead={lead} sourceName={config.sources.find((s) => s.id === lead.source_id)?.name ?? "–"} provisionalSla={config.sla.provisional} slaHours={config.sla.first_contact_hours} />
-        <AssignmentCard lead={lead} name={name} history={data.assignments} />
-      </div>
-
-      <section className={card}>
-        <h2 className="text-base font-semibold">Aktivitäten</h2>
-        <ActivityPanel filter={{ linkedType: "lead", linkedId: lead.id }} canLog={!current || !["won", "lost"].includes(current.kind)} />
-      </section>
-
-      <section className={card}>
-        <h2 className="text-base font-semibold">Verlauf</h2>
-        <ol className="flex flex-col gap-1 text-sm">
-          {data.stageHistory.map((h) => (
-            <li key={h.id}>
-              <span className="text-color-text-subtle">{formatDateTime(h.changed_at)}</span>{" · "}
-              {config.stages.find((s) => s.code === h.to_stage)?.name_de ?? h.to_stage}
-              {h.automatic ? " (automatisch)" : h.changed_by ? ` · ${name(h.changed_by)}` : ""}
-              {h.note && <span className="text-color-text-secondary"> – {h.note}</span>}
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <DuplicatesCard lead={lead} />
-    </div>
+          <section className={card}>
+            <h2 className="text-base font-semibold">Verlauf</h2>
+            <ol className="flex flex-col gap-1 text-sm">
+              {data.stageHistory.map((h) => (
+                <li key={h.id}>
+                  <span className="text-color-text-subtle">{formatDateTime(h.changed_at)}</span>{" · "}
+                  {config.stages.find((s) => s.code === h.to_stage)?.name_de ?? h.to_stage}
+                  {h.automatic ? " (automatisch)" : h.changed_by ? ` · ${name(h.changed_by)}` : ""}
+                  {h.note && <span className="text-color-text-secondary"> – {h.note}</span>}
+                </li>
+              ))}
+            </ol>
+          </section>
+        </>
+      }
+      aside={
+        <>
+          <StageCard lead={lead} stages={stages} hasAppointment={hasAppointment} hasHeldAppointment={hasHeldAppointment} />
+          <NextStepCard lead={lead} />
+          <AssignmentCard lead={lead} name={name} history={data.assignments} />
+          <DetailsCard lead={lead} sourceName={config.sources.find((s) => s.id === lead.source_id)?.name ?? "–"} provisionalSla={config.sla.provisional} slaHours={config.sla.first_contact_hours} />
+          <DuplicatesCard lead={lead} />
+        </>
+      }
+    />
   );
 };
 
