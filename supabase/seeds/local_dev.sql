@@ -1,5 +1,5 @@
 -- ============================================================
--- Local development seed: one admin, one regular adviser
+-- Local development seed: admin, adviser and a vault-only account
 -- ============================================================
 -- Loaded by `supabase db reset` (and by `supabase start` on a fresh volume)
 -- through [db.seed] in supabase/config.toml. Deliberately NOT named
@@ -7,11 +7,12 @@
 -- the tests, and these users would skew their assertions.
 --
 --   admin@test.com    / 123456         admin role, level TL, leads Max
---   user@test.com  / 123456         adviser (no role), level FA
+--   user@test.com     / 123456         adviser (no role), level FA
+--   vault@test.com    / 123456         vault only: no employee record
 --
--- Both go through the real invite gate: employee + open invite first, then
--- the auth user (link trigger), then the email confirmation (activation
--- trigger), exactly like an accepted invite in the app.
+-- Admin and adviser go through the real invite gate: employee + open invite
+-- first, then the auth user (link trigger), then the email confirmation
+-- (activation trigger), exactly like an accepted invite in the app.
 --
 -- Also switches every sales module on and schedules the task generators.
 -- Local only. Never run this against staging or production.
@@ -82,6 +83,38 @@ BEGIN
      AND NOT EXISTS (SELECT 1 FROM public.hierarchy_assignments h WHERE h.employee_id = e.id);
 
   PERFORM app_private.generate_periods(e.id) FROM public.employees e;
+END
+$$;
+
+-- Vault-only account, like the users from before the sales system: it has no
+-- employee record, so it sees only "Mein Tresor". Without an employee there
+-- is no invite, so the auth user is inserted with triggers off (the invite
+-- gate would reject it), the same way tests.create_user() does it in pgTAP.
+DO $$
+DECLARE
+  v_user uuid := gen_random_uuid();
+BEGIN
+  IF EXISTS (SELECT 1 FROM auth.users WHERE email = 'vault@test.com') THEN
+    RAISE NOTICE 'seed: vault@test.com already exists, skipped';
+    RETURN;
+  END IF;
+
+  SET LOCAL session_replication_role = replica;
+  INSERT INTO auth.users (
+    instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+    raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+    confirmation_token, recovery_token, email_change, email_change_token_new)
+  VALUES (
+    '00000000-0000-0000-0000-000000000000', v_user, 'authenticated', 'authenticated',
+    'vault@test.com', extensions.crypt('123456', extensions.gen_salt('bf')), now(),
+    '{"provider": "email", "providers": ["email"]}', '{}', now(), now(),
+    '', '', '', '');
+  INSERT INTO auth.identities (id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at)
+  VALUES (
+    gen_random_uuid(), v_user, v_user::text, 'email',
+    jsonb_build_object('sub', v_user::text, 'email', 'vault@test.com', 'email_verified', true),
+    now(), now(), now());
+  SET LOCAL session_replication_role = origin;
 END
 $$;
 
