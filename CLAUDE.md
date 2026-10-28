@@ -31,9 +31,10 @@ Read this first; it replaces a codebase crawl. Facts below were verified in the 
 CI (`.github/workflows/ci.yml`): lint → typecheck → test → check:golden → build, then migrations + pgTAP.
 
 ## 3. Local development
-- Supabase local stack uses **own ports 553xx** (another project on the machine uses 543xx): API/Kong **:55321**, DB **:55322**, Studio **:55323**, Inbucket (mail) **:55324**. Containers are named `supabase_*_payload-vault`; `psql` isn't installed — use `docker exec supabase_db_payload-vault psql -U postgres`.
+- Supabase local stack uses **own ports 553xx** (another project on the machine uses 543xx): API/Kong **:55321**, DB **:55322**, Studio **:55323**, Mailpit (mail, `[local_smtp]` in config.toml) **:55324**. Containers are named `supabase_*_payload-vault`; `psql` isn't installed — use `docker exec supabase_db_payload-vault psql -U postgres`.
 - Env in **`.env`**: `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:55321`, anon key, service role key, `GOOGLE_API_KEY` (receipt AI), `NEXT_PUBLIC_ALLOWED_EMAILS` (signup allowlist). Never print secrets.
-- Accounts are **invite-only**: `invite-employee` creates the auth user **without a password**; the user sets it on `/update-passwort` via the mail in Inbucket (links expire after ~1 h). An invited-but-unaccepted user cannot log in ("invalid credentials"). Fix: set password + confirm in Studio, or re-invite / "Passwort vergessen".
+- Accounts are **invite-only**: `invite-employee` creates the auth user **without a password**; the user sets it on `/update-passwort` via the mail in Mailpit (links expire after ~1 h). An invited-but-unaccepted user cannot log in ("invalid credentials"). Fix: set password + confirm in Studio, or re-invite / "Passwort vergessen".
+- **Dev seed** `supabase/seeds/local_dev.sql` (loaded by `supabase db reset` via `[db.seed]`): `admin@profina.local` (admin, TL) and `berater@profina.local` (adviser, FA, reports to the admin), password `123456` (below the 8-char minimum on purpose: GoTrue checks length only when setting a password, not at login); all feature flags on; task generators scheduled. Not named `seed.sql` on purpose — `db-test.sh` loads that file before pgTAP. After a reset, 2FA must be set up again.
 - Auth URLs point at `http://localhost:5173` (`supabase/config.toml`). TOTP MFA is enabled locally.
 - Browser checks: use Claude in Chrome against localhost:5173. Never type the user's real credentials — ask them to sign in.
 

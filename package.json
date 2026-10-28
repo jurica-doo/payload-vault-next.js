@@ -9,6 +9,7 @@
     "lint": "eslint",
     "types": "bash scripts/gen-types.sh",
     "functions": "npx supabase functions serve --env-file .env.local --no-verify-jwt",
+    "functions-serve": "supabase functions serve --env-file .env.local --no-verify-jwt",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
