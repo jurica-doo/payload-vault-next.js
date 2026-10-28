@@ -10,9 +10,10 @@
 --   * the signup gate rejects uninvited addresses
 --   * consume_rate_limit allows `limit` calls per window, then refuses
 --   * every view in public runs with the caller's rights (linter 0010)
+--   * RLS policies evaluate auth.*() once per statement (linter 0003)
 -- ============================================================
 BEGIN;
-SELECT plan(25);
+SELECT plan(26);
 
 -- ---------- fixtures (as postgres) ----------
 SELECT tests.create_user('owner@test.local') AS owner \gset
@@ -107,6 +108,17 @@ SELECT is(
       AND NOT (lower(coalesce(c.reloptions::text, '{}'))::text[]
                && ARRAY['security_invoker=1', 'security_invoker=true', 'security_invoker=yes', 'security_invoker=on'])),
   NULL, 'every view in public is security_invoker');
+
+-- ---------- RLS: auth.*() once per statement, not per row ----------
+SELECT is(
+  (SELECT array_agg(DISTINCT pol.tablename || '.' || pol.policyname)
+     FROM pg_policies pol,
+          unnest(ARRAY[pol.qual, pol.with_check]) AS e,
+          unnest(ARRAY['auth.uid()', 'auth.jwt()', 'auth.role()', 'auth.email()', 'current_setting(']) AS fn
+    WHERE pol.schemaname = 'public'
+      AND strpos(e, fn) > 0
+      AND strpos(lower(e), 'select ' || fn) = 0),
+  NULL, 'RLS policies wrap auth.*() / current_setting() in (SELECT ...)');
 
 SELECT * FROM finish();
 ROLLBACK;
