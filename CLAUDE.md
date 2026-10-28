@@ -124,6 +124,7 @@ Patterns: toast titles name what failed ("Löschen fehlgeschlagen"), never just 
 - Nothing with `transform`/`backdrop-filter` around fixed children (the mobile upload button lives in the header).
 - Logos swap via `.theme-logo-dark` / `.theme-logo-light` classes.
 - Key maps use `Object.hasOwn` (avoid inherited keys like `toString`).
+- Views in `public` must be `WITH (security_invoker = true)` (Supabase linter 0010; pgTAP `000_baseline_security` fails otherwise). If a view must show rows another table's RLS would hide, keep the view invoker and fetch those fields through a SECURITY DEFINER helper in `app_private` that re-checks visibility (pattern: `v_commission_ledger` + `app_private.commission_ledger_facts`).
 - `ContentCard` `onDelete` may return a promise; pass `mutateAsync` so the delete dialog reports real failures.
 - Old copies still exist in places: prefer the kit components above when touching a view.
 

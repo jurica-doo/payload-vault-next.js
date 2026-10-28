@@ -9,9 +9,10 @@
 --   * function EXECUTE rights
 --   * the signup gate rejects uninvited addresses
 --   * consume_rate_limit allows `limit` calls per window, then refuses
+--   * every view in public runs with the caller's rights (linter 0010)
 -- ============================================================
 BEGIN;
-SELECT plan(24);
+SELECT plan(25);
 
 -- ---------- fixtures (as postgres) ----------
 SELECT tests.create_user('owner@test.local') AS owner \gset
@@ -93,6 +94,19 @@ SELECT is(
      FROM generate_series(1, 11)),
   'TTTTTTTTTTF', 'consume_rate_limit allows 10 calls then refuses the 11th');
 SELECT ok(NOT public.consume_rate_limit('', 10, 60), 'empty key fails closed');
+
+-- ---------- views: never SECURITY DEFINER ----------
+-- A view without security_invoker bypasses RLS on everything it reads.
+-- Cross-structure lookups belong in a SECURITY DEFINER helper in app_private
+-- (see 20261031100000_commission_ledger_view_invoker.sql).
+SELECT tests.clear_authentication();
+SELECT is(
+  (SELECT array_agg(c.relname::text ORDER BY c.relname)
+     FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public' AND c.relkind IN ('v', 'm')
+      AND NOT (lower(coalesce(c.reloptions::text, '{}'))::text[]
+               && ARRAY['security_invoker=1', 'security_invoker=true', 'security_invoker=yes', 'security_invoker=on'])),
+  NULL, 'every view in public is security_invoker');
 
 SELECT * FROM finish();
 ROLLBACK;

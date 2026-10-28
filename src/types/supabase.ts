@@ -3370,13 +3370,6 @@ export type Database = {
             referencedRelation: "statement_periods"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "production_records_category_code_fkey"
-            columns: ["category_code"]
-            isOneToOne: false
-            referencedRelation: "product_categories"
-            referencedColumns: ["code"]
-          },
         ]
       }
       v_current_hierarchy: {

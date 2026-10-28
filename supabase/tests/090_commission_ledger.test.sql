@@ -2,7 +2,7 @@
 -- r1/p2/ledger
 -- ============================================================
 BEGIN;
-SELECT plan(34);
+SELECT plan(37);
 
 SELECT tests.create_user('admin@test.local', true) AS admin \gset
 SELECT tests.grant_role(:'admin', 'admin');
@@ -143,15 +143,23 @@ SELECT ok(EXISTS (SELECT 1 FROM public.commission_ledger WHERE production_id = :
 SELECT ok(EXISTS (SELECT 1 FROM public.commission_ledger WHERE production_id = :'p_after' AND recipient_id = :'e_tl2')
           AND NOT EXISTS (SELECT 1 FROM public.commission_ledger WHERE production_id = :'p_after' AND recipient_id = :'e_tl'),
   'production after the transfer pays the new TL only');
+SELECT id AS l_tl FROM public.commission_ledger WHERE recipient_id = :'e_tl' LIMIT 1 \gset
 
 -- ---------- RLS ----------
 SELECT tests.authenticate_as(:'fa');
 SELECT ok((SELECT bool_and(recipient_id = :'e_fa') FROM public.commission_ledger), 'FA sees only their own entries');
 SELECT ok((SELECT bool_and(recipient_id = :'e_fa') FROM public.v_commission_ledger), 'the view leaks nothing beyond the ledger rule');
+SELECT is((SELECT count(*) FROM app_private.commission_ledger_facts(:'l_tl'))::int, 0,
+  'the facts helper reveals nothing about other people''s entries');
 SELECT tests.authenticate_as(:'tl');
 SELECT ok((SELECT bool_and(recipient_id = :'e_tl') FROM public.v_commission_ledger), 'leader sees only own commission by default (OD-17)');
 SELECT ok(EXISTS (SELECT 1 FROM public.v_commission_ledger WHERE production_id = :'p_before'),
   'leader still sees own commission after the producer left the structure');
+SELECT ok((SELECT bool_and(producer_name IS NOT NULL AND production_date IS NOT NULL AND category_code IS NOT NULL)
+             FROM public.v_commission_ledger WHERE production_id = :'p_before'),
+  '…including the producer''s name and the production facts');
+SELECT ok((SELECT 'security_invoker=true' = ANY (reloptions) FROM pg_class WHERE oid = 'public.v_commission_ledger'::regclass),
+  'the view runs with the caller''s rights');
 SELECT tests.clear_authentication();
 UPDATE public.app_settings SET value = '{"leader_sees_team_commission": true}' WHERE key = 'commission';
 SELECT tests.authenticate_as(:'tl2');
