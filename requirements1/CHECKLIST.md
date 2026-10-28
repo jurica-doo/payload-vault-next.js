@@ -5,8 +5,8 @@ Nothing has been applied to production, and nothing has been clicked through **s
 This list covers everything between "built" and "live", in the order it is best done.
 
 Status at the time of writing (2026-10-30):
-- 44 migrations
-- 766 pgTAP assertions in 27 files
+- 47 migrations (3 added 2026-10-28 for the Supabase advisor findings)
+- 774 pgTAP assertions in 27 files
 - 366 unit tests
 - 58 golden cases shared by the SQL and TypeScript engines
 - CI green
@@ -23,7 +23,7 @@ Legend: **[You]** = needs the account owner or a Profina decision · **[Dev]** =
 - [ ] **Create a staging Supabase project.** This is the prerequisite for almost everything below.
   - Use synthetic data only, never a production export (§12.4).
   - Link it to a Vercel preview environment for `feat/requirements1`.
-- [ ] **Get a working Supabase CLI.** The npm binary is killed by macOS (exit 137); `brew install supabase/tap/supabase` usually works. Alternatively, use the dashboard for the steps below. Tests and type generation already work without it, through the Docker harness.
+- [x] **Get a working Supabase CLI.** Done 2026-10-28: the Homebrew CLI (2.122) runs the full local stack (`supabase start`, ports 553xx). The npm binary is still killed by macOS (exit 137) on some machines. Alternatively, use the dashboard for the steps below. Tests and type generation already work without it, through the Docker harness.
 - [ ] **Vercel:** remove `NEXT_PUBLIC_ALLOWED_EMAILS` once the invite flow is live. It is obsolete since Phase 1; signup is invite-only.
 
 ### 1.2 Database (staging first, production at the gate)
@@ -38,7 +38,7 @@ Legend: **[You]** = needs the account owner or a Profina decision · **[Dev]** =
 - [ ] **Enable pg_cron**, then run once:
   - `select app_private.schedule_jobs();` (task generators every 15 minutes)
   - `select app_private.schedule_email_jobs();` (email planner hourly; it does nothing while sending is off)
-- [ ] Run the Supabase **Security Advisor** and **Performance Advisor** after the push. Expected result: clean, apart from the extensions in the `extensions` schema.
+- [ ] Run the Supabase **Security Advisor** and **Performance Advisor** after the push. Expected result: **no WARN** (verified locally 2026-10-28 with all migrations); INFO only — unindexed foreign keys (mostly audit columns), unused indexes (needs real traffic to judge), RLS without policies on the deny-all tables `app_settings`, `edge_rate_limits`, `signup_allowlist`.
 
 ### 1.3 Edge Functions
 | Function | Purpose | Secrets | When |
