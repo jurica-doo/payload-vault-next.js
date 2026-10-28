@@ -10,10 +10,12 @@
 --   * the signup gate rejects uninvited addresses
 --   * consume_rate_limit allows `limit` calls per window, then refuses
 --   * every view in public runs with the caller's rights (linter 0010)
+--   * no SECURITY DEFINER code in the API schema; rpc_* bodies live in
+--     app_rpc behind public SECURITY INVOKER wrappers (linter 0028/0029)
 --   * RLS policies evaluate auth.*() once per statement (linter 0003)
 -- ============================================================
 BEGIN;
-SELECT plan(26);
+SELECT plan(29);
 
 -- ---------- fixtures (as postgres) ----------
 SELECT tests.create_user('owner@test.local') AS owner \gset
@@ -108,6 +110,29 @@ SELECT is(
       AND NOT (lower(coalesce(c.reloptions::text, '{}'))::text[]
                && ARRAY['security_invoker=1', 'security_invoker=true', 'security_invoker=yes', 'security_invoker=on'])),
   NULL, 'every view in public is security_invoker');
+
+-- ---------- functions: no SECURITY DEFINER in the API schema ----------
+-- Privileged bodies live in app_rpc (not exposed); public only holds the
+-- SECURITY INVOKER wrappers made by app_private.publish_rpc
+-- (see 20261031120000_rpc_impl_out_of_api.sql).
+SELECT is(
+  (SELECT array_agg(p.proname::text ORDER BY p.proname)
+     FROM pg_proc p
+    WHERE p.pronamespace = 'public'::regnamespace AND p.prosecdef
+      AND (has_function_privilege('authenticated', p.oid, 'EXECUTE')
+           OR has_function_privilege('anon', p.oid, 'EXECUTE'))),
+  NULL, 'no SECURITY DEFINER function in public is callable by anon or authenticated');
+SELECT ok(NOT has_schema_privilege('anon', 'app_rpc', 'USAGE'), 'anon cannot reach app_rpc');
+SELECT is(
+  (SELECT array_agg(i.proname::text ORDER BY i.proname)
+     FROM pg_proc i
+    WHERE i.pronamespace = 'app_rpc'::regnamespace
+      AND NOT EXISTS (SELECT 1 FROM pg_proc w
+                       WHERE w.pronamespace = 'public'::regnamespace AND w.proname = i.proname
+                         AND NOT w.prosecdef
+                         AND pg_get_function_arguments(w.oid) = pg_get_function_arguments(i.oid)
+                         AND pg_get_function_result(w.oid) = pg_get_function_result(i.oid))),
+  NULL, 'every app_rpc implementation has its public SECURITY INVOKER wrapper');
 
 -- ---------- RLS: auth.*() once per statement, not per row ----------
 SELECT is(
