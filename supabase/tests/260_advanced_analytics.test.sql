@@ -2,6 +2,9 @@
 -- r1/p6/advanced-analytics
 -- ============================================================
 BEGIN;
+-- Leads are timestamped with now(), so this file counts them on the real
+-- calendar day, not on the date db-test.sh pins.
+SET LOCAL app.business_today = '';
 SELECT plan(16);
 
 SELECT tests.create_user('admin@test.local', true) AS admin \gset

@@ -2,7 +2,7 @@
 -- r1/p1/hierarchy
 -- ============================================================
 BEGIN;
-SELECT plan(37);
+SELECT plan(40);
 
 -- ---------- fixtures: spec §5.3 chain DL → TL → FB → FA, plus a second TL ----------
 SELECT tests.create_user('admin@test.local', true) AS admin \gset
@@ -43,6 +43,8 @@ SELECT is((SELECT reason FROM audit.events WHERE entity_type = 'public.hierarchy
 SELECT tests.authenticate_as(:'admin', 'aal2');
 
 -- ---------- traversal ----------
+-- Internal helpers are not callable by API roles: check them as the owner.
+SELECT tests.clear_authentication();
 SELECT is((SELECT array_agg(ancestor_id ORDER BY depth) FROM app_private.ancestors_at(:'e_fa', '2026-06-01')),
   ARRAY[:'e_fb', :'e_tl', :'e_dl']::uuid[], 'FA''s chain is FB, TL, DL in order');
 SELECT is((SELECT count(*) FROM app_private.descendants_at(:'e_dl', '2026-06-01'))::int, 4, 'DL has 4 descendants');
@@ -71,13 +73,15 @@ SELECT tests.authenticate_as(:'admin', 'aal2');
 SELECT public.rpc_assign_manager(:'e_fa2', :'e_fb', '2026-03-01', 'Neue Beraterin bei FB');
 SELECT tests.authenticate_as(:'dl');
 SELECT ok(EXISTS (SELECT 1 FROM public.employees WHERE id = :'e_fa2'), 'new FA under FB is visible to DL (indirect)');
+-- Internal helpers are not callable by API roles: check them as the owner.
+SELECT tests.clear_authentication();
 SELECT is((SELECT depth FROM app_private.descendants_at(:'e_dl', '2026-06-01') WHERE descendant_id = :'e_fa2'), 3, 'at depth 3 (TL → FB → FA2)');
 
 -- ---------- cycles ----------
 SELECT tests.authenticate_as(:'admin', 'aal2');
-SELECT throws_ok(format('SELECT public.rpc_assign_manager(%L, %L, %L, %L)', :'e_dl', :'e_fa', '2026-06-01', 'Testweise umhängen'),
+SELECT throws_ok(format('SELECT public.rpc_assign_manager(%L, %L, %L, %L)', :'e_dl', :'e_fa', app_private.business_today(), 'Testweise umhängen'),
   'P0001', 'hierarchy_cycle', 'DL under their own descendant is a cycle');
-SELECT throws_ok(format('SELECT public.rpc_assign_manager(%L, %L, %L, %L)', :'e_fa', :'e_fa', '2026-06-01', 'Sich selbst zuordnen'),
+SELECT throws_ok(format('SELECT public.rpc_assign_manager(%L, %L, %L, %L)', :'e_fa', :'e_fa', app_private.business_today(), 'Sich selbst zuordnen'),
   'P0001', 'hierarchy_cycle', 'self as manager is refused');
 
 -- future-dated: FB moves under TL2 on 2026-09-01; then TL → under FB from 2026-10-01 would be fine
@@ -89,6 +93,8 @@ SELECT lives_ok(format('SELECT public.rpc_assign_manager(%L, %L, %L, %L)', :'e_t
   'TL under FB is fine once FB has left TL''s structure');
 
 -- ---------- transfer keeps history ----------
+-- Internal helpers are not callable by API roles: check them as the owner.
+SELECT tests.clear_authentication();
 SELECT is((SELECT array_agg(ancestor_id ORDER BY depth) FROM app_private.ancestors_at(:'e_fa', '2027-08-31')),
   ARRAY[:'e_fb', :'e_tl', :'e_dl']::uuid[], 'before the transfer FA still rolls up through TL');
 SELECT is((SELECT array_agg(ancestor_id ORDER BY depth) FROM app_private.ancestors_at(:'e_fa', '2027-09-01')),
@@ -106,7 +112,7 @@ SELECT throws_ok(format('SELECT public.rpc_assign_manager(%L, %L, %L, %L)', :'e_
   'P0001', 'before_current_assignment', 'cannot backdate before the current assignment');
 SELECT throws_ok(format('SELECT public.rpc_assign_manager(%L, %L, %L, %L)', :'e_peer', :'e_dl', '2025-01-01', 'Vor Eintritt'),
   'P0001', 'before_start_date', 'cannot assign before the employee''s start date');
-SELECT throws_ok(format('SELECT public.rpc_assign_manager(%L, %L, %L, %L)', :'e_fa2', :'e_fb', '2026-05-01', 'Gleiche Führungskraft'),
+SELECT throws_ok(format('SELECT public.rpc_assign_manager(%L, %L, %L, %L)', :'e_fa2', :'e_fb', app_private.business_today(), 'Gleiche Führungskraft'),
   'P0001', 'no_change', 'assigning the same manager is refused');
 
 SELECT public.rpc_set_employee_active(:'e_tl2', false, 'Ausgeschieden zum Quartalsende');
@@ -130,7 +136,22 @@ SELECT throws_ok(format($$INSERT INTO public.hierarchy_assignments (employee_id,
 SELECT throws_ok(format($$INSERT INTO public.hierarchy_assignments (employee_id, manager_id, effective_from, effective_to) VALUES (%L, NULL, '2026-06-01', '2026-06-01')$$, :'e_peer'),
   '23514', NULL, 'zero-length ranges are impossible');
 
+-- Without the test override (as in production) the business date is the Berlin calendar day.
+SET LOCAL app.business_today = '';
 SELECT is(app_private.business_today(), (now() AT TIME ZONE 'Europe/Berlin')::date, 'business date is Berlin time');
+RESET app.business_today;
+
+-- ---------- no retroactive changes; cancelled moves stay visible ----------
+SELECT tests.authenticate_as(:'admin', 'aal2');
+SELECT throws_ok(format('SELECT public.rpc_assign_manager(%L, %L, %L, %L)', :'e_fa2', :'e_dl', '2026-06-01', 'Rückwirkend umhängen'),
+  'P0001', 'retroactive_change', 'an existing reporting line cannot be changed in the past');
+SELECT public.rpc_assign_manager(:'e_fa2', :'e_dl', '2027-03-01', 'Geplanter Wechsel zu DL') AS planned \gset
+SELECT public.rpc_cancel_future_assignment(:'planned', 'Wechsel doch nicht nötig');
+SELECT is((SELECT cancel_reason FROM public.rpc_cancelled_assignments(:'e_fa2')), 'Wechsel doch nicht nötig',
+  'a cancelled move stays visible with its reason');
+SELECT tests.authenticate_as(:'fa');
+SELECT throws_ok(format('SELECT * FROM public.rpc_cancelled_assignments(%L)', :'e_fa2'),
+  '42501', 'forbidden', 'only admins see cancelled moves');
 
 SELECT * FROM finish();
 ROLLBACK;

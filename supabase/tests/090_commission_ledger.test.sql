@@ -116,7 +116,10 @@ SELECT public.rpc_set_employee_level(:'e_gap', 'FA', '2026-01-01', 'Einstieg lau
 SELECT tests.create_user('gap2@test.local', true) AS gap2 \gset
 SELECT tests.employee_id(:'gap2') AS e_gap2 \gset
 SELECT public.rpc_assign_manager(:'e_gap2', :'e_tl2', '2026-01-01', 'Zwischenebene ohne Stufe');
+-- Structure changes take effect today or later: make the move on its date.
+SET LOCAL app.business_today = '2026-02-01';
 SELECT public.rpc_assign_manager(:'e_gap', :'e_gap2', '2026-02-01', 'Unter die Zwischenebene');
+RESET app.business_today;
 SELECT pg_temp.produce(:'e_gap', 'KV', 280, 'monthly', '2026-03-10') AS p_gap \gset
 SELECT tests.clear_authentication();
 SELECT is((SELECT count(*) FROM public.commission_ledger WHERE production_id = :'p_gap')::int, 0, 'nothing booked when an ancestor has no level');
@@ -134,7 +137,9 @@ SELECT is((SELECT DISTINCT sp.period_month FROM public.commission_ledger l JOIN 
 
 -- ---------- transfer: chain on the production date ----------
 SELECT tests.authenticate_as(:'admin', 'aal2');
+SET LOCAL app.business_today = '2026-06-01';
 SELECT public.rpc_assign_manager(:'e_fb', :'e_tl2', '2026-06-01', 'Wechsel ins Team Süd');
+RESET app.business_today;
 SELECT pg_temp.produce(:'e_fa', 'KV', 280, 'monthly', '2026-05-15') AS p_before \gset
 SELECT pg_temp.produce(:'e_fa', 'KV', 280, 'monthly', '2026-06-15') AS p_after \gset
 SELECT tests.clear_authentication();

@@ -2,7 +2,7 @@
 -- r1/p1/production
 -- ============================================================
 BEGIN;
-SELECT plan(56);
+SELECT plan(58);
 
 -- Helper: one golden case → "points|ae|kv_points" or "error:<key>"
 CREATE FUNCTION pg_temp.golden(p_cat text, p_premium numeric, p_period text, p_ng text, p_term numeric,
@@ -159,6 +159,24 @@ SELECT public.rpc_stage_production_import('Partnerportal', 'nochmal.csv', format
   {"source_id": "A-1", "employee_no": %s, "category": "KV", "premium": "700", "period": "monthly", "production_date": "2026-06-01"}
 ]$$, to_jsonb((SELECT employee_no FROM public.employees WHERE id = :'e_fa')))::jsonb) AS batch2 \gset
 SELECT is((SELECT errors FROM public.import_rows WHERE batch_id = :'batch2'), ARRAY['already_imported'], 're-importing the same source id is caught');
+
+-- ---------- staging checks what the table enforces; source names ignore case ----------
+SELECT tests.authenticate_as(:'admin', 'aal2');
+SELECT public.rpc_stage_production_import('partnerportal', 'pruefung.csv', format($$[
+  {"source_id": "B-1", "employee_no": %1$s, "category": "KFZ", "premium": "500", "period": "quartalsweise", "production_date": "2026-09-01"},
+  {"source_id": "B-2", "employee_no": %1$s, "category": "LV", "premium": "100", "period": "monthly", "net_or_gross": "x", "term_years": "35", "production_date": "2026-09-01"},
+  {"source_id": "B-3", "employee_no": %1$s, "category": "LV", "premium": "100", "period": "monthly", "term_years": "0", "production_date": "2026-09-01"},
+  {"source_id": "B-4", "employee_no": %1$s, "category": "KFZ", "premium": "500", "period": "annual", "production_date": "2026-09-01", "reference": %2$s},
+  {"source_id": "B-5", "employee_no": %1$s, "category": "KFZ", "premium": "500", "period": "annual", "production_date": "09/01/2026"},
+  {"source_id": "A-1", "employee_no": %1$s, "category": "KV", "premium": "700", "period": "monthly", "production_date": "2026-06-01"}
+]$$,
+  to_jsonb((SELECT employee_no FROM public.employees WHERE id = :'e_fa')),
+  to_jsonb(repeat('x', 121)))::jsonb) AS batch3 \gset
+SELECT is((SELECT jsonb_object_agg(row_number, errors) FROM public.import_rows WHERE batch_id = :'batch3'),
+  '{"1": ["invalid_premium_period"], "2": ["invalid_net_or_gross"], "3": ["invalid_term"],
+    "4": ["reference_too_long"], "5": ["invalid_value"], "6": ["already_imported"]}'::jsonb,
+  'staging reports table-level problems and non-ISO dates; Quellsystem ignores case');
+SELECT is((SELECT valid_count FROM public.import_batches WHERE id = :'batch3'), 0, 'no row of that file is valid');
 
 SELECT * FROM finish();
 ROLLBACK;

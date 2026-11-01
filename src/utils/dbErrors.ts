@@ -35,6 +35,7 @@ const MESSAGES: Record<string, string> = {
   hierarchy_cycle: "Diese Zuordnung würde einen Kreis in der Struktur erzeugen.",
   future_assignment_exists: "Es gibt bereits einen geplanten Wechsel. Bitte diesen zuerst absagen.",
   before_current_assignment: "Das Datum liegt vor der aktuellen Zuordnung. Die Historie kann nicht rückwirkend geändert werden.",
+  retroactive_change: "Eine bestehende Zuordnung kann nur ab heute oder für die Zukunft geändert werden.",
   before_start_date: "Das Datum liegt vor dem Eintrittsdatum.",
   manager_inactive: "Die gewählte Führungskraft ist inaktiv.",
   no_change: "Das entspricht bereits dem aktuellen Stand.",
@@ -53,6 +54,7 @@ const MESSAGES: Record<string, string> = {
   conversion_incomplete: "Für jede aktive Sparte wird eine Umrechnungsregel benötigt.",
   invalid_kind: "Unbekannte Regelart.",
   before_latest_level: "Das Datum liegt vor dem letzten Stufeneintrag.",
+  level_in_future: "Eine Stufe kann nicht für die Zukunft eingetragen werden.",
 
   // career
   not_qualified: "Die Person ist derzeit nicht qualifiziert.",
@@ -141,6 +143,11 @@ const MESSAGES: Record<string, string> = {
   currency_not_supported: "Nur Beiträge in Euro werden unterstützt.",
   unknown_category: "Unbekannte Sparte.",
   premium_period_mismatch: "Für diese Sparte passt der Zahlungsrhythmus nicht (z. B. KV und LV monatlich, Sach jährlich).",
+  invalid_premium_period: "Ungültiger Zahlungsrhythmus. Erlaubt sind monatlich, jährlich und einmalig.",
+  invalid_net_or_gross: "Ungültige Angabe bei Netto/Brutto. Erlaubt sind netto und brutto.",
+  invalid_term: "Die Laufzeit muss größer als 0 sein.",
+  reference_too_long: "Die Vertrags-/Antragsnummer ist zu lang (höchstens 120 Zeichen).",
+  notes_too_long: "Die Notiz ist zu lang (höchstens 1.000 Zeichen).",
   net_premium_required: "Für Sachversicherungen wird der Jahresnettobeitrag benötigt.",
   term_required: "Für Lebensversicherungen wird die Laufzeit benötigt.",
   before_producer_start: "Das Produktionsdatum liegt vor dem Eintritt der Person.",

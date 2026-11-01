@@ -15,7 +15,7 @@
 --   * RLS policies evaluate auth.*() once per statement (linter 0003)
 -- ============================================================
 BEGIN;
-SELECT plan(29);
+SELECT plan(30);
 
 -- ---------- fixtures (as postgres) ----------
 SELECT tests.create_user('owner@test.local') AS owner \gset
@@ -144,6 +144,14 @@ SELECT is(
       AND strpos(e, fn) > 0
       AND strpos(lower(e), 'select ' || fn) = 0),
   NULL, 'RLS policies wrap auth.*() / current_setting() in (SELECT ...)');
+
+-- ---------- app_private: nothing through the PUBLIC default ----------
+SELECT is(
+  (SELECT array_agg(p.proname::text ORDER BY p.proname)
+     FROM pg_proc p
+    WHERE p.pronamespace = 'app_private'::regnamespace
+      AND has_function_privilege('anon', p.oid, 'EXECUTE')),
+  NULL, 'no app_private function is executable through PUBLIC');
 
 SELECT * FROM finish();
 ROLLBACK;

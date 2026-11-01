@@ -3610,6 +3610,18 @@ export type Database = {
         Args: { p_id: string; p_reason: string }
         Returns: undefined
       }
+      rpc_cancelled_assignments: {
+        Args: { p_employee_id: string }
+        Returns: {
+          assignment_id: string
+          cancel_reason: string
+          cancelled_at: string
+          cancelled_by: string
+          change_reason: string
+          effective_from: string
+          manager_id: string
+        }[]
+      }
       rpc_career_progress: { Args: { p_employee_id?: string }; Returns: Json }
       rpc_claim_email_sends: { Args: { p_limit?: number }; Returns: Json }
       rpc_close_privacy_request: {

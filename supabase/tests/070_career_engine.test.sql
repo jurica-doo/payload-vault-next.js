@@ -2,7 +2,7 @@
 -- r1/p1/career-engine
 -- ============================================================
 BEGIN;
-SELECT plan(51);
+SELECT plan(55);
 
 CREATE FUNCTION pg_temp.plan_str(p_start date, p_until date) RETURNS text LANGUAGE sql AS $$
   SELECT string_agg(period_type || ':' || start_date || '..' || end_date, ' ' ORDER BY start_date)
@@ -115,7 +115,10 @@ SELECT throws_ok(format($$SELECT public.rpc_approve_promotion(%L, 'Beförderung 
   '42501', 'mfa_required', 'approval needs MFA');
 SELECT tests.authenticate_as(:'admin', 'aal2');
 SELECT is(public.rpc_approve_promotion(:'e_cand', 'Beförderung nach Prüfung der Unterlagen'), 'FB', 'promoted to FB');
+-- Internal helpers are not callable by API roles: check them as the owner.
+SELECT tests.clear_authentication();
 SELECT is(app_private.level_at(:'e_cand', app_private.business_today()), 'FB', 'level is FB from today');
+SELECT tests.authenticate_as(:'admin', 'aal2');
 SELECT is((SELECT evidence ->> 'eligible_kv' FROM public.career_level_history WHERE employee_id = :'e_cand' AND source = 'promotion'),
   '10.0000', 'evidence stores the calculation');
 SELECT is(public.rpc_career_progress(:'e_cand') ->> 'target', 'TL', 'next target is TL');
@@ -137,7 +140,10 @@ SELECT is((public.rpc_career_progress(:'e_fb') ->> 'eligible')::numeric, 800::nu
 SELECT is((public.rpc_career_progress(:'e_dl') -> 'structures' -> 0 ->> 'id'), :'e_tl', 'DL sees it in TL''s structure');
 
 -- ---------- attribution by production date (transfer) ----------
+-- Structure changes take effect today or later: make the move on its date.
+SET LOCAL app.business_today = '2026-06-01';
 SELECT public.rpc_assign_manager(:'e_fb', :'e_tl2', '2026-06-01', 'Wechsel ins Team Süd');
+RESET app.business_today;
 SELECT pg_temp.produce(:'e_fa', 'SACH', 20000, 'annual', 'net', '2026-07-01');   -- 100 P after the transfer
 SELECT is((public.rpc_career_progress(:'e_tl') ->> 'eligible')::numeric, 375::numeric,
   'production after the transfer does not count for the old leader');
@@ -175,6 +181,22 @@ SELECT public.rpc_career_progress(:'e_nolevel');
 SELECT is((SELECT start_date FROM public.career_periods WHERE employee_id = :'e_nolevel' AND period_type = 'first_personal'),
   '2026-02-01'::date, 'changing the start date regenerates the periods');
 SELECT is(public.rpc_generate_all_periods() >= 9, true, 'admin can generate periods for everyone');
+
+-- ---------- promotion day counts once; no future levels ----------
+SELECT tests.clear_authentication();
+SELECT tests.create_user('pday@test.local', true) AS pday \gset
+SELECT tests.employee_id(:'pday') AS e_pday \gset
+SELECT tests.authenticate_as(:'admin', 'aal2');
+SELECT throws_ok(format($$SELECT public.rpc_set_employee_level(%L, 'FA', %L, 'Einstieg erst morgen')$$, :'e_pday', app_private.business_today() + 1),
+  'P0001', 'level_in_future', 'a level cannot start in the future');
+SELECT public.rpc_set_employee_level(:'e_pday', 'FA', '2026-01-01', 'Einstieg laut Vertrag');
+SELECT pg_temp.produce(:'e_pday', 'SACH', 18000, 'annual', 'net', app_private.business_today());  -- 90 P
+SELECT pg_temp.produce(:'e_pday', 'KV', 280, 'monthly', NULL, app_private.business_today());      -- 10 P, KV
+SELECT is(public.rpc_approve_promotion(:'e_pday', 'Beförderung am Tag der Produktion'), 'FB', 'promoted on the day of the qualifying production');
+SELECT is((public.rpc_career_progress(:'e_pday') ->> 'eligible')::numeric, 0::numeric,
+  'production dated on the promotion day does not count again');
+SELECT is((public.rpc_career_progress(:'e_pday') -> 'window' ->> 'start')::date, app_private.business_today() + 1,
+  'after a promotion the new level counts from the next day');
 
 SELECT * FROM finish();
 ROLLBACK;

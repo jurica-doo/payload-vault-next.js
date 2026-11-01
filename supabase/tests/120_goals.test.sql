@@ -19,6 +19,8 @@ SELECT date_trunc('month', app_private.business_today())::date AS m,
        (date_trunc('month', app_private.business_today()) + interval '1 month')::date AS m_next \gset
 
 -- ---------- validation ----------
+-- Internal helpers are not callable by API roles: check them as the owner.
+SELECT tests.clear_authentication();
 SELECT is(app_private.normalize_goal_targets('{"points": "20", "kv_points": 2, "sales": 4}', :'m'),
   '{"points": 20.00, "kv_points": 2.00, "sales": 4, "ae": 560.00}'::jsonb, 'numbers normalised, AE derived from points × 28');
 SELECT throws_ok(format($$SELECT app_private.normalize_goal_targets('{"points": 5, "kv_points": 6}', %L)$$, :'m'),

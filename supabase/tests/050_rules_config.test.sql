@@ -107,8 +107,11 @@ SELECT throws_ok(format($$SELECT public.rpc_publish_rule_version(%L, 'Neue Sätz
   '42501', 'mfa_required', 'publishing needs MFA');
 SELECT tests.authenticate_as(:'admin', 'aal2');
 SELECT lives_ok(format($$SELECT public.rpc_publish_rule_version(%L, 'Neue Sätze 2027 laut Beschluss')$$, :'draft'), 'valid draft publishes');
+-- Internal helpers are not callable by API roles: check them as the owner.
+SELECT tests.clear_authentication();
 SELECT is(app_private.rule_version_at('levels', '2026-12-31'), :'v_levels'::uuid, 'old version still applies before the new date');
 SELECT is(app_private.rule_version_at('levels', '2027-01-01'), :'draft'::uuid, 'new version applies from its date');
+SELECT tests.authenticate_as(:'admin', 'aal2');
 
 -- no retroactive or out-of-order versions
 SELECT public.rpc_create_rule_draft('levels', 'Rückwirkend', '2026-02-01') AS past \gset
@@ -130,6 +133,8 @@ SELECT throws_ok(format($$SELECT public.rpc_set_employee_level(%L, 'TL', '2025-1
 SELECT is(public.rpc_set_employee_level(:'e_fb', 'TL', '2026-05-01', 'Korrektur nach Prüfung der Unterlagen'), 'admin_correction', 'later changes are corrections');
 SELECT throws_ok(format($$SELECT public.rpc_set_employee_level(%L, 'OL', '2026-04-01', 'Zurückdatiert')$$, :'e_fb'),
   'P0001', 'before_latest_level', 'no back-dating before the latest entry');
+-- Internal helpers are not callable by API roles: check them as the owner.
+SELECT tests.clear_authentication();
 SELECT is(app_private.level_at(:'e_fb', '2026-04-30'), 'FB', 'level on a date before the correction');
 SELECT is(app_private.level_at(:'e_fb', '2026-05-01'), 'TL', 'level on the correction date');
 

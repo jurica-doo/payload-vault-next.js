@@ -2,7 +2,7 @@
 -- r1/p1/identity-roles
 -- ============================================================
 BEGIN;
-SELECT plan(49);
+SELECT plan(54);
 
 -- ---------- fixtures ----------
 SELECT tests.create_user('admin@test.local', true) AS admin \gset
@@ -135,6 +135,36 @@ SELECT ok((SELECT count(*) FROM public.rpc_audit_for('public.employees', tests.e
 SELECT tests.clear_authentication();
 SELECT throws_ok($$SELECT app_private.bootstrap_admin('adviser@test.local')$$, 'P0001', 'admin_exists', 'bootstrap refuses once an admin exists');
 SELECT ok(NOT has_function_privilege('authenticated', 'app_private.bootstrap_admin(text)', 'EXECUTE'), 'bootstrap not executable by authenticated');
+
+-- ---------- deactivation suspends roles ----------
+SELECT tests.clear_authentication();
+SELECT tests.create_user('admin2@test.local', true) AS admin2 \gset
+SELECT tests.grant_role(:'admin2', 'admin');
+SELECT tests.grant_role(:'admin2', 'finance');
+SELECT tests.employee_id(:'admin2') AS e_admin2 \gset
+SELECT tests.authenticate_as(:'admin', 'aal2');
+SELECT public.rpc_set_employee_active(:'e_admin2', false, 'Vertrag beendet zum Monatsende');
+SELECT tests.authenticate_as(:'admin2', 'aal2');
+SELECT is(public.rpc_my_context() -> 'roles', '[]'::jsonb, 'a deactivated employee has no effective roles');
+SELECT throws_ok($$SELECT public.rpc_create_employee('Neu', 'Person', 'neu.person@test.local', '2026-01-01')$$,
+  '42501', 'forbidden', 'a deactivated admin cannot administer');
+SELECT tests.authenticate_as(:'admin', 'aal2');
+SELECT throws_ok(format('SELECT public.rpc_revoke_role(%L, %L, %L)', :'admin', 'admin', 'Letzte aktive Administration'),
+  'P0001', 'last_admin', 'a deactivated admin does not count as the remaining admin');
+
+-- ---------- invites: re-send while unconfirmed; a revoked invite doesn't activate ----------
+SELECT (public.rpc_create_employee('Rita', 'Resend', 'rita.resend@test.local', '2026-01-01') ->> 'employee_id') AS e_rita \gset
+SELECT tests.clear_authentication();
+-- The invite mail creates the (unconfirmed) auth user, linked by trigger.
+INSERT INTO auth.users (id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+        'rita.resend@test.local', '{}', '{}', now(), now());
+SELECT tests.authenticate_as(:'admin', 'aal2');
+SELECT lives_ok(format('SELECT public.rpc_issue_invite(%L)', :'e_rita'), 'an invite can be sent again while the account is unconfirmed');
+SELECT public.rpc_revoke_invite(:'e_rita', 'Einladung zurückgezogen');
+SELECT tests.clear_authentication();
+UPDATE auth.users SET email_confirmed_at = now() WHERE email = 'rita.resend@test.local';
+SELECT is((SELECT status FROM public.employees WHERE id = :'e_rita'), 'invited', 'confirming the mail after a revoked invite does not activate');
 
 SELECT * FROM finish();
 ROLLBACK;

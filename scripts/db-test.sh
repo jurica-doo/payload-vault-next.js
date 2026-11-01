@@ -51,6 +51,11 @@ done
 echo "▸ bootstrap"
 as_admin < "$ROOT/supabase/tests/_harness/bootstrap.sql"
 
+# A fixed business date (app_private.business_today) so the tests don't
+# depend on the calendar. Tests may move it: SET LOCAL app.business_today.
+TEST_TODAY="${PV_TEST_TODAY:-2026-10-31}"
+as_admin -c "ALTER DATABASE postgres SET app.business_today = '$TEST_TODAY'" >/dev/null
+
 echo "▸ migrations"
 for f in "$ROOT"/supabase/migrations/*.sql; do
   base="$(basename "$f" .sql)"
