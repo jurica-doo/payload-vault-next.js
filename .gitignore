@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# e2e (Playwright) — state holds TOTP secrets of local test accounts
+/e2e/.auth/
+/test-results/
+/playwright-report/
+/blob-report/
