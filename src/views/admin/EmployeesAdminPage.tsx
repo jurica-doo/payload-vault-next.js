@@ -181,7 +181,14 @@ export const EmployeesAdminPage = () => {
             ),
             sortValue: (e) => `${e.last_name} ${e.first_name}`,
           },
-          { id: "no", header: "Pers.-Nr.", cell: (e) => e.employee_no, sortValue: (e) => e.employee_no, hideOnMobile: true },
+          {
+            id: "no",
+            header: "Pers.-Nr.",
+            // Identifiers never get hyphens inserted (they would look like part of the number).
+            cell: (e) => <span className="hyphens-none">{e.employee_no}</span>,
+            sortValue: (e) => e.employee_no,
+            hideOnMobile: true,
+          },
           { id: "start", header: "Start", cell: (e) => formatDate(e.start_date), sortValue: (e) => e.start_date, hideOnMobile: true },
           {
             id: "level",
@@ -221,7 +228,7 @@ export const EmployeesAdminPage = () => {
                       aria-pressed={e.roles.includes(role)}
                       onClick={() => openRoleChange(e, role)}
                       title={e.roles.includes(role) ? `${ROLE_LABELS[role]} entziehen` : `${ROLE_LABELS[role]} vergeben`}
-                      className={`cursor-pointer rounded-full border px-2 py-0.5 text-xs font-medium transition-all duration-150 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${
+                      className={`cursor-pointer whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium transition-all duration-150 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 ${
                         e.roles.includes(role)
                           ? "border-color-primary/40 bg-color-bg-accent-subtle text-color-text-accent hover:border-color-primary"
                           : "border-dashed border-color-border-strong text-color-text-subtle hover:border-color-text-subtle hover:text-color-text-main"
@@ -240,9 +247,10 @@ export const EmployeesAdminPage = () => {
             header: "Aktionen",
             cell: (e) => (
               <span className="flex items-center justify-end gap-1">
-                {e.status === "invited" && !e.user_id && (
+                {/* Until the invite is accepted it can be sent again (expired link, lost mail). */}
+                {e.status === "invited" && (
                   <button type="button" className={actionClass} disabled={!canWrite || resendInvite.isPending} onClick={() => resend(e)}>
-                    Einladung senden
+                    {e.user_id ? "Erneut einladen" : "Einladung senden"}
                   </button>
                 )}
                 {e.status === "inactive" && e.user_id !== user?.id && (

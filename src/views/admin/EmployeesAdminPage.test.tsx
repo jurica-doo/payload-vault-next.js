@@ -15,6 +15,11 @@ const employees = [
     id: "e3", user_id: "u3", employee_no: "P00003", first_name: "Fritz", last_name: "Berater",
     email: "fritz@test.local", status: "inactive", start_date: "2025-01-01", roles: [], openInvite: false, levelCode: "FB",
   },
+  {
+    // Invite mail sent (account linked) but never accepted, link expired.
+    id: "e4", user_id: "u4", employee_no: "P00004", first_name: "Lea", last_name: "Later",
+    email: "lea@test.local", status: "invited", start_date: "2026-10-01", roles: [], openInvite: false, levelCode: "FA",
+  },
 ];
 
 const mutation = { mutateAsync: vi.fn(), isPending: false };
@@ -45,6 +50,13 @@ describe("EmployeesAdminPage", () => {
     expect(within(row("Neu, Nora")).getByText("Eingeladen")).toBeInTheDocument();
     expect(within(row("Neu, Nora")).getByText("Einladung abgelaufen")).toBeInTheDocument();
     expect(within(row("Berater, Fritz")).getByRole("button", { name: "Reaktivieren" })).toBeEnabled();
+  });
+
+  it("offers the invite again until it is accepted", () => {
+    render(<EmployeesAdminPage />);
+    expect(within(row("Neu, Nora")).getByRole("button", { name: "Einladung senden" })).toBeEnabled();
+    expect(within(row("Later, Lea")).getByRole("button", { name: "Erneut einladen" })).toBeEnabled();
+    expect(within(row("Admin, Ada")).queryByRole("button", { name: /einladen|Einladung/ })).not.toBeInTheDocument();
   });
 
   it("never offers to deactivate yourself", () => {

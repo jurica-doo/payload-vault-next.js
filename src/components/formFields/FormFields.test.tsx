@@ -18,7 +18,8 @@ describe("parseGermanDecimal", () => {
     expect(parseGermanDecimal(input)).toBe(expected);
   });
 
-  it.each(["", "abc", "1,2,3", "1e5", "12,", ",5", "--1"])("rejects %j", (input) => {
+  // English formats and misplaced grouping are refused, not misread.
+  it.each(["", "abc", "1,2,3", "1e5", "12,", ",5", "--1", "1,234.50", "12.34,5", "1.2345,6"])("rejects %j", (input) => {
     expect(parseGermanDecimal(input)).toBeNull();
   });
 });

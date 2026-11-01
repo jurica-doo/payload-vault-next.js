@@ -4,10 +4,14 @@ import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import Link from "next/link";
 import { useState } from "react";
+import { Button } from "../../components/button/Button";
 import { HierarchyTree } from "../../components/hierarchyTree/HierarchyTree";
 import { StatusBadge, type StatusMap } from "../../components/statusBadge/StatusBadge";
 import { EmptyState } from "../../components/emptyState/EmptyState";
 import { useStructure } from "../../hooks/useStructure/useStructure";
+
+/** Above this many people the tree starts with the top level only. */
+const FULL_EXPAND_LIMIT = 200;
 
 const statusMap: StatusMap<"invited" | "active" | "inactive"> = {
   invited: { label: "Eingeladen", tone: "info" },
@@ -30,15 +34,27 @@ export const TeamPage = () => {
     return <EmptyState message="Die Struktur konnte nicht geladen werden." hint={error ? errorText(error) : undefined} />;
   }
 
-  // Roots start expanded so a leader sees their direct reports at once.
-  const expandedIds = expanded ?? new Set(structure.roots.map((r) => r.id));
+  // Everyone with reports, i.e. every node that can open.
+  const parentIds = [...structure.byId.keys()].filter((id) => structure.childrenOf(id).length > 0);
+  // The whole structure starts open so leaders see everyone at once; very
+  // large structures start with the top level only, to stay readable.
+  const expandedIds =
+    expanded ?? new Set(structure.byId.size <= FULL_EXPAND_LIMIT ? parentIds : structure.roots.map((r) => r.id));
   const selected = selectedId ? structure.byId.get(selectedId) : undefined;
   const direct = selected ? structure.childrenOf(selected.employee_id).length : 0;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       <section className="ui-card p-4 sm:p-5">
-        <h2 className="mb-3 text-base font-semibold">Struktur heute</h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-base font-semibold">Struktur heute</h2>
+          {parentIds.length > 0 && (
+            <span className="flex gap-1">
+              <Button text="Alle aufklappen" variant="ghost" size="small" onClick={() => setExpanded(new Set(parentIds))} />
+              <Button text="Alle zuklappen" variant="ghost" size="small" onClick={() => setExpanded(new Set())} />
+            </span>
+          )}
+        </div>
         <HierarchyTree
           roots={structure.roots}
           childrenOf={structure.childrenOf}

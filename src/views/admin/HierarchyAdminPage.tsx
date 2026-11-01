@@ -13,11 +13,17 @@ import { useModal } from "../../context/modal/ModalContext";
 import { useBanner } from "../../context/banner/BannerContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useEmployees } from "../../hooks/useEmployees/useEmployees";
-import { useAssignments } from "../../hooks/useStructure/useStructure";
-import { formatDate } from "../../utils/format";
+import { useAssignments, useCancelledAssignments, type Assignment, type CancelledAssignment } from "../../hooks/useStructure/useStructure";
+import { formatDate, formatDateTime } from "../../utils/format";
 
 const berlinToday = () =>
   new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin" }).format(new Date());
+
+// The history shows assignments and the planned moves that were cancelled
+// (those exist only in the audit log, not in the structure).
+type TimelineEntry =
+  | { kind: "assignment"; from: string; a: Assignment }
+  | { kind: "cancelled"; from: string; c: CancelledAssignment };
 
 /**
  * Reporting-line changes (§5.1): effective-dated, with a reason, never
@@ -34,9 +40,14 @@ export const HierarchyAdminPage = () => {
   const [reason, setReason] = useState("");
   const [formError, setFormError] = useState<string>();
   const { data: history = [], isLoading, assign, cancelFuture } = useAssignments(employeeId);
+  const { data: cancelled = [] } = useCancelledAssignments(employeeId, permissions.isAdmin);
 
   const canWrite = permissions.isAdmin && permissions.hasMfa;
   const today = berlinToday();
+  const timeline: TimelineEntry[] = [
+    ...history.map((a): TimelineEntry => ({ kind: "assignment", from: a.effective_from, a })),
+    ...cancelled.map((c): TimelineEntry => ({ kind: "cancelled", from: c.effective_from, c })),
+  ].sort((x, y) => y.from.localeCompare(x.from)); // newest first
   const nameOf = (id: string | null) => {
     if (!id) return "Keine (Spitze der Struktur)";
     const e = employees.find((x) => x.id === id);
@@ -63,14 +74,14 @@ export const HierarchyAdminPage = () => {
       title: "Geplanten Wechsel absagen",
       children: (
         <ReasonConfirmForm
-          message={`Der zum ${formatDate(from)} geplante Wechsel wird gelöscht; die vorherige Zuordnung gilt weiter.`}
+          message={`Der zum ${formatDate(from)} geplante Wechsel entfällt; die bisherige Zuordnung gilt weiter. Im Verlauf bleibt er als abgesagt sichtbar.`}
           confirmText="Absagen"
           variant="decline"
           onCancel={closeModal}
           onConfirm={async (r) => {
             await cancelFuture.mutateAsync({ assignmentId, reason: r });
             closeModal();
-            showBanner("Abgesagt", "Der geplante Wechsel wurde entfernt.", "success");
+            showBanner("Abgesagt", "Der geplante Wechsel wurde abgesagt.", "success");
           }}
         />
       ),
@@ -106,7 +117,7 @@ export const HierarchyAdminPage = () => {
                 value={managerId}
                 onChange={setManagerId}
               />
-              <DateInput label="Gültig ab" value={effectiveFrom} onChange={setEffectiveFrom} hint="Frühere Daten verändern keine Historie – das System lehnt sie ab." />
+              <DateInput label="Gültig ab" value={effectiveFrom} onChange={setEffectiveFrom} hint="Ab heute oder später. Nur die erste Zuordnung darf zurückliegen (ab dem Eintrittsdatum)." />
             </div>
             <TextArea label="Begründung" value={reason} onChange={setReason} maxLength={500} isRequired />
             {formError && (
@@ -123,11 +134,29 @@ export const HierarchyAdminPage = () => {
             <h2 className="mb-3 text-base font-semibold">Verlauf</h2>
             {isLoading ? (
               <LoadingState />
-            ) : history.length === 0 ? (
+            ) : timeline.length === 0 ? (
               <p className="text-sm text-color-text-subtle">Noch keine Zuordnung.</p>
             ) : (
               <ol className="flex flex-col gap-3">
-                {history.map((a) => {
+                {timeline.map((entry) => {
+                  if (entry.kind === "cancelled") {
+                    const c = entry.c;
+                    return (
+                      <li key={`cancelled-${c.assignment_id}`} className="flex flex-wrap items-start justify-between gap-2 border-b border-color-border-light pb-3 text-sm last:border-0">
+                        <div>
+                          <p className="font-semibold text-color-text-subtle line-through">{nameOf(c.manager_id)}</p>
+                          <p className="text-xs text-color-text-subtle">geplant ab {formatDate(c.effective_from)}</p>
+                          {c.change_reason && <p className="text-xs text-color-text-secondary">{c.change_reason}</p>}
+                          <p className="text-xs text-color-text-secondary">
+                            Abgesagt am {formatDateTime(c.cancelled_at)} von {c.cancelled_by}
+                            {c.cancel_reason ? ` – ${c.cancel_reason}` : ""}
+                          </p>
+                        </div>
+                        <StatusBadge status="cancelled" map={{ cancelled: { label: "Abgesagt", tone: "neutral" } }} />
+                      </li>
+                    );
+                  }
+                  const a = entry.a;
                   const planned = a.effective_from > today;
                   const current = !planned && (a.effective_to === null || a.effective_to > today);
                   return (

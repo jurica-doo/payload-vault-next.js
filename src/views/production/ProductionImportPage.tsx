@@ -9,7 +9,7 @@ import { RoleGate } from "../../components/roleGate/RoleGate";
 import { EmptyState } from "../../components/emptyState/EmptyState";
 import { useBanner } from "../../context/banner/BannerContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
-import { useProductionImport, type ImportRowInput } from "../../hooks/useProduction/useProduction";
+import { useProductionImport, type StagedImportRow } from "../../hooks/useProduction/useProduction";
 import { mapProductionCsv, parseCsv, REQUIRED_FIELDS } from "../../domain/csvImport";
 import { dbErrorMessage, errorText } from "../../utils/dbErrors";
 
@@ -24,8 +24,6 @@ const IMPORT_ERRORS: Record<string, string> = {
 };
 const rowError = (key: string) => IMPORT_ERRORS[key] ?? dbErrorMessage({ message: key });
 
-type StagedRow = { row_number: number; raw: ImportRowInput; errors: string[] };
-
 /**
  * Two-step import: everything is validated in the database first (each row
  * gets its own error list), then only valid rows are taken over as
@@ -38,7 +36,7 @@ export const ProductionImportPage = () => {
   const [sourceSystem, setSourceSystem] = useState("Partnerportal");
   const [file, setFile] = useState<File | null>(null);
   const [problem, setProblem] = useState<string>();
-  const [staged, setStaged] = useState<{ batchId: string; rows: StagedRow[] } | null>(null);
+  const [staged, setStaged] = useState<{ batchId: string; rows: StagedImportRow[] } | null>(null);
   const canWrite = permissions.isAdmin && permissions.hasMfa;
 
   const check = async () => {
@@ -53,7 +51,7 @@ export const ProductionImportPage = () => {
     if (mapped.rows.length === 0) return setProblem("Die Datei enthält keine Datenzeilen.");
     try {
       const result = await stage.mutateAsync({ sourceSystem, fileName: file.name, rows: mapped.rows });
-      setStaged(result as { batchId: string; rows: StagedRow[] });
+      setStaged(result);
     } catch (e) {
       setProblem(errorText(e));
     }

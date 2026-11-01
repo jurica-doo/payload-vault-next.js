@@ -124,13 +124,15 @@ export function formatDateTime(isoTimestamp: string | null | undefined): string 
 export function parseGermanDecimal(text: string): string | null {
   const trimmed = text.trim().replace(/\s/g, "");
   if (trimmed === "") return null;
-  // Thousands separators are dots, decimal separator is a comma. A dot with
-  // exactly three digits after it and no comma is treated as grouping.
-  const normalized = trimmed.includes(",")
-    ? trimmed.replace(/\./g, "").replace(",", ".")
-    : /^-?\d{1,3}(\.\d{3})+$/.test(trimmed)
-      ? trimmed.replace(/\./g, "")
-      : trimmed;
+  // Thousands separators are dots, decimal separator is a comma.
+  if (trimmed.includes(",")) {
+    // Dots may only group thousands before the comma, so an English
+    // "1,234.50" is refused rather than read as 1.2345.
+    if (!/^-?(\d{1,3}(\.\d{3})+|\d+),\d+$/.test(trimmed)) return null;
+    return trimmed.replace(/\./g, "").replace(",", ".");
+  }
+  // Without a comma, a dot followed by exactly three digits groups thousands.
+  const normalized = /^-?\d{1,3}(\.\d{3})+$/.test(trimmed) ? trimmed.replace(/\./g, "") : trimmed;
   return /^-?\d+(\.\d+)?$/.test(normalized) ? normalized : null;
 }
 

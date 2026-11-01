@@ -53,6 +53,7 @@ export function useAssignments(employeeId: string | null) {
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: key });
+    queryClient.invalidateQueries({ queryKey: ["cancelledAssignments", employeeId] });
     queryClient.invalidateQueries({ queryKey: structureKey });
     queryClient.invalidateQueries({ queryKey: ["myContext"] });
   };
@@ -83,4 +84,27 @@ export function useAssignments(employeeId: string | null) {
   });
 
   return { ...query, assign, cancelFuture };
+}
+
+/** A planned move an admin cancelled (kept in the audit log, admins only). */
+export type CancelledAssignment = {
+  assignment_id: string;
+  manager_id: string | null;
+  effective_from: string;
+  change_reason: string | null;
+  cancelled_at: string;
+  cancelled_by: string;
+  cancel_reason: string | null;
+};
+
+export function useCancelledAssignments(employeeId: string | null, enabled: boolean) {
+  return useQuery({
+    queryKey: ["cancelledAssignments", employeeId],
+    enabled: enabled && !!employeeId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("rpc_cancelled_assignments", { p_employee_id: employeeId! });
+      if (error) throwDbError(error);
+      return (data ?? []) as CancelledAssignment[];
+    },
+  });
 }

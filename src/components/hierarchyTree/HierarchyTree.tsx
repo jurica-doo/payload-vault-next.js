@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type KeyboardEvent, type ReactNode } from "react";
+import { ChevronRightIcon } from "../icons";
 
 export type TreeNode = {
   id: string;
@@ -142,12 +143,15 @@ export const HierarchyTree = ({
                   e.stopPropagation();
                   onToggle(node.id, !expanded);
                 }}
-                className="flex h-5 w-5 cursor-pointer items-center justify-center text-color-text-subtle hover:text-color-primary"
+                className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-radius-sm text-color-text-subtle hover:bg-color-bg-hover hover:text-color-primary"
               >
-                {expanded ? "▾" : "▸"}
+                <ChevronRightIcon
+                  size={16}
+                  className={`transition-transform duration-200 ease-out ${expanded ? "rotate-90" : ""}`}
+                />
               </button>
             ) : (
-              <span aria-hidden className="w-5" />
+              <span aria-hidden className="w-7 shrink-0" />
             )}
             <span className="font-medium text-color-text-main">{node.label}</span>
             {node.meta && <span className="ml-auto text-xs text-color-text-subtle">{node.meta}</span>}

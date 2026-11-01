@@ -23,6 +23,8 @@ export type ProductionInput = {
 
 const listKey = ["production"] as const;
 const PAGE_SIZE = 50;
+// Matches the API's max_rows (supabase/config.toml).
+const IMPORT_ROWS_PAGE = 1000;
 
 /** Production the caller may see (own + structure, RLS), newest first. */
 export function useProduction(page: number) {
@@ -106,6 +108,9 @@ export type ImportRowInput = {
   reference: string;
 };
 
+/** A staged row with the database's validation result (empty = valid). */
+export type StagedImportRow = { row_number: number; raw: ImportRowInput; errors: string[] };
+
 export function useProductionImport() {
   const queryClient = useQueryClient();
 
@@ -118,13 +123,21 @@ export function useProductionImport() {
       });
       if (error) throwDbError(error);
       const batchId = data as string;
-      const rows = await supabase
-        .from("import_rows")
-        .select("row_number, raw, errors")
-        .eq("batch_id", batchId)
-        .order("row_number");
-      if (rows.error) throwDbError(rows.error);
-      return { batchId, rows: rows.data ?? [] };
+      // A batch holds up to 5000 rows; the API returns at most 1000 per request.
+      const rows: StagedImportRow[] = [];
+      for (let from = 0; ; from += IMPORT_ROWS_PAGE) {
+        const page = await supabase
+          .from("import_rows")
+          .select("row_number, raw, errors")
+          .eq("batch_id", batchId)
+          .order("row_number")
+          .range(from, from + IMPORT_ROWS_PAGE - 1);
+        if (page.error) throwDbError(page.error);
+        const chunk = (page.data ?? []) as StagedImportRow[];
+        rows.push(...chunk);
+        if (chunk.length < IMPORT_ROWS_PAGE) break;
+      }
+      return { batchId, rows };
     },
   });
 
