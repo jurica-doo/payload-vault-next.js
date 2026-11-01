@@ -4,10 +4,11 @@ Everything from the specification is built, tested in the database harness and m
 Nothing has been applied to production, and nothing has been clicked through **signed in**, because there is no staging project yet.
 This list covers everything between "built" and "live", in the order it is best done.
 
-Status at the time of writing (2026-10-30):
-- 47 migrations (3 added 2026-10-28 for the Supabase advisor findings)
-- 774 pgTAP assertions in 27 files
-- 366 unit tests
+Status at the time of writing (2026-11-01):
+- 54 migrations (3 added 2026-10-28 for the Supabase advisor findings, 7 on 2026-10-31 for the Phase 1 review fixes)
+- 789 pgTAP assertions in 27 files
+- 408 unit tests
+- 53 Playwright e2e tests for Phase 1 (`npm run e2e`, local only)
 - 58 golden cases shared by the SQL and TypeScript engines
 - CI green
 - Every module behind a feature flag that is **off**
@@ -32,7 +33,7 @@ Legend: **[You]** = needs the account owner or a Profina decision · **[Dev]** =
   - Existing vault accounts keep working and stay "vault-only" until an employee record with the same email exists.
 - [ ] Make yourself admin: `select app_private.bootstrap_admin('<your email>');`
 - [ ] **Auth settings:**
-  - Providers → Email → switch "Allow new users to sign up" **off**.
+  - Sign In / Providers → User Signups → switch "Allow new users to sign up" **off** (local equivalent: `[auth] enable_signup = false`). Leave the **Email** provider itself **enabled** — switching it off blocks every login ("Email logins are disabled").
   - URL Configuration → add `https://<app>/update-passwort`.
   - MFA → TOTP enabled.
 - [ ] **Enable pg_cron**, then run once:
@@ -221,7 +222,7 @@ What the tests already prove (pgTAP), and what a reviewer should look at:
 ### 6.4 Technical
 - [ ] 5 old lint warnings in untouched components (`Dropdown`, `HeaderHome` images, `DeleteIcon`, `SearchBar`).
 - [ ] Performance check on staging with synthetic volume (5k employees / 200k production rows): dashboard and analytics RPCs < 300 ms p95 (plan §10).
-- [ ] End-to-end tests (Playwright) for the walkthroughs in section 4.
+- [ ] End-to-end tests (Playwright) for the walkthroughs in section 4. Phase 1 is covered (`e2e/`, 53 tests, local stack); later phases still open.
 - [ ] `ubuntu-latest` moves to Ubuntu 26 in CI (GitHub notice); pin the runner if anything breaks.
 - [ ] `supabase/seed.sql` with synthetic personas for staging (one per role and level).
 

@@ -2,7 +2,7 @@
 
 # Profina Payload Vault — session primer
 
-Read this first; it replaces a codebase crawl. Facts below were verified in the code (state: 2026-10-28, branch `feat/requirements1`). When you change something listed here, update this file. Two developers work on this branch in parallel — see §13 before committing.
+Read this first; it replaces a codebase crawl. Facts below were verified in the code (state: 2026-11-01, branch `feat/requirements1`). When you change something listed here, update this file. Two developers work on this branch in parallel — see §13 before committing.
 
 ## 1. What this is
 - Business web app (PWA) for **Profina**, a German insurance sales organisation. **Not Payload CMS** — "Payload Vault" is just the product name.
@@ -21,24 +21,28 @@ Read this first; it replaces a codebase crawl. Facts below were verified in the 
 |---|---|
 | `npm run dev` | dev server on **:5173** |
 | `npm run typecheck` / `npm run lint` | tsc / eslint (3 pre-existing warnings are known) |
-| `npm test` | vitest (~400 tests) |
+| `npm test` | vitest (~410 tests) |
 | `npm run test:db` | all migrations + pgTAP in a throwaway Docker Postgres (`KEEP_DB=1`, filter arg) |
 | `npm run check:golden` | SQL ↔ TS engine parity on golden cases |
 | `npm run types` | regenerate DB types (Docker only; after any schema change, commit the result) |
-| `npm run functions-serve` | edge functions locally with the Homebrew `supabase` CLI, env from `.env.local` (`npm run functions` is the same via `npx supabase`, whose npm binary macOS kills with exit 137 on some machines) |
+| `npm run functions-serve` | edge functions locally, env from `.env.local` (`npm run functions` is the same via `npx`) |
 | `supabase start` / `supabase stop` | local stack (data survives stop/start) |
 | `supabase migration up` | apply new migrations, **keep** local data (use after pulling) |
 | `supabase db reset` | **wipe** local DB, re-run all migrations + dev seed |
 | `npx next build` | prod build; safe while dev runs (dev uses `.next/dev`) |
+| `npm run e2e` / `npm run e2e:ui` | **wipe** local DB + fill test data (`e2e:prepare`), then the Playwright suite in the installed Chrome (`e2e/tests`; 5 workers: files in parallel, tests within a file in order) |
+| `npm run e2e:run` | Playwright only, no reset (re-run a test against the current data) |
+| `npm run e2e:prepare` | **wipe** local DB + fill e2e test data through the real API, self-checked (`e2e/fill`) — e.g. before a manual pass |
+| `npm run totp -- <email>` | current 2FA code for test accounts enrolled by the fill (admin@, finance@) |
 
 CI (`.github/workflows/ci.yml`): lint → typecheck → test → check:golden → build, then migrations + pgTAP.
 
 ## 3. Local development
 - Supabase local stack uses **own ports 553xx** (another project on the machine uses 543xx): API/Kong **:55321**, DB **:55322**, Studio **:55323**, Mailpit (mail, `[local_smtp]` in config.toml) **:55324**. Containers are named `supabase_*_payload-vault`; `psql` isn't installed — use `docker exec supabase_db_payload-vault psql -U postgres`.
-- Supabase CLI: use the Homebrew `supabase` (tested 2.122). The pinned npm one (`npx supabase`, 2.101) can be killed by macOS.
+- Supabase CLI: the project pins **`supabase` 2.122.0** (devDependency). Every `npm run …` script uses that one (npm puts `node_modules/.bin` first in PATH), not a global install; keep a Homebrew CLI on the same version for direct use. Older CLIs (≤ 2.101) reject `[local_smtp]` in config.toml ("invalid keys: local_smtp"). On one Mac the npm binary was killed with exit 137 — if `./node_modules/.bin/supabase --version` dies there, the npm scripts can't run on that machine.
 - Env in **`.env.local`** (git-ignored; read by Next.js and by `functions-serve`): `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:55321`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (`ANON_KEY` from `supabase status -o env`), `APP_ORIGIN=http://localhost:5173,http://127.0.0.1:5173` (edge-function CORS + invite redirect), `GOOGLE_API_KEY` (receipt AI, optional). The service role key is not needed (`functions serve` injects it). `NEXT_PUBLIC_ALLOWED_EMAILS` is obsolete (invite-only since Phase 1). Older checkouts may still have a `.env` — Next loads both (`.env.local` wins), `functions-serve` only `.env.local`. Never print secrets.
 - Fresh machine: `npm ci` → `supabase start` → write `.env.local` → `supabase db reset` (loads the dev seed) → `npm run functions-serve` + `npm run dev` → sign in as `admin@test.com`, set up 2FA at `/profil/sicherheit`.
-- Accounts are **invite-only**: `invite-employee` creates the auth user **without a password**; the user sets it on `/update-passwort` via the mail in Mailpit (links expire after ~1 h). An invited-but-unaccepted user cannot log in ("invalid credentials"). Fix: set password + confirm in Studio, or re-invite / "Passwort vergessen".
+- Accounts are **invite-only**: `invite-employee` creates the auth user **without a password**; the user sets it on `/update-passwort` via the mail in Mailpit (links expire after ~1 h). An invited-but-unaccepted user cannot log in ("invalid credentials"). Fix: **"Erneut einladen"** on `/admin/mitarbeiter` (works until the e-mail is confirmed; a revoked or expired invite doesn't activate anyone), or set password + confirm in Studio. Self-signup is **off** (`[auth] enable_signup = false` in config.toml, like production; `[auth.email] enable_signup` must stay `true` — the CLI maps it to the whole e-mail provider, so `false` also blocks every login with "Email logins are disabled") — auth settings are read at container start, so after changing `[auth]` run `supabase stop && supabase start`.
 - **Dev seed** `supabase/seeds/local_dev.sql` (loaded by `supabase db reset` via `[db.seed]`): `admin@test.com` (admin, TL), `user@test.com` (adviser, FA, reports to the admin) and `vault@test.com` (vault only, no employee record), password `123456` (below the 8-char minimum on purpose: GoTrue checks length only when setting a password, not at login); all feature flags on; task generators scheduled. Not named `seed.sql` on purpose — `db-test.sh` loads that file before pgTAP. After a reset, 2FA must be set up again.
 - Auth URLs point at `http://localhost:5173` (`supabase/config.toml`). TOTP MFA is enabled locally.
 - Browser checks: use Claude in Chrome against localhost:5173. The local seed accounts above may be used; never type the user's real credentials — ask them to sign in.
@@ -61,8 +65,9 @@ src/data/                 navigation.ts, salesModules.ts, pageMeta.ts, routes.ts
 src/utils/                dbErrors.ts, authErrors.ts, format.ts (German numbers/dates), theme.ts, csvExport.ts, safeRedirect.ts, taxReport/
 src/context/              AuthContext, ProtectedRoutes, banner/, modal/, YearContext, title/TitleContext, BulkSelectContext
 src/lib/                  supabase.ts (client), pdf/ (PDF text extraction)
-supabase/migrations/      47 migrations (timestamped, see §13); supabase/tests/ pgTAP (27 files, 774 assertions); supabase/functions/ (4 edge functions); supabase/seeds/local_dev.sql (dev seed)
-requirements1/            plan, CHECKLIST.md, phase docs
+supabase/migrations/      54 migrations (timestamped, see §13); supabase/tests/ pgTAP (27 files, 789 assertions); supabase/functions/ (4 edge functions); supabase/seeds/local_dev.sql (dev seed)
+e2e/                      Playwright suite: fixtures/ (test data + expected numbers), fill/ (API fill per phase), lib/, tests/, README.md
+requirements1/            plan, CHECKLIST.md, phase docs (+ phase-N-*/verification/: review findings + click-by-click manual test guide)
 check.md                  local-only security notes (git-excluded) — don't commit
 ```
 
@@ -115,6 +120,10 @@ Patterns: toast titles name what failed ("Löschen fehlgeschlagen"), never just 
 - Supabase client `src/lib/supabase.ts`; context RPC gives `Permissions` (`hooks/permissions/permissions.ts`): `employeeId`, `isEmployee`, `isLeader` (has descendants), `isAdmin`, `isFinance`, `isCompliance`, `hasMfa`, `flags`.
 - **MFA (aal2) required** for admin/finance writes (DB enforces; UI shows `MfaRequiredNotice`, setup at `/profil/sicherheit`).
 - Audit log is append-only; sensitive actions need a reason (`reason_required`, ≥10 chars) → `ReasonConfirmForm`.
+- **Roles rest while their holder is a deactivated employee**: `app_private.has_role()` and `rpc_my_context` ignore them (role rows stay; reactivation restores them). Role-only accounts without an employee record are unaffected.
+- **"Today" is `app_private.business_today()`** (Europe/Berlin), never `current_date`/`now()::date`. The DB setting `app.business_today` overrides it (tests only).
+- Hierarchy: once someone has a manager, changes take effect today or later (`retroactive_change`); only the first assignment may start in the past. Cancelling a planned move deletes the row; `rpc_cancelled_assignments` reads it back from the audit log for the history.
+- Career: after a promotion the new counting window starts the **day after** the promotion (the promotion day belongs to the old level); levels can't be entered for future dates (`level_in_future`).
 - Numbers depending on unconfirmed business rules show `ProvisionalRuleNotice` (decision IDs `OD-xx`). Never label amounts "netto"/"Auszahlung".
 - Money/points: decimal.js; format with `utils/format.ts` (German locale, `formatPercent`, `safeRatio`, "–" for zero denominators).
 - Business logic lives twice (SQL + `src/domain`) — change both and keep `check:golden` green.
@@ -124,7 +133,9 @@ Patterns: toast titles name what failed ("Löschen fehlgeschlagen"), never just 
 - View tests `vi.mock` the data hooks and `usePermissions`. If a view uses toasts or `useErrorToast`, mock `context/banner/BannerContext` (`useBanner: () => ({ showBanner: vi.fn() })`).
 - Mocked mutations should reject with `UserFacingError` (that's what hooks throw).
 - `SalesShell.test.tsx` mocks `HeaderHome` and asserts nav links via the real Sidebar (`aria-current="page"`).
-- DB: pgTAP files in `supabase/tests/*.test.sql`, run by `npm run test:db` (Docker, no Supabase CLI needed; it loads `supabase/seed.sql` if present, never `seeds/`). `000_baseline_security` also enforces the advisor rules from §11 (invoker views, no definer functions in `public`, `(SELECT auth.uid())` in policies).
+- DB: pgTAP files in `supabase/tests/*.test.sql`, run by `npm run test:db` (Docker, no Supabase CLI needed; it loads `supabase/seed.sql` if present, never `seeds/`). `000_baseline_security` also enforces the advisor rules from §11 (invoker views, no definer functions in `public`, `(SELECT auth.uid())` in policies, no `app_private` function executable through PUBLIC).
+- pgTAP runs on a **pinned business date**: `db-test.sh` sets `app.business_today = 2026-10-31` (override with `PV_TEST_TODAY`), so tests don't break as the calendar moves. Time travel inside a test: `SET LOCAL app.business_today = '2026-06-01'; … RESET app.business_today;`. Files whose rows carry real timestamps (`now()`, column defaults — activities, leads) and are counted in business-date windows use the real day instead: `SET LOCAL app.business_today = '';` after `BEGIN` (160, 180, 260); mixing both breaks as soon as the calendar passes the pin. Check with `PV_TEST_TODAY=<earlier date> npm run test:db` (failures from fixed dates later than that pin are expected). Internal `app_private` helpers aren't executable by API roles — call them as the owner (`SELECT tests.clear_authentication();` first).
+- e2e: `e2e/README.md`. Phase review findings and the manual test guide live in `requirements1/phase-N-*/verification/`; a confirmed bug gets a regression test titled with its finding ID.
 
 ## 11. Gotchas
 - Next 16: error boundaries receive **`unstable_retry`** (not `reset`); `global-error.tsx` must render `<html>`; `useLinkStatus` must be inside a `<Link>`; a root `loading.tsx` would replace the shell — keep loading files inside shell segments.
@@ -134,6 +145,7 @@ Patterns: toast titles name what failed ("Löschen fehlgeschlagen"), never just 
 - Key maps use `Object.hasOwn` (avoid inherited keys like `toString`).
 - Views in `public` must be `WITH (security_invoker = true)` (Supabase linter 0010; pgTAP `000_baseline_security` fails otherwise). If a view must show rows another table's RLS would hide, keep the view invoker and fetch those fields through a SECURITY DEFINER helper in `app_private` that re-checks visibility (pattern: `v_commission_ledger` + `app_private.commission_ledger_facts`).
 - **No SECURITY DEFINER function in `public`** callable by anon/authenticated (Supabase linter 0029; pgTAP `000` fails). New or changed RPC: `CREATE OR REPLACE FUNCTION app_rpc.rpc_x(...) ... SECURITY DEFINER SET search_path = ''` (permission checks inside, as before), then `SELECT app_private.publish_rpc('app_rpc.rpc_x(uuid, text)'::regprocedure);` — it (re)creates the `public` wrapper with the same signature, defaults, return type and volatility, and sets grants (authenticated, service_role). Never `CREATE OR REPLACE FUNCTION public.rpc_x ... SECURITY DEFINER` (that silently replaces the wrapper). Changing parameters: drop the old impl + wrapper first. Never add `app_rpc` to the exposed API schemas. Service-role-only definer functions (email engine, `consume_rate_limit`) stay in `public`.
+- **`app_private` functions aren't executable through PUBLIC** (default privileges revoke it for new functions too). A helper that RLS policies, invoker views or invoker functions call needs an explicit `GRANT EXECUTE ON FUNCTION app_private.x(...) TO authenticated;`; internal SECURITY DEFINER helpers get no grant.
 - RLS policies: write `(SELECT auth.uid())`, not `auth.uid()` (linter 0003, evaluated once per statement; pgTAP `000` fails otherwise). Same for `auth.jwt()` and row-independent helpers like `app_private.has_role(...)`.
 - `ContentCard` `onDelete` may return a promise; pass `mutateAsync` so the delete dialog reports real failures.
 - Old copies still exist in places: prefer the kit components above when touching a view.
@@ -141,6 +153,8 @@ Patterns: toast titles name what failed ("Löschen fehlgeschlagen"), never just 
 ## 12. Status & open items
 - Branches: `main` (prod), **`feat/requirements1`** (all phase work + the UI redesign, which was merged in from `feat/ux-ui-improvements`; work here). The `r1/*` branches are historical slices, already merged.
 - Done 2026-10-28 (local only, nothing applied to prod): dev seed; `[local_smtp]` config; advisor clean-up (`v_commission_ledger` invoker, `rpc_*` bodies moved to `app_rpc`, policies with `(SELECT auth.uid())`). These migrations must go to staging/prod together with the rest of requirements1.
+- Done 2026-10-31 (local only): Phase 1 review fixes — migrations `20261031130000`…`20261031190000` (business date setting, roles of deactivated employees, no back-dating + cancelled moves, promotion day, invite re-send/revoke, import validation, `app_private` grants), `[auth] enable_signup = false`, team tree fully expanded, re-invite button; Playwright e2e suite (`e2e/`, 53 tests) and the Phase 1 manual test guide. Findings and status: `requirements1/phase-1-foundation/verification/r1-p1-verification.md`. After pulling these: `supabase migration up` **and** `supabase stop && supabase start` (auth config changed), `npm ci` (Playwright, pinned CLI).
+- Prod rollout note: signups off = dashboard → Authentication → "Allow new users to sign up" **off**; the Email provider stays **on** (switching it off blocks every login).
 - `extract-data-from-expense-image` with the new error keys is already deployed to production (project ref `mitvsxswoagzixcbrhia`, 2026-10-27).
 - Still open (see `requirements1/CHECKLIST.md`): staging project, migrations to prod, Profina decisions (OD-xx), manual signed-in test pass at 360 px, retire `/signup`, finance/admin dashboard decision, security review (Gate D), email sending (off).
 - Feature flags for all sales modules are **off** by default; email sending is off.
@@ -148,7 +162,7 @@ Patterns: toast titles name what failed ("Löschen fehlgeschlagen"), never just 
 ## 13. Working agreements (learned)
 - Plan big changes first; one commit per logical step; commit messages end with the `Co-Authored-By` line from the system reminder. Commit/push only when asked; branch before working on `main`.
 - **Two developers on `feat/requirements1` at the same time:** `git fetch` + `git pull --rebase` before starting and again before pushing; never force-push a shared branch; after pulling, run `supabase migration up` (and `npm ci` if `package-lock.json` changed). Ask before overwriting files the other person changed.
-- **Migration timestamps run ahead of the calendar** (latest file `20261031120000` was written on 2026-10-28). A new migration must sort after the newest file in `supabase/migrations/`, so pick the next free timestamp by hand (e.g. `20261031130000_<name>.sql`) — `supabase migration new` uses the current time and would sort *before* existing files, and on any database that already has the later ones `supabase migration up` / `db push` refuse it unless run with `--include-all`. If both developers add migrations in parallel, check after pulling that the names are unique and the order is still what you intended; never rename or edit a migration that is already pushed — add a new one.
+- **Migration timestamps run ahead of the calendar** (latest file `20261031190000` was written on 2026-10-31). A new migration must sort after the newest file in `supabase/migrations/`, so pick the next free timestamp by hand (e.g. `20261031200000_<name>.sql`) — `supabase migration new` uses the current time and would sort *before* existing files, and on any database that already has the later ones `supabase migration up` / `db push` refuse it unless run with `--include-all`. If both developers add migrations in parallel, check after pulling that the names are unique and the order is still what you intended; never rename or edit a migration that is already pushed — add a new one.
 - Build reusable components wherever a pattern repeats (the user asked explicitly).
 - After UI work: typecheck, tests, lint, build, then look at it in the browser (light + dark).
 - Keep German copy formal ("Sie"), specific ("what happened + what to do"), and consistent.
