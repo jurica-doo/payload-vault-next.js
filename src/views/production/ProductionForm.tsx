@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "../../components/select/Select";
 import { ModalActions } from "../../components/modal/ModalActions";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
@@ -101,7 +102,6 @@ export const ProductionForm = ({
     }
   };
 
-  const select = "ui-input";
 
   return (
     <form className="flex flex-col gap-4 pt-2" onSubmit={(e) => { e.preventDefault(); void submit(false); }}>
@@ -110,45 +110,40 @@ export const ProductionForm = ({
       )}
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
-          Sparte
-          <select className={select} value={category} onChange={(e) => chooseCategory(e.target.value)}>
-            {(rules?.conversion?.rows ?? []).map((r) => (
-              <option key={r.categoryCode} value={r.categoryCode}>
-                {r.nameDe}{r.formulaKind === "none" ? " (keine Punkte)" : ""}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select
+          label="Sparte"
+          value={category}
+          onChange={chooseCategory}
+          options={(rules?.conversion?.rows ?? []).map((r) => ({
+            value: r.categoryCode,
+            label: `${r.nameDe}${r.formulaKind === "none" ? " (keine Punkte)" : ""}`,
+          }))}
+          fullWidth
+        />
         <DateInput label="Produktionsdatum" value={date} max={berlinToday()} onChange={setDate} isRequired />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
         <CurrencyInput label="Beitrag" value={premium} onChange={setPremium} placeholder="100,00" isRequired />
-        <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
-          Rhythmus
-          <select
-            className={select}
-            value={period}
-            disabled={!!rule?.requiredPremiumPeriod}
-            onChange={(e) => setPeriod(e.target.value as ProductionInput["premiumPeriod"])}
-          >
-            {Object.entries(PERIOD_LABELS).map(([v, l]) => (
-              <option key={v} value={v}>{l}</option>
-            ))}
-          </select>
-        </label>
+        <Select
+          label="Rhythmus"
+          value={period}
+          isDisabled={!!rule?.requiredPremiumPeriod}
+          onChange={(v) => setPeriod(v as ProductionInput["premiumPeriod"])}
+          options={Object.entries(PERIOD_LABELS).map(([value, label]) => ({ value, label }))}
+          fullWidth
+        />
         {rule?.formulaKind === "lv_monthly_term" && (
           <DecimalInput label="Laufzeit" suffix="Jahre" value={term} onChange={setTerm} isRequired />
         )}
         {rule?.requiredNetGross && (
-          <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
-            Netto/Brutto
-            <select className={select} value={netOrGross ?? ""} onChange={(e) => setNetOrGross((e.target.value || null) as "net" | "gross" | null)}>
-              <option value="net">Netto (Jahresnettobeitrag)</option>
-              <option value="gross">Brutto</option>
-            </select>
-          </label>
+          <Select
+            label="Netto/Brutto"
+            value={netOrGross ?? ""}
+            onChange={(v) => setNetOrGross((v || null) as "net" | "gross" | null)}
+            options={[{ value: "net", label: "Netto (Jahresnettobeitrag)" }, { value: "gross", label: "Brutto" }]}
+            fullWidth
+          />
         )}
       </div>
 

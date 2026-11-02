@@ -5,6 +5,8 @@ export type BorderStyle = "default" | "left-flat" | "right-flat";
 export type Option = {
   id: string;
   label: string;
+  /** Listed but not selectable (greyed out, skipped by the keyboard). */
+  disabled?: boolean;
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
 };
 
@@ -21,8 +23,9 @@ export type DropdownProps = {
   error?: string;
   /** Compact 32 px trigger (e.g. the pagination size picker). */
   size?: "sm" | "md";
-  /** Open upwards when the dropdown sits at the bottom of a list or page. */
+  /** Side to try first; the list flips when there is no room there. */
   placement?: "bottom" | "top";
   /** Accessible name when there is no visible label. */
   ariaLabel?: string;
+  isDisabled?: boolean;
 };

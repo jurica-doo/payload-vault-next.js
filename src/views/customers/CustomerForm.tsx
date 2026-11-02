@@ -16,7 +16,7 @@ import {
 import { normalizeEmail, normalizePhone } from "../../domain/normalize";
 import { CHANNEL_LABEL } from "../../domain/leads";
 import { berlinToday } from "../../utils/format";
-import { Select } from "../leads/LeadForm";
+import { Select } from "../../components/select/Select";
 
 export const CUSTOMER_STATUS_LABEL: Record<string, string> = {
   prospect: "Interessent", active: "Aktiv", inactive: "Inaktiv", former: "Ehemalig",

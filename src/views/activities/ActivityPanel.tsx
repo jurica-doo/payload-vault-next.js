@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "../../components/select/Select";
 import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { Pagination } from "../../components/pagination/Pagination";
@@ -133,21 +134,23 @@ const ActivityForm = ({ filter }: { filter: ActivityFilter }) => {
       }
     }}>
       <div className="grid gap-3 sm:grid-cols-4">
-        <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
-          Art
-          <select value={type} onChange={(e) => setType(e.target.value as ActivityType)} className="ui-input">
-            {TYPES_FOR_FORM.map((t) => <option key={t} value={t}>{ACTIVITY_TYPE_LABEL[t]}</option>)}
-          </select>
-        </label>
+        <Select
+          label="Art"
+          value={type}
+          onChange={(v) => setType(v as ActivityType)}
+          options={TYPES_FOR_FORM.map((t) => ({ value: t, label: ACTIVITY_TYPE_LABEL[t] }))}
+          fullWidth
+        />
         <DateInput label={isAppointment ? "Termin am" : "Datum"} value={date} onChange={setDate} max={isAppointment ? undefined : berlinToday()} isRequired />
         <InputField label={isAppointment ? "Uhrzeit" : "Uhrzeit (optional)"} placeholder="14:30" value={time} onChange={setTime} isRequired={isAppointment} />
         {hasReach ? (
-          <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
-            Ergebnis
-            <select value={outcome} onChange={(e) => setOutcomeValue(e.target.value)} className="ui-input">
-              <option value="">–</option><option value="reached">erreicht</option><option value="not_reached">nicht erreicht</option>
-            </select>
-          </label>
+          <Select
+            label="Ergebnis"
+            value={outcome}
+            onChange={setOutcomeValue}
+            options={[{ value: "", label: "–" }, { value: "reached", label: "erreicht" }, { value: "not_reached", label: "nicht erreicht" }]}
+            fullWidth
+          />
         ) : <span />}
       </div>
       <TextArea label="Notiz" value={notes} onChange={setNotes} rows={2} />

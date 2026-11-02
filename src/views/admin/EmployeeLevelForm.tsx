@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "../../components/select/Select";
 import { errorText } from "../../utils/dbErrors";
 import { ModalActions } from "../../components/modal/ModalActions";
 import { useState } from "react";
@@ -55,18 +56,13 @@ export const EmployeeLevelForm = ({
           ? `Aktuelle Stufe: ${currentLevel}. Eine Änderung hier ist eine Korrektur und wird mit Begründung protokolliert. Beförderungen laufen über die Karriereprüfung.`
           : "Noch keine Stufe hinterlegt. Die Einstiegsstufe gilt ab dem Startdatum."}
       </p>
-      <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
-        Stufe
-        <select
-          className="ui-input"
-          value={level}
-          onChange={(e) => setLevel(e.target.value)}
-        >
-          {LEVEL_CODES.map((c) => (
-            <option key={c} value={c}>{c} – {LEVEL_NAMES[c]}</option>
-          ))}
-        </select>
-      </label>
+      <Select
+        label="Stufe"
+        value={level}
+        onChange={setLevel}
+        options={LEVEL_CODES.map((c) => ({ value: c, label: `${c} – ${LEVEL_NAMES[c]}` }))}
+        fullWidth
+      />
       <DateInput label="Gültig ab" value={from} min={startDate} onChange={setFrom} />
       <TextArea label="Begründung" value={reason} onChange={setReason} maxLength={500} isRequired error={error} />
       <ModalActions>

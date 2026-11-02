@@ -6,11 +6,11 @@ import {
   type ReactNode,
   useEffect,
   useId,
-  useLayoutEffect,
   useRef,
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { useAnchoredPosition } from "../popover/useAnchoredPosition";
 import { DotsIcon } from "../icons";
 import type { IconProps } from "../icons/Icon.types";
 
@@ -33,12 +33,6 @@ type ActionMenuProps = {
   align?: "left" | "right";
 };
 
-/** Gap between trigger and menu, and minimum distance to the viewport edge. */
-const GAP = 4;
-const EDGE = 8;
-
-type Position = { top: number; left?: number; right?: number; up: boolean };
-
 /**
  * Overflow menu for secondary row/card actions. Keeps tables and cards
  * calm: one visible primary action, the rest behind "⋯".
@@ -54,42 +48,13 @@ export const ActionMenu = ({
   align = "right",
 }: ActionMenuProps) => {
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<Position | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const menuId = useId();
   const visible = items.filter((i) => !i.hidden);
 
-  // Closed menus forget their place (render-time reset, no effect).
-  if (!open && pos) setPos(null);
-
-  // Measure after render (menu is invisible until placed), then keep it
-  // attached to the trigger on any scroll (capture: inner scroll boxes too).
-  useLayoutEffect(() => {
-    if (!open) return;
-    const place = () => {
-      const trigger = triggerRef.current?.getBoundingClientRect();
-      const menu = menuRef.current;
-      if (!trigger || !menu) return;
-      const height = menu.offsetHeight;
-      const below = window.innerHeight - trigger.bottom - GAP - EDGE;
-      const up = below < height && trigger.top - GAP - EDGE > below;
-      const top = up ? trigger.top - GAP - height : trigger.bottom + GAP;
-      setPos(
-        align === "right"
-          ? { top, right: Math.max(EDGE, window.innerWidth - trigger.right), up }
-          : { top, left: Math.max(EDGE, trigger.left), up },
-      );
-    };
-    place();
-    window.addEventListener("scroll", place, true);
-    window.addEventListener("resize", place);
-    return () => {
-      window.removeEventListener("scroll", place, true);
-      window.removeEventListener("resize", place);
-    };
-  }, [open, align]);
+  const pos = useAnchoredPosition(open, triggerRef, menuRef, { align });
 
   useEffect(() => {
     if (!open) return;

@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "../../components/select/Select";
 import { errorText } from "../../utils/dbErrors";
 import { ModalActions } from "../../components/modal/ModalActions";
 import { useState } from "react";
@@ -79,17 +80,13 @@ export const EmployeeCreateForm = ({
         <DateInput label="Startdatum" value={values.startDate} onChange={set("startDate")} error={errors.startDate} isRequired hint="Beginn des ersten Karrierejahres" />
         <InputField label="Telefon" placeholder="0170 1234567" value={values.phone} onChange={set("phone")} error={errors.phone} autoComplete="off" />
       </div>
-      <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
-        Beschäftigung
-        <select
-          className="ui-input"
-          value={values.employmentType}
-          onChange={(e) => set("employmentType")(e.target.value)}
-        >
-          <option value="full_time">Vollzeit</option>
-          <option value="part_time">Teilzeit</option>
-        </select>
-      </label>
+      <Select
+        label="Beschäftigung"
+        value={values.employmentType}
+        onChange={set("employmentType")}
+        options={[{ value: "full_time", label: "Vollzeit" }, { value: "part_time", label: "Teilzeit" }]}
+        fullWidth
+      />
 
       {errors.form && (
         <p role="alert" className="text-sm font-medium text-color-error-text">

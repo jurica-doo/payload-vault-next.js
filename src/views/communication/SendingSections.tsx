@@ -17,7 +17,7 @@ import { useModal } from "../../context/modal/ModalContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useEmailOps, useEmailTemplates } from "../../hooks/useEmail/useEmail";
 import { berlinToday, formatDate, formatDateTime } from "../../utils/format";
-import { Select } from "../leads/LeadForm";
+import { Select } from "../../components/select/Select";
 import { SEND_STATUS, SUPPRESSION_REASON, card } from "./emailLabels";
 
 const DAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];

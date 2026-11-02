@@ -14,7 +14,7 @@ import { useEmailTemplates, type EmailTemplate, type TemplateVersion } from "../
 import { MERGE_FIELDS, MERGE_FIELD_LABEL, SAMPLE_VALUES, checkTemplateText, renderTemplate } from "../../domain/emailTemplate";
 import { BASIS_LABEL } from "../../domain/consent";
 import { formatDateTime } from "../../utils/format";
-import { Select } from "../leads/LeadForm";
+import { Select } from "../../components/select/Select";
 import { TestSendButton } from "./SendingSections";
 import { card } from "./emailLabels";
 

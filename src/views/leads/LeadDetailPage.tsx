@@ -31,7 +31,7 @@ import {
 import { normalizeEmail, normalizePhone } from "../../domain/normalize";
 import { berlinLocalToUtcIso, formatDateTime } from "../../utils/format";
 import { ActivityPanel } from "../activities/ActivityPanel";
-import { Select } from "./LeadForm";
+import { Select } from "../../components/select/Select";
 import { ConvertLead } from "./ConvertLead";
 import { SLA_BADGE } from "./LeadsPage";
 

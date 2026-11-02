@@ -13,7 +13,7 @@ import { useModal } from "../../context/modal/ModalContext";
 import { useRules } from "../../hooks/useRules/useRules";
 import { useContracts, type ContractLink, type Customer } from "../../hooks/useCustomers/useCustomers";
 import { formatDate, formatDateTime } from "../../utils/format";
-import { Select } from "../leads/LeadForm";
+import { Select } from "../../components/select/Select";
 
 const card = cardClass;
 

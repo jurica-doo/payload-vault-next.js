@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "../../components/select/Select";
 import { errorText } from "../../utils/dbErrors";
 import { ChartBarIcon, PlusIcon } from "../../components/icons";
 import { ButtonLink } from "../../components/button/ButtonLink";
@@ -93,11 +94,15 @@ export const LeadsPage = () => {
       <div className="flex flex-col gap-2 sm:flex-row">
         <input type="search" aria-label="Suche" placeholder="Name, Firma, L-Nummer, Telefon" value={query} onChange={(e) => setQuery(e.target.value)}
           className="ui-input min-w-0 flex-1 sm:min-w-60" />
-        <select aria-label="Phase" value={stage} onChange={(e) => setStage(e.target.value)}
-          className="ui-input sm:w-56">
-          <option value="">Alle Phasen</option>
-          {(config?.stages ?? []).map((s) => <option key={s.code} value={s.code}>{s.name_de}</option>)}
-        </select>
+        <div className="sm:w-56">
+          <Select
+            ariaLabel="Phase"
+            value={stage}
+            onChange={setStage}
+            options={[{ value: "", label: "Alle Phasen" }, ...(config?.stages ?? []).map((s) => ({ value: s.code, label: s.name_de }))]}
+            fullWidth
+          />
+        </div>
       </div>
       <DataTable
         rows={rows}

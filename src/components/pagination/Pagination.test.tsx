@@ -58,7 +58,7 @@ describe("Pagination", () => {
     expect(screen.getByText("26–50 von 60")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Weiter" }));
     expect(onPageChange).toHaveBeenCalledWith(3);
-    fireEvent.click(screen.getByRole("button", { name: "Einträge pro Seite: 25" }));
+    fireEvent.click(screen.getByRole("combobox", { name: "Einträge pro Seite: 25" }));
     expect(screen.getByRole("option", { name: "25" })).toHaveAttribute("aria-selected", "true");
     fireEvent.click(screen.getByRole("option", { name: "100" }));
     expect(onPageSizeChange).toHaveBeenCalledWith(100);

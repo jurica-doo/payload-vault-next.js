@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { parseRules } from "../../domain/rules";
 import { SEEDED_RULES_PAYLOAD } from "../../domain/__fixtures__/seededRules";
+import { selectOption } from "../../components/select/selectOption.testutil";
 
 const rules = parseRules(SEEDED_RULES_PAYLOAD);
 vi.mock("../../hooks/useRules/useRules", () => ({ useRules: () => ({ data: rules, isLoading: false }) }));
@@ -27,9 +28,9 @@ describe("ProductionForm", () => {
   it("shows the net/gross choice only for Sach and explains a gross premium", () => {
     renderForm();
     expect(screen.queryByLabelText(/Netto\/Brutto/)).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText(/Sparte/), { target: { value: "SACH" } });
+    selectOption(/Sparte/, "Sachversicherung");
     fireEvent.change(screen.getByLabelText(/Beitrag/), { target: { value: "1000" } });
-    fireEvent.change(screen.getByLabelText(/Netto\/Brutto/), { target: { value: "gross" } });
+    selectOption(/Netto\/Brutto/, "Brutto");
     expect(screen.getByText(/Jahresnettobeitrag benötigt/)).toBeInTheDocument();
   });
 
@@ -42,7 +43,7 @@ describe("ProductionForm", () => {
 
   it("refuses to submit a non-number and sends a normalised decimal otherwise", async () => {
     const onSubmit = renderForm();
-    fireEvent.change(screen.getByLabelText(/Sparte/), { target: { value: "KV" } });
+    selectOption(/Sparte/, "Krankenversicherung");
     fireEvent.change(screen.getByLabelText(/Beitrag/), { target: { value: "1,2,3" } });
     fireEvent.click(screen.getByRole("button", { name: "Als Entwurf speichern" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("als Zahl");

@@ -12,7 +12,7 @@ import {
   BASIS_LABEL, PURPOSE_LABEL, REASON_LABEL, SOURCE_LABEL, currentState, mayContact, type ConsentEvent,
 } from "../../domain/consent";
 import { berlinLocalToUtcIso, berlinToday, formatDate, formatDateTime } from "../../utils/format";
-import { Select } from "../leads/LeadForm";
+import { Select } from "../../components/select/Select";
 
 const card = cardClass;
 

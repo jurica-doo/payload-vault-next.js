@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "../../components/select/Select";
 import { errorText } from "../../utils/dbErrors";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -15,20 +16,6 @@ import { findLeadDuplicates, leadNo, useLeadConfig, useLeadMutations, type Dupli
 import { normalizeEmail, normalizePhone } from "../../domain/normalize";
 import { CHANNEL_LABEL, CONSENT_LABEL } from "../../domain/leads";
 import { berlinLocalToUtcIso, berlinToday } from "../../utils/format";
-
-const selectClass = "ui-input";
-
-/** Shared select markup for small option lists. */
-export const Select = ({ label, value, onChange, options }: {
-  label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[];
-}) => (
-  <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
-    {label}
-    <select value={value} onChange={(e) => onChange(e.target.value)} className={selectClass}>
-      {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-    </select>
-  </label>
-);
 
 /**
  * Lead intake (§9.1, §9.3, §9.5). Before saving, the form asks the database

@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "../../components/select/Select";
 import { useErrorToast } from "../../hooks/useErrorToast";
 import { errorText } from "../../utils/dbErrors";
 import { ActivityIcon, PlusIcon } from "../../components/icons";
@@ -187,12 +188,13 @@ const TaskForm = ({ onDone }: { onDone: () => void }) => {
       {permissions.isLeader && people.length > 1 && <EmployeePicker label="Zuständig" employees={people} value={owner} onChange={setOwner} />}
       <div className="grid gap-3 sm:grid-cols-2">
         <DateInput label="Fällig am" value={due} onChange={setDue} />
-        <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
-          Priorität
-          <select value={prio} onChange={(e) => setPrio(e.target.value)} className="ui-input">
-            <option value="low">niedrig</option><option value="normal">normal</option><option value="high">hoch</option>
-          </select>
-        </label>
+        <Select
+          label="Priorität"
+          value={prio}
+          onChange={setPrio}
+          options={[{ value: "low", label: "niedrig" }, { value: "normal", label: "normal" }, { value: "high", label: "hoch" }]}
+          fullWidth
+        />
       </div>
       <TextArea label="Beschreibung" value={description} onChange={setDescription} rows={3} />
       <div><Button type="submit" text="Speichern" isLoading={create.isPending} isDisabled={title.trim().length < 3} /></div>

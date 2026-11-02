@@ -13,7 +13,7 @@ import { useStructure } from "../../hooks/useStructure/useStructure";
 import { useContracts, useServiceItems, type Customer } from "../../hooks/useCustomers/useCustomers";
 import { nextAnniversary } from "../../domain/serviceDates";
 import { berlinToday, formatDate } from "../../utils/format";
-import { Select } from "../leads/LeadForm";
+import { Select } from "../../components/select/Select";
 
 const card = cardClass;
 

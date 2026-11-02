@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { Select } from "../../components/select/Select";
 import type { PdfRecord } from "../../hooks/usePdf/types";
 import type { IncomeGoal } from "../../hooks/useAnalytics/types";
 import { getMonthlyIncomeTotals } from "../../hooks/useAnalytics/forecastUtils";
@@ -175,23 +176,19 @@ export const IncomeGoalTracking = ({
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               {goalType === "monthly" && (
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                  className="flex-1 bg-color-bg-card border border-color-border-light rounded-radius-md px-3 py-2 text-sm
-                    text-color-text-main focus:outline-none focus:border-color-primary"
-                >
-                  {MONTH_FULL_NAMES.map((name, idx) => (
-                    <option
-                      key={idx}
-                      value={idx + 1}
-                      disabled={usedMonths.has(idx + 1)}
-                    >
-                      {name}{" "}
-                      {usedMonths.has(idx + 1) ? "(bereits gesetzt)" : ""}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex-1">
+                  <Select
+                    ariaLabel="Monat"
+                    value={String(selectedMonth)}
+                    onChange={(v) => setSelectedMonth(Number(v))}
+                    options={MONTH_FULL_NAMES.map((name, idx) => ({
+                      value: String(idx + 1),
+                      label: usedMonths.has(idx + 1) ? `${name} (bereits gesetzt)` : name,
+                      disabled: usedMonths.has(idx + 1),
+                    }))}
+                    fullWidth
+                  />
+                </div>
               )}
               <div className="flex flex-col gap-1">
                 <div className="flex gap-2">

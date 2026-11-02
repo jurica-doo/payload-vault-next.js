@@ -19,7 +19,7 @@ import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useAutoAssign, useLeadAdmin, useLeadConfig, useLeadSourceCosts, type LeadConfig } from "../../hooks/useLeads/useLeads";
 import { REQUIRED_FIELD_LABEL } from "../../domain/leads";
 import { berlinToday, formatDate, formatMoney } from "../../utils/format";
-import { Select } from "../leads/LeadForm";
+import { Select } from "../../components/select/Select";
 
 const card = cardClass;
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];

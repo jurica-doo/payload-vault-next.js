@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { Select } from "../../components/select/Select";
 import type {
   ExpenseRecord,
   ExpenseCategory,
@@ -135,20 +136,16 @@ export const BudgetTargets = ({
       {showAddForm && (
         <div className="bg-color-bg-main rounded-radius-md p-4 mb-4 border border-color-border-light animate-fade-in">
           <div className="flex flex-col sm:flex-row gap-3">
-            <select
-              value={newCategory}
-              onChange={(e) =>
-                setNewCategory(e.target.value as ExpenseCategory)
-              }
-              className="flex-1 bg-color-bg-card border border-color-border-light rounded-radius-md px-3 py-2 text-sm
-                text-color-text-main focus:outline-none focus:border-color-primary"
-            >
-              {unusedCategories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+            <div className="flex-1">
+              <Select
+                ariaLabel="Kategorie"
+                value={newCategory}
+                onChange={(v) => setNewCategory(v as ExpenseCategory)}
+                options={unusedCategories.map((c) => ({ value: c, label: c }))}
+                isSearchEnabled={unusedCategories.length > 8}
+                fullWidth
+              />
+            </div>
             <div className="flex flex-col gap-1">
               <div className="flex gap-2">
                 <input

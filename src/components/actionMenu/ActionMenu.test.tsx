@@ -4,7 +4,7 @@ import { ActionMenu } from "./ActionMenu";
 
 /** jsdom has no layout: place the trigger and give the menu a height. */
 function layout(triggerTop: number, menuHeight = 120) {
-  vi.spyOn(HTMLElement.prototype, "offsetHeight", "get").mockReturnValue(menuHeight);
+  vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(menuHeight);
   vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockReturnValue({
     top: triggerTop, bottom: triggerTop + 32, left: 900, right: 932, width: 32, height: 32, x: 900, y: triggerTop,
     toJSON: () => ({}),

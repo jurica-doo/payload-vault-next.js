@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "../select/Select";
 import { SegmentedToggle } from "../segmentedToggle/SegmentedToggle";
 import { DateInput } from "../formFields/FormFields";
 import { formatDate } from "../../utils/format";
@@ -67,8 +68,6 @@ export const PeriodSelector = ({
   ];
   const fallbackYear = years[0] ?? new Date().getFullYear();
   const currentYear = "year" in value ? value.year : fallbackYear;
-  const select =
-    "ui-input w-auto";
 
   const switchKind = (kind: Period["kind"]) => {
     if (kind === "month") onChange({ kind, year: currentYear, month: 1 });
@@ -85,46 +84,31 @@ export const PeriodSelector = ({
 
       <div className="flex flex-wrap items-end gap-2">
         {(value.kind === "month" || value.kind === "year") && (
-          <select
-            aria-label="Jahr"
-            className={select}
-            value={value.year}
-            onChange={(e) => onChange({ ...value, year: Number(e.target.value) })}
-          >
-            {years.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
+          <Select
+            ariaLabel="Jahr"
+            value={String(value.year)}
+            onChange={(v) => onChange({ ...value, year: Number(v) })}
+            options={years.map((y) => ({ value: String(y), label: String(y) }))}
+          />
         )}
         {value.kind === "month" && (
-          <select
-            aria-label="Monat"
-            className={select}
-            value={value.month}
-            onChange={(e) => onChange({ ...value, month: Number(e.target.value) })}
-          >
-            {MONTHS.map((m, i) => (
-              <option key={m} value={i + 1}>
-                {m}
-              </option>
-            ))}
-          </select>
+          <Select
+            ariaLabel="Monat"
+            value={String(value.month)}
+            onChange={(v) => onChange({ ...value, month: Number(v) })}
+            options={MONTHS.map((m, i) => ({ value: String(i + 1), label: m }))}
+          />
         )}
         {value.kind === "career" && (
-          <select
-            aria-label="Karriereperiode"
-            className={select}
+          <Select
+            ariaLabel="Karriereperiode"
             value={value.periodId}
-            onChange={(e) => onChange({ kind: "career", periodId: e.target.value })}
-          >
-            {careerPeriods.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label} ({formatDate(p.start)} – {formatDate(p.end)})
-              </option>
-            ))}
-          </select>
+            onChange={(periodId) => onChange({ kind: "career", periodId })}
+            options={careerPeriods.map((p) => ({
+              value: p.id,
+              label: `${p.label} (${formatDate(p.start)} – ${formatDate(p.end)})`,
+            }))}
+          />
         )}
         {value.kind === "range" && (
           <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2">

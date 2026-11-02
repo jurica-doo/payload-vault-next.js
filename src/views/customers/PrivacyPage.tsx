@@ -21,7 +21,7 @@ import { useConsentReport } from "../../hooks/useCustomers/useCustomers";
 import { usePrivacy, type PrivacyRequest } from "../../hooks/usePrivacy/usePrivacy";
 import { PURPOSE_LABEL } from "../../domain/consent";
 import { berlinLocalToUtcIso, berlinToday, formatDate, formatDateTime } from "../../utils/format";
-import { Select } from "../leads/LeadForm";
+import { Select } from "../../components/select/Select";
 
 const card = cardClass;
 const KIND_LABEL: Record<string, string> = { access: "Auskunft", rectification: "Berichtigung", erasure: "Löschung", objection: "Widerspruch" };
