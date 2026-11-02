@@ -1,7 +1,7 @@
 import { GENERIC_ERROR, UserFacingError } from "../../utils/dbErrors";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { CurrencyInput, parseGermanDecimal } from "./FormFields";
+import { CurrencyInput, DecimalInput, parseGermanDecimal, sanitizeDecimal } from "./FormFields";
 import { ReasonConfirmForm } from "../reasonConfirm/ReasonConfirmForm";
 
 describe("parseGermanDecimal", () => {
@@ -39,6 +39,32 @@ describe("CurrencyInput", () => {
     render(<CurrencyInput label="Beitrag" value="x" onChange={() => {}} error="Keine Zahl" />);
     expect(screen.getByLabelText("Beitrag")).toHaveAttribute("aria-invalid", "true");
     expect(screen.getByText("Keine Zahl")).toBeInTheDocument();
+  });
+});
+
+describe("DecimalInput", () => {
+  it.each([
+    ["fewfe", ""],
+    ["12a", "12"],
+    ["1 234,56 €", "1234,56"],
+    ["-5", "-5"],
+    ["5-3", "53"],
+    ["1.234,5", "1.234,5"],
+  ])("keeps only number characters: %j → %j", (input, expected) => {
+    expect(sanitizeDecimal(input)).toBe(expected);
+  });
+
+  it("drops letters while typing", () => {
+    const onChange = vi.fn();
+    render(<DecimalInput label="Laufzeit" suffix="Jahre" value="" onChange={onChange} />);
+    fireEvent.change(screen.getByLabelText("Laufzeit"), { target: { value: "25x" } });
+    expect(onChange).toHaveBeenCalledWith("25");
+  });
+
+  it("reserves room for a long suffix so text never runs under it", () => {
+    render(<DecimalInput label="Laufzeit" suffix="Jahre" value="25" onChange={() => {}} />);
+    expect(screen.getByLabelText("Laufzeit").getAttribute("style")).toContain("5ch");
+    expect(screen.getByText("Jahre")).toBeInTheDocument();
   });
 });
 

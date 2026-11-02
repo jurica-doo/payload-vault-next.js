@@ -43,7 +43,7 @@ describe("ProductionForm", () => {
   it("refuses to submit a non-number and sends a normalised decimal otherwise", async () => {
     const onSubmit = renderForm();
     fireEvent.change(screen.getByLabelText(/Sparte/), { target: { value: "KV" } });
-    fireEvent.change(screen.getByLabelText(/Beitrag/), { target: { value: "sieben" } });
+    fireEvent.change(screen.getByLabelText(/Beitrag/), { target: { value: "1,2,3" } });
     fireEvent.click(screen.getByRole("button", { name: "Als Entwurf speichern" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("als Zahl");
     expect(onSubmit).not.toHaveBeenCalled();

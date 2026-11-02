@@ -127,10 +127,16 @@ export const DateInput = ({
 // Moved to utils so domain code can use it without importing a component.
 export { parseGermanDecimal } from "../../utils/format";
 
+/** Keeps only what parseGermanDecimal understands: digits, "." "," and a leading "-". */
+export const sanitizeDecimal = (text: string) =>
+  text.replace(/[^\d.,-]/g, "").replace(/(?!^)-/g, "");
+
 /**
  * Decimal input that keeps the user's text and reports the parsed value.
  * `inputMode="decimal"` brings up the right keyboard on phones; we don't use
- * type="number" because browsers reject the German comma there.
+ * type="number" because browsers reject the German comma there. Letters are
+ * dropped while typing or pasting ("1 234,56 €" becomes "1234,56"). The unit
+ * suffix gets as much room as it needs, so typed text never runs under it.
  */
 export const DecimalInput = ({
   label,
@@ -159,11 +165,12 @@ export const DecimalInput = ({
           aria-invalid={Boolean(error)}
           aria-describedby={describedBy}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={`${getInputStyles("full", "text", Boolean(error), isReadOnly)} w-full ${suffix ? "pr-12 sm:pr-12" : ""} text-right tabular-nums`}
+          onChange={(e) => onChange(sanitizeDecimal(e.target.value))}
+          style={suffix ? { paddingRight: `calc(1.5rem + ${suffix.length}ch)` } : undefined}
+          className={`${getInputStyles("full", "text", Boolean(error), isReadOnly)} w-full text-right tabular-nums`}
         />
         {suffix && (
-          <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-color-text-subtle">
+          <span className="pointer-events-none absolute inset-y-0 right-3.5 flex items-center text-color-text-subtle">
             {suffix}
           </span>
         )}

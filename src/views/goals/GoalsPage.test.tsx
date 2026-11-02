@@ -42,7 +42,7 @@ describe("GoalsPage", () => {
 
   it("refuses non-numbers before saving", async () => {
     render(<GoalsPage />);
-    fireEvent.change(screen.getByLabelText("Punkte"), { target: { value: "zwanzig" } });
+    fireEvent.change(screen.getByLabelText("Punkte"), { target: { value: "1,2,3" } });
     fireEvent.click(screen.getByRole("button", { name: "Entwurf speichern" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("„Punkte“ ist keine Zahl.");
     expect(m.mutateAsync).not.toHaveBeenCalled();
