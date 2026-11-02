@@ -4,9 +4,11 @@ import * as CookieConsent from "vanilla-cookieconsent";
 export function setupCookieConsent() {
   CookieConsent.run({
     guiOptions: {
+      // Small card in the corner instead of a full-width bar: it informs,
+      // it does not block (only necessary cookies, nothing to choose).
       consentModal: {
-        layout: "bar inline",
-        position: "bottom",
+        layout: "box inline",
+        position: "bottom right",
         equalWeightButtons: true,
         flipButtons: false,
       },
@@ -35,7 +37,7 @@ export function setupCookieConsent() {
             acceptAllBtn: "Verstanden",
             showPreferencesBtn: "Details anzeigen",
             footer:
-              '<a href="/datenschutz">Datenschutzerklärung</a> · <a href="/impressum">Impressum</a>',
+              '<a href="/datenschutz">Datenschutzerklärung</a><a href="/impressum">Impressum</a>',
           },
           preferencesModal: {
             title: "Cookie-Einstellungen",

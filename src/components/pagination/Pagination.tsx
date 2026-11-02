@@ -1,10 +1,13 @@
 "use client";
 
-import { useId, useRef } from "react";
+import { useRef } from "react";
+import { Dropdown } from "../dropdown/Dropdown";
 import { ChevronLeftIcon, ChevronRightIcon } from "../icons";
 import { PAGE_SIZES, SCROLL_OFFSET_PX } from "./Pagination.const";
 import type { PaginationProps } from "./Pagination.types";
 import { pageCount } from "./usePagination";
+
+const SIZE_OPTIONS = PAGE_SIZES.map((n) => ({ id: String(n), label: String(n) }));
 
 const btn =
   "inline-flex h-8 items-center gap-1 rounded-radius-md border border-color-border-strong bg-color-bg-card px-2.5 text-sm font-medium text-color-text-main transition-[background-color,scale,opacity] duration-150 enabled:cursor-pointer enabled:hover:bg-color-bg-hover enabled:active:scale-[0.97] disabled:opacity-40";
@@ -16,7 +19,6 @@ const btn =
  */
 export const Pagination = ({ page, pageSize, total, onPageChange, onPageSizeChange }: PaginationProps) => {
   const ref = useRef<HTMLElement>(null);
-  const sizeId = useId();
   if (total <= Math.min(pageSize, PAGE_SIZES[0])) return null;
 
   const pages = pageCount(total, pageSize);
@@ -47,25 +49,23 @@ export const Pagination = ({ page, pageSize, total, onPageChange, onPageSizeChan
         </span>
         {onPageSizeChange && (
           <span className="flex items-center gap-2">
-            <label htmlFor={sizeId} className="hidden sm:inline">
+            <span aria-hidden className="hidden sm:inline">
               Pro Seite
-            </label>
-            <select
-              id={sizeId}
-              aria-label="Einträge pro Seite"
-              value={pageSize}
-              onChange={(e) => {
-                onPageSizeChange(Number(e.target.value));
-                requestAnimationFrame(keepInView);
-              }}
-              className="h-8 w-auto rounded-radius-md border border-color-border-strong bg-color-bg-card py-0 pl-2 pr-7 text-sm text-color-text-main"
-            >
-              {PAGE_SIZES.map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
+            </span>
+            {/* Opens upwards: the pager sits at the bottom of its list. */}
+            <div className="w-[4.75rem]">
+              <Dropdown
+                size="sm"
+                placement="top"
+                ariaLabel={`Einträge pro Seite: ${pageSize}`}
+                options={SIZE_OPTIONS}
+                value={SIZE_OPTIONS.find((o) => o.id === String(pageSize)) ?? null}
+                onSelect={(o) => {
+                  onPageSizeChange(Number(o.id));
+                  requestAnimationFrame(keepInView);
+                }}
+              />
+            </div>
           </span>
         )}
       </div>

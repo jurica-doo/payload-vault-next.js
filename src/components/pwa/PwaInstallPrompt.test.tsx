@@ -87,4 +87,19 @@ describe("PwaInstallPrompt", () => {
     act(() => vi.advanceTimersByTime(5000));
     expect(title()).not.toBeInTheDocument();
   });
+
+  it("waits until the cookie notice is answered", () => {
+    document.documentElement.classList.add("show--consent");
+    render(<PwaInstallPrompt />);
+    offerInstall();
+    act(() => vi.advanceTimersByTime(5000));
+    expect(title()).not.toBeInTheDocument();
+
+    document.documentElement.classList.remove("show--consent");
+    act(() => {
+      window.dispatchEvent(new Event("cc:onConsent"));
+    });
+    act(() => vi.advanceTimersByTime(1500));
+    expect(title()).toBeInTheDocument();
+  });
 });

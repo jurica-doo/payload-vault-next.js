@@ -290,6 +290,20 @@ button {
 }
 
 @layer base {
+  /* Scroll boxes inside the page (notifications, sidebar, dropdown lists,
+     modal bodies, wide tables) keep the wheel/touch scroll to themselves:
+     reaching their end must not start scrolling the page behind them.
+     Sideways boxes also stop the browser's swipe-back gesture at the edge. */
+  .overflow-auto,
+  .overflow-y-auto,
+  .overflow-y-scroll {
+    overscroll-behavior-y: contain;
+  }
+  .overflow-auto,
+  .overflow-x-auto {
+    overscroll-behavior-x: contain;
+  }
+
   html {
     /* Locking body scroll (drawer, modals) must not shift the page sideways
        on systems with classic scrollbars (Windows, Linux). */

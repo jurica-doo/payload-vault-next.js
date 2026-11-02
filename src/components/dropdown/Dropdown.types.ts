@@ -19,4 +19,10 @@ export type DropdownProps = {
   isSearchEnabled?: boolean;
   variant?: BorderStyle;
   error?: string;
+  /** Compact 32 px trigger (e.g. the pagination size picker). */
+  size?: "sm" | "md";
+  /** Open upwards when the dropdown sits at the bottom of a list or page. */
+  placement?: "bottom" | "top";
+  /** Accessible name when there is no visible label. */
+  ariaLabel?: string;
 };

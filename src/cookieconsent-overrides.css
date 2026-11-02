@@ -73,3 +73,39 @@
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-strong);
 }
+
+/* Consent card (layout "box inline", bottom right): compact like the app's
+   other floating notices (install prompt, toasts). */
+#cc-main .cm--box {
+  max-width: 24rem;
+  border: 1px solid var(--color-border-light);
+}
+
+#cc-main .cm--box .cm__body {
+  padding-top: 0.25rem;
+}
+
+#cc-main .cm--box .cm__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+#cc-main .cm--box .cm__desc {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--color-text-subtle);
+}
+
+#cc-main .cm--box .cm__btn {
+  min-height: 2.5rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+#cc-main .cm--box .cm__footer {
+  font-size: 0.75rem;
+}
+
+#cc-main .cm__links {
+  gap: 1.25rem;
+}

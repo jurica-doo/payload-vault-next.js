@@ -8,6 +8,9 @@ interface DropdownListProps {
   isSearchEnabled: boolean;
   onSelect: (item: Option) => void;
   isClosing?: boolean;
+  selectedId?: string;
+  placement?: "bottom" | "top";
+  size?: "sm" | "md";
 }
 
 export const DropdownList = ({
@@ -15,6 +18,9 @@ export const DropdownList = ({
   isSearchEnabled,
   onSelect,
   isClosing = false,
+  selectedId,
+  placement = "bottom",
+  size = "md",
 }: DropdownListProps) => {
   const [search, setSearch] = useState("");
 
@@ -30,7 +36,11 @@ export const DropdownList = ({
   return (
     <div
       role="listbox"
-      className={`absolute z-60 mt-1.5 w-full min-w-40 overflow-hidden rounded-radius-lg bg-color-surface-raised p-1 shadow-shadow-strong ring-1 ring-color-border-light ${isClosing ? "animate-slide-up-out" : "animate-slide-down"}`}
+      className={`absolute z-60 w-full ${size === "sm" ? "min-w-full" : "min-w-40"} overflow-hidden rounded-radius-lg bg-color-surface-raised p-1 shadow-shadow-strong ring-1 ring-color-border-light ${
+        placement === "top"
+          ? `bottom-full mb-1.5 ${isClosing ? "animate-fade-out" : "animate-slide-up"}`
+          : `mt-1.5 ${isClosing ? "animate-slide-up-out" : "animate-slide-down"}`
+      }`}
     >
       {isSearchEnabled && (
         <div className="p-1.5 pb-2">
@@ -49,6 +59,7 @@ export const DropdownList = ({
           <DropdownItem
             key={option.id}
             option={option}
+            isSelected={option.id === selectedId}
             onClick={handleSelectItem}
           />
         ))}

@@ -94,10 +94,17 @@ export const PwaInstallPrompt = () => {
 
   const sessionId = user ? `${user.id}:${user.last_sign_in_at ?? ""}` : null;
   const canInstall = deferred !== null || isIos();
+  const [consentAnswered, setConsentAnswered] = useState(0);
 
   useEffect(() => {
     if (!sessionId || !canInstall || isStandalone() || dismissedRecently()) return;
     if (readKey(SHOWN_KEY) === sessionId) return;
+    // The cookie card uses the same corner: wait until it is answered.
+    if (document.documentElement.classList.contains("show--consent")) {
+      const onConsent = () => setConsentAnswered((n) => n + 1);
+      window.addEventListener("cc:onConsent", onConsent, { once: true });
+      return () => window.removeEventListener("cc:onConsent", onConsent);
+    }
     const t = setTimeout(() => {
       // Counted as shown right away: a reload during the 10 s does not repeat it.
       writeKey(SHOWN_KEY, sessionId);
@@ -105,7 +112,7 @@ export const PwaInstallPrompt = () => {
       setPhase("visible");
     }, SHOW_DELAY_MS);
     return () => clearTimeout(t);
-  }, [sessionId, canInstall]);
+  }, [sessionId, canInstall, consentAnswered]);
 
   // Auto-dismiss; the remaining time survives pauses (hover/focus).
   useEffect(() => {

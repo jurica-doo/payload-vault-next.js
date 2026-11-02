@@ -22,6 +22,9 @@ export const Dropdown = ({
   isSearchEnabled = false,
   variant = "default",
   error,
+  size = "md",
+  placement = "bottom",
+  ariaLabel,
 }: DropdownProps) => {
   const id = useId();
   const [isOpen, setIsOpen] = useState(false);
@@ -65,9 +68,15 @@ export const Dropdown = ({
       }
     };
 
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") animateClose();
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     };
   }, [isOpen, isClosing]);
 
@@ -93,9 +102,10 @@ export const Dropdown = ({
           onClick={handleToggle}
           aria-haspopup="listbox"
           aria-expanded={isOpen && !isClosing}
+          aria-label={ariaLabel}
           className={`
-            flex h-10 w-full cursor-pointer items-center justify-between gap-2
-            px-3
+            flex w-full cursor-pointer items-center justify-between gap-2
+            ${size === "sm" ? "h-8 px-2.5" : "h-10 px-3"}
             ${radiusVariants[variant]}
             transition-[border-color,box-shadow,background-color] duration-150 ease-out
             ${isOpen && !isClosing ? "border-color-primary! shadow-[0_0_0_3px_var(--color-focus-ring)]" : ""}
@@ -132,6 +142,9 @@ export const Dropdown = ({
             isSearchEnabled={isSearchEnabled}
             onSelect={handleSelect}
             isClosing={isClosing}
+            selectedId={value?.id}
+            placement={placement}
+            size={size}
           />
         )}
       </div>
