@@ -1,5 +1,6 @@
 "use client";
 
+import { EmployeePicker } from "../../components/employeePicker/EmployeePicker";
 import { errorText } from "../../utils/dbErrors";
 import { PlusIcon, UploadIcon } from "../../components/icons";
 import { ButtonLink } from "../../components/button/ButtonLink";
@@ -41,7 +42,9 @@ export const ProductionPage = () => {
   const { showBanner } = useBanner();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = usePageSize();
-  const { data, isLoading, error, save, submit, removeDraft, markEligible, cancel } = useProduction(page, pageSize);
+  // null = everyone the caller may see.
+  const [producer, setProducer] = useState<string | null>(null);
+  const { data, isLoading, error, save, submit, removeDraft, markEligible, cancel } = useProduction(page, pageSize, producer);
   const { data: structure } = useStructure();
 
   const isApprover = (permissions.isAdmin || permissions.isFinance) && permissions.hasMfa;
@@ -129,6 +132,20 @@ export const ProductionPage = () => {
         <p className="text-sm text-color-text-subtle">
           Punkte zählen, sobald ein Eintrag als anrechenbar bestätigt ist.
         </p>
+        {showProducer && pickable.length > 1 && (
+          <div className="w-full sm:w-80">
+            <EmployeePicker
+              ariaLabel="Nach Person filtern"
+              employees={pickable}
+              value={producer}
+              noneLabel="Alle Personen"
+              onChange={(id) => {
+                setProducer(id);
+                setPage(1);
+              }}
+            />
+          </div>
+        )}
         <PageActions>
           {permissions.isAdmin && (
             <ButtonLink href="/vertrieb/produktion/import" text="CSV-Import" icon={UploadIcon} />
@@ -143,7 +160,7 @@ export const ProductionPage = () => {
         caption="Produktion"
         isLoading={isLoading}
         error={error ? errorText(error) : null}
-        emptyMessage="Noch keine Produktion erfasst"
+        emptyMessage={producer ? "Keine Produktion für diese Person" : "Noch keine Produktion erfasst"}
         onRowClick={openDetails}
         pagination={
           data

@@ -84,4 +84,20 @@ describe("Dropdown", () => {
     expect(onDocumentEscape).not.toHaveBeenCalled();
     document.removeEventListener("keydown", onDocumentEscape);
   });
+
+  it("lets the user scroll a long list without jumping back to the selection", () => {
+    layout(100);
+    const scrollIntoView = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoView;
+    const { field } = renderSelect("GAS");
+    fireEvent.click(field);
+    expect(scrollIntoView).toHaveBeenCalledTimes(1); // opening shows the selection
+
+    fireEvent.scroll(screen.getByRole("listbox"));
+    fireEvent.scroll(window);
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+
+    fireEvent.keyDown(field, { key: "ArrowUp" }); // keyboard still follows
+    expect(scrollIntoView).toHaveBeenCalledTimes(2);
+  });
 });

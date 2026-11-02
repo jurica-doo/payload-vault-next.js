@@ -195,10 +195,13 @@ export const Dropdown = ({
     if (placed && isSearchEnabled) searchRef.current?.focus({ preventScroll: true });
   }, [placed, isSearchEnabled]);
 
+  // Keep the highlighted option visible when it changes (keyboard, opening),
+  // not on every render: that would undo the user's own scrolling.
   useEffect(() => {
     if (!expanded) return;
     document.getElementById(optionId(active))?.scrollIntoView?.({ block: "nearest" });
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- optionId is derived from a stable id
+  }, [expanded, active]);
 
   const MainIcon: ComponentType<SVGProps<SVGSVGElement>> | undefined = customIcon ?? value?.icon;
   const isPlaceholderActive = !value && !!placeholder;

@@ -72,11 +72,16 @@ export function useAnchoredPosition(
             },
       );
     };
+    // Scrolling inside the panel itself (a long list) does not move it.
+    const onScroll = (e: Event) => {
+      if (e.target instanceof Node && panelRef.current?.contains(e.target)) return;
+      place();
+    };
     place();
-    window.addEventListener("scroll", place, true);
+    window.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", place);
     return () => {
-      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("scroll", onScroll, true);
       window.removeEventListener("resize", place);
     };
   }, [open, prefer, align, matchWidth, minWidth, triggerRef, panelRef]);

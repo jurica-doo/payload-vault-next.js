@@ -25,18 +25,22 @@ const listKey = ["production"] as const;
 // Matches the API's max_rows (supabase/config.toml).
 const IMPORT_ROWS_PAGE = 1000;
 
-/** Production the caller may see (own + structure, RLS), newest first. */
-export function useProduction(page: number, pageSize: number) {
+/**
+ * Production the caller may see (own + structure, RLS), newest first, one
+ * page at a time. `producerId` narrows it to one person (server-side, so the
+ * total and the pages refer to that person only).
+ */
+export function useProduction(page: number, pageSize: number, producerId: string | null = null) {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: [...listKey, page, pageSize],
+    queryKey: [...listKey, page, pageSize, producerId],
     placeholderData: keepPreviousData,
     queryFn: async () => {
       const from = (page - 1) * pageSize;
-      const { data, error, count } = await supabase
-        .from("v_production")
-        .select("*", { count: "exact" })
+      let q = supabase.from("v_production").select("*", { count: "exact" });
+      if (producerId) q = q.eq("producer_id", producerId);
+      const { data, error, count } = await q
         .order("production_date", { ascending: false })
         .order("created_at", { ascending: false })
         .range(from, from + pageSize - 1);

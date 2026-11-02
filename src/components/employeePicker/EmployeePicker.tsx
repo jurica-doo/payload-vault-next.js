@@ -28,6 +28,7 @@ export const EmployeePicker = ({
   excludeIds = [],
   error,
   isRequired,
+  ariaLabel,
 }: {
   employees: PickableEmployee[];
   /** undefined = nothing chosen yet; null = the explicit "none" option. */
@@ -40,6 +41,8 @@ export const EmployeePicker = ({
   excludeIds?: string[];
   error?: string;
   isRequired?: boolean;
+  /** Accessible name when there is no visible label (e.g. a list filter). */
+  ariaLabel?: string;
 }) => {
   const options: Option[] = [
     ...(noneLabel ? [{ id: NO_EMPLOYEE_ID, label: noneLabel }] : []),
@@ -68,6 +71,7 @@ export const EmployeePicker = ({
       isSearchEnabled
       isRequired={isRequired}
       error={error}
+      ariaLabel={ariaLabel}
     />
   );
 };
