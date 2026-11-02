@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type FocusEvent, useEffect, useRef, useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -9,6 +10,14 @@ type BeforeInstallPromptEvent = Event & {
 
 const DISMISS_KEY = "pwa-install-dismissed-at";
 const DISMISS_TTL_MS = 1000 * 60 * 60 * 24 * 14;
+/** Login session the prompt was last shown in (user id + last sign-in). */
+const SHOWN_KEY = "pwa-install-shown-session";
+/** How long the prompt stays before it removes itself. */
+const VISIBLE_MS = 10_000;
+/** Let the app settle after login before anything slides in. */
+const SHOW_DELAY_MS = 1500;
+/** Length of .animate-slide-up-out (index.css). */
+const EXIT_MS = 150;
 
 const isStandalone = () => {
   if (typeof window === "undefined") return false;
@@ -34,53 +43,93 @@ const dismissedRecently = () => {
   }
 };
 
+const readKey = (key: string) => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const writeKey = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* ignore */
+  }
+};
+
+/**
+ * Install hint, at most once per login session (Chrome's own install button
+ * is always there). It appears shortly after sign-in, stays 10 seconds with
+ * an emptying bar, pauses while hovered or focused, then slides away until
+ * the next login. "Nicht jetzt" silences it for 14 days.
+ */
 export const PwaInstallPrompt = () => {
+  const { user } = useAuth();
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  const [show, setShow] = useState(false);
+  const [phase, setPhase] = useState<"hidden" | "visible" | "leaving">("hidden");
+  const [paused, setPaused] = useState(false);
   const [showIosHint, setShowIosHint] = useState(false);
+  const remaining = useRef(VISIBLE_MS);
+  const startedAt = useRef(0);
 
+  // Chrome/Edge offer installation through this event; keep it for the button.
   useEffect(() => {
-    if (isStandalone() || dismissedRecently()) return;
-
     const onBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
-      setShow(true);
+    };
+    const onInstalled = () => {
+      setDeferred(null);
+      setPhase("hidden");
     };
     window.addEventListener("beforeinstallprompt", onBeforeInstall);
-
-    const onInstalled = () => {
-      setShow(false);
-      setDeferred(null);
-    };
     window.addEventListener("appinstalled", onInstalled);
-
-    if (isIos()) {
-      const t = setTimeout(() => setShow(true), 4000);
-      return () => {
-        clearTimeout(t);
-        window.removeEventListener("beforeinstallprompt", onBeforeInstall);
-        window.removeEventListener("appinstalled", onInstalled);
-      };
-    }
-
     return () => {
       window.removeEventListener("beforeinstallprompt", onBeforeInstall);
       window.removeEventListener("appinstalled", onInstalled);
     };
   }, []);
 
-  const remember = () => {
-    try {
-      localStorage.setItem(DISMISS_KEY, String(Date.now()));
-    } catch {
-      /* ignore */
-    }
-  };
+  const sessionId = user ? `${user.id}:${user.last_sign_in_at ?? ""}` : null;
+  const canInstall = deferred !== null || isIos();
+
+  useEffect(() => {
+    if (!sessionId || !canInstall || isStandalone() || dismissedRecently()) return;
+    if (readKey(SHOWN_KEY) === sessionId) return;
+    const t = setTimeout(() => {
+      // Counted as shown right away: a reload during the 10 s does not repeat it.
+      writeKey(SHOWN_KEY, sessionId);
+      remaining.current = VISIBLE_MS;
+      setPhase("visible");
+    }, SHOW_DELAY_MS);
+    return () => clearTimeout(t);
+  }, [sessionId, canInstall]);
+
+  // Auto-dismiss; the remaining time survives pauses (hover/focus).
+  useEffect(() => {
+    if (phase !== "visible" || paused) return;
+    startedAt.current = Date.now();
+    const t = setTimeout(() => setPhase("leaving"), remaining.current);
+    return () => {
+      clearTimeout(t);
+      remaining.current = Math.max(0, remaining.current - (Date.now() - startedAt.current));
+    };
+  }, [phase, paused]);
+
+  // A timer, not animationend: hidden tabs and reduced motion still clean up.
+  useEffect(() => {
+    if (phase !== "leaving") return;
+    const t = setTimeout(() => setPhase("hidden"), EXIT_MS);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  const close = () => setPhase((p) => (p === "visible" ? "leaving" : p));
 
   const dismiss = () => {
-    remember();
-    setShow(false);
+    writeKey(DISMISS_KEY, String(Date.now()));
+    close();
     setShowIosHint(false);
   };
 
@@ -89,21 +138,24 @@ export const PwaInstallPrompt = () => {
       try {
         await deferred.prompt();
         const choice = await deferred.userChoice;
-        if (choice.outcome === "dismissed") remember();
+        if (choice.outcome === "dismissed") writeKey(DISMISS_KEY, String(Date.now()));
       } catch {
         /* ignore */
       } finally {
         setDeferred(null);
-        setShow(false);
+        close();
       }
       return;
     }
     if (isIos()) {
+      close();
       setShowIosHint(true);
     }
   };
 
-  if (!show && !showIosHint) return null;
+  const onBlur = (e: FocusEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) setPaused(false);
+  };
 
   if (showIosHint) {
     return (
@@ -143,16 +195,26 @@ export const PwaInstallPrompt = () => {
     );
   }
 
+  if (phase === "hidden") return null;
+
   return (
     <div
       role="dialog"
-      aria-live="polite"
-      className="fixed right-4 bottom-4 left-4 z-[9998] flex max-w-md flex-col gap-2 rounded-radius-lg bg-color-surface-raised p-4 text-color-text-main shadow-shadow-strong ring-1 ring-color-border-light animate-slide-up sm:left-auto"
-      style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem)" }}
+      aria-labelledby="pwa-install-title"
+      aria-describedby="pwa-install-text"
+      onPointerEnter={() => setPaused(true)}
+      onPointerLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={onBlur}
+      style={{ ["--countdown-ms" as string]: `${VISIBLE_MS}ms`, paddingBottom: "calc(env(safe-area-inset-bottom) + 1rem)" }}
+      className={`fixed right-4 bottom-4 left-4 z-[9998] flex max-w-md flex-col gap-2 overflow-hidden rounded-radius-lg bg-color-surface-raised p-4 text-color-text-main shadow-shadow-strong ring-1 ring-color-border-light sm:left-auto ${
+        phase === "leaving" ? "animate-slide-up-out" : "animate-slide-up"
+      } ${paused ? "countdown-paused" : ""}`}
     >
-      <p className="text-sm font-semibold">Payload Vault installieren</p>
-      <p className="text-xs text-color-text-subtle">
+      <p id="pwa-install-title" className="text-sm font-semibold">Payload Vault installieren</p>
+      <p id="pwa-install-text" className="text-xs text-color-text-subtle">
         Schnellerer Zugriff direkt vom Home-Bildschirm.
+        <span className="sr-only"> Der Hinweis schließt sich nach 10 Sekunden von selbst.</span>
       </p>
       <div className="mt-1 flex gap-2">
         <button
@@ -169,6 +231,10 @@ export const PwaInstallPrompt = () => {
         >
           Nicht jetzt
         </button>
+      </div>
+      {/* Time left until the hint removes itself; stops while hovered/focused. */}
+      <div aria-hidden className="absolute inset-x-0 bottom-0 h-1 bg-color-border-light">
+        <div className="countdown-bar h-full bg-color-primary" />
       </div>
     </div>
   );

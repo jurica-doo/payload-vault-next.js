@@ -709,6 +709,24 @@ button {
   animation: drawCheck 0.4s 0.15s var(--ease-out-soft) both;
 }
 
+/* Auto-dismiss countdown (PwaInstallPrompt): a bar that empties linearly.
+   Duration comes from --countdown-ms; pause with .countdown-paused. */
+@keyframes countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+.countdown-bar {
+  transform-origin: left;
+  animation: countdown var(--countdown-ms, 10s) linear forwards;
+}
+.countdown-paused .countdown-bar {
+  animation-play-state: paused;
+}
+
 @keyframes slideUpOut {
   from {
     opacity: 1;
@@ -820,6 +838,10 @@ button {
   }
   .interactive-card:hover {
     transform: none;
+  }
+  /* Not decorative motion: it shows how long a message stays. */
+  .countdown-bar {
+    animation-duration: var(--countdown-ms, 10s) !important;
   }
 }
 
