@@ -1,5 +1,6 @@
 "use client";
 
+import { FileInput } from "../../components/fileInput/FileInput";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { InputField } from "../../components/inputField/InputField";
@@ -72,15 +73,7 @@ export const ProductionImportPage = () => {
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <InputField label="Quellsystem" placeholder="Partnerportal" value={sourceSystem} onChange={setSourceSystem} isRequired />
-            <label className="flex flex-col gap-1 text-[14px] font-semibold text-color-text-secondary">
-              CSV-Datei
-              <input
-                type="file"
-                accept=".csv,text/csv"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                className="ui-input"
-              />
-            </label>
+            <FileInput label="CSV-Datei" accept=".csv,text/csv" file={file} onChange={setFile} isRequired />
           </div>
           {problem && <p role="alert" className="text-sm text-color-error-text">{problem}</p>}
           <div>
