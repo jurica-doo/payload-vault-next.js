@@ -1,5 +1,6 @@
 "use client";
 
+import { ScrollX } from "../../components/scrollX/ScrollX";
 import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
@@ -183,7 +184,7 @@ const th = "px-2 py-2 text-left font-semibold text-color-text-secondary";
 const td = "px-2 py-2 tabular-nums";
 
 const LevelTable = ({ rows }: { rows: LevelRow[] }) => (
-  <div className="overflow-x-auto">
+  <ScrollX label="Karrierestufen">
     <table className="w-full text-sm">
       <thead>
         <tr className="border-b border-color-border-light">
@@ -204,7 +205,7 @@ const LevelTable = ({ rows }: { rows: LevelRow[] }) => (
         ))}
       </tbody>
     </table>
-  </div>
+  </ScrollX>
 );
 
 const FORMULA_TEXT: Record<string, string> = {

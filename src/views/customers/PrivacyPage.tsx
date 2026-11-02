@@ -1,5 +1,7 @@
 "use client";
 
+import { Pagination } from "../../components/pagination/Pagination";
+import { usePagination } from "../../components/pagination/usePagination";
 import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { cardClass } from "../../components/card/card.const";
@@ -47,9 +49,11 @@ export const PrivacyPage = () => {
   const allowed = permissions.isCompliance || permissions.isAdmin;
   const p = usePrivacy(allowed, permissions.isAdmin);
   const { data: report } = useConsentReport(allowed);
-  if (!allowed) return <p className="text-sm">Nur für Datenschutz/Compliance und Administratoren.</p>;
   const open = (p.requests.data ?? []).filter((r) => r.status === "open");
   const closed = (p.requests.data ?? []).filter((r) => r.status !== "open");
+  const closedPages = usePagination(closed);
+  const exportPages = usePagination(p.exports.data ?? []);
+  if (!allowed) return <p className="text-sm">Nur für Datenschutz/Compliance und Administratoren.</p>;
 
   return (
     <div className="flex flex-col gap-4">
@@ -65,10 +69,13 @@ export const PrivacyPage = () => {
           <details>
             <summary className="cursor-pointer text-sm font-semibold">Abgeschlossen ({closed.length})</summary>
             <ul className="mt-2 text-xs text-color-text-secondary">
-              {closed.map((r) => (
+              {closedPages.pageItems.map((r) => (
                 <li key={r.id}>DS-{r.request_no} · {KIND_LABEL[r.kind]} · {r.status === "completed" ? "erledigt" : "abgelehnt"} am {formatDate(r.completed_at?.slice(0, 10))}{r.outcome_note ? ` – ${r.outcome_note}` : ""}</li>
               ))}
             </ul>
+            <div className="mt-3">
+              <Pagination {...closedPages.pagination} />
+            </div>
           </details>
         )}
       </section>
@@ -108,9 +115,12 @@ export const PrivacyPage = () => {
       <section className={card}>
         <h2 className="text-base font-semibold">Exportprotokoll</h2>
         {(p.exports.data ?? []).length === 0 ? <p className="text-sm text-color-text-subtle">Noch keine Exporte.</p> : (
-          <ul className="text-xs text-color-text-secondary">
-            {(p.exports.data ?? []).map((e) => <li key={e.id}>{formatDateTime(e.at)} · {e.kind} · {e.entity_type} · {e.row_count ?? "–"} Einträge</li>)}
-          </ul>
+          <>
+            <ul className="text-xs text-color-text-secondary">
+              {exportPages.pageItems.map((e) => <li key={e.id}>{formatDateTime(e.at)} · {e.kind} · {e.entity_type} · {e.row_count ?? "–"} Einträge</li>)}
+            </ul>
+            <Pagination {...exportPages.pagination} />
+          </>
         )}
       </section>
 

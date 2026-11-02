@@ -1,5 +1,7 @@
 "use client";
 
+import { Pagination } from "../../components/pagination/Pagination";
+import { usePagination } from "../../components/pagination/usePagination";
 import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
@@ -153,6 +155,7 @@ export const SuppressionsSection = () => {
   const { openModal, closeModal } = useModal();
   const { showBanner } = useBanner();
   const [email, setEmail] = useState("");
+  const suppressionPages = usePagination(ops.suppressions.data ?? []);
   return (
     <section className={card}>
       <h2 className="text-base font-semibold">Sperrliste</h2>
@@ -163,7 +166,7 @@ export const SuppressionsSection = () => {
         }} />
       </div>
       <ul className="text-sm">
-        {(ops.suppressions.data ?? []).map((x) => (
+        {suppressionPages.pageItems.map((x) => (
           <li key={x.email} className="flex items-center justify-between gap-2">
             <span>{x.email} <span className="text-xs text-color-text-subtle">· {x.reason} · {formatDateTime(x.created_at)}</span></span>
             <button type="button" className="cursor-pointer text-xs text-color-text-subtle" onClick={() => openModal({
@@ -174,6 +177,7 @@ export const SuppressionsSection = () => {
           </li>
         ))}
       </ul>
+      <Pagination {...suppressionPages.pagination} />
     </section>
   );
 };
@@ -183,6 +187,7 @@ export const SendLogSection = () => {
   const ops = useEmailOps(true);
   const [filter, setFilter] = useState("");
   const rows = (ops.log.data ?? []).filter((r) => !filter || r.status === filter);
+  const { pageItems, pagination } = usePagination(rows, { resetKey: filter });
   return (
     <section className={card}>
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -190,16 +195,19 @@ export const SendLogSection = () => {
         <Select label="Status" value={filter} onChange={setFilter} options={[{ value: "", label: "alle" }, ...Object.entries(SEND_STATUS).map(([value, s]) => ({ value, label: s.label }))]} />
       </div>
       {rows.length === 0 ? <p className="text-sm text-color-text-subtle">Keine Einträge.</p> : (
-        <ul className="text-xs">
-          {rows.map((r) => (
-            <li key={r.id} className="border-b border-color-border-light py-1 last:border-0">
-              {formatDateTime(r.created_at)} · {r.mode === "test" ? "Test" : `Anlass ${formatDate(r.occasion_date)}`} · <StatusBadge status={r.status} map={SEND_STATUS} />
-              {r.suppression_reason && ` · ${SUPPRESSION_REASON[r.suppression_reason] ?? r.suppression_reason}`}
-              {r.legal_basis && ` · Grundlage ${r.legal_basis}`}
-              {r.last_error && ` · ${r.last_error}`}
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-col gap-3">
+          <ul className="text-xs">
+            {pageItems.map((r) => (
+              <li key={r.id} className="border-b border-color-border-light py-1 last:border-0">
+                {formatDateTime(r.created_at)} · {r.mode === "test" ? "Test" : `Anlass ${formatDate(r.occasion_date)}`} · <StatusBadge status={r.status} map={SEND_STATUS} />
+                {r.suppression_reason && ` · ${SUPPRESSION_REASON[r.suppression_reason] ?? r.suppression_reason}`}
+                {r.legal_basis && ` · Grundlage ${r.legal_basis}`}
+                {r.last_error && ` · ${r.last_error}`}
+              </li>
+            ))}
+          </ul>
+          <Pagination {...pagination} />
+        </div>
       )}
     </section>
   );

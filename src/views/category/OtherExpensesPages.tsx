@@ -1,5 +1,7 @@
 "use client";
 
+import { Pagination } from "../../components/pagination/Pagination";
+import { usePagination } from "../../components/pagination/usePagination";
 import { DocumentToolbar } from "../../components/documentToolbar/DocumentToolbar";
 import { useState, useMemo } from "react";
 import { usePathname } from "next/navigation";
@@ -142,6 +144,9 @@ export const OtherExpensesPages = ({ title }: CategoryProps) => {
     if (endMonthSelected.id !== "12") return true;
     return false;
   }, [startMonthSelected, endMonthSelected]);
+
+  // Long document lists are paged; a changed filter starts again at page 1.
+  const docPages = usePagination(contentCardData?.pdfs ?? [], { resetKey: (contentCardData?.pdfs ?? []).length });
 
   if (!user) return <ErrorBlock />;
 
@@ -298,33 +303,36 @@ export const OtherExpensesPages = ({ title }: CategoryProps) => {
       {isLoading ? (
         <DocumentSkeletonLoader />
       ) : (
-        <div className="flex flex-col gap-2.5 stagger">
-          {contentCardData.pdfs.length === 0 ? (
-            <EmptyState
-              message="Keine Dokumente gefunden"
-              hint="Passen Sie die Filter an oder laden Sie ein neues Dokument hoch."
-            />
-          ) : (
-            contentCardData.pdfs.map((pdf, index) => (
-              <ContentCard
-                key={pdf.id || index}
-                variant="document"
-                title={pdf.file_name}
-                date={pdf.expense_date}
-                profit={pdf.amount}
-                downloadLink={pdf.signed_url}
-                openLink={pdf.signed_url}
-                id={pdf.id}
-                onDelete={(id) =>
-                  removeFile.mutateAsync({ id, imageUrl: pdf.image_url })
-                }
-                onEdit={handleEditExpense}
-                products={pdf.products}
-                vendorName={pdf.vendor_name}
-                activeCategory={isExpenseCategoryType(title) ? title : undefined}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2.5 stagger">
+            {contentCardData.pdfs.length === 0 ? (
+              <EmptyState
+                message="Keine Dokumente gefunden"
+                hint="Passen Sie die Filter an oder laden Sie ein neues Dokument hoch."
               />
-            ))
-          )}
+            ) : (
+              docPages.pageItems.map((pdf, index) => (
+                <ContentCard
+                  key={pdf.id || index}
+                  variant="document"
+                  title={pdf.file_name}
+                  date={pdf.expense_date}
+                  profit={pdf.amount}
+                  downloadLink={pdf.signed_url}
+                  openLink={pdf.signed_url}
+                  id={pdf.id}
+                  onDelete={(id) =>
+                    removeFile.mutateAsync({ id, imageUrl: pdf.image_url })
+                  }
+                  onEdit={handleEditExpense}
+                  products={pdf.products}
+                  vendorName={pdf.vendor_name}
+                  activeCategory={isExpenseCategoryType(title) ? title : undefined}
+                />
+              ))
+            )}
+          </div>
+          <Pagination {...docPages.pagination} />
         </div>
       )}
     </div>

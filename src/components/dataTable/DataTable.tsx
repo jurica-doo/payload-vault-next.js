@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { EmptyState } from "../emptyState/EmptyState";
 import { AlertCircleIcon, ChevronDownIcon } from "../icons";
+import { Pagination } from "../pagination/Pagination";
+import { usePagination } from "../pagination/usePagination";
+import { ScrollX } from "../scrollX/ScrollX";
 import type { DataTableProps, SortState } from "./DataTable.types";
-import { nextSort, pageCount, sortRows } from "./DataTable.utils";
+import { nextSort, sortRows } from "./DataTable.utils";
 
 const SKELETON_ROWS = 5;
 
@@ -12,7 +15,9 @@ const SKELETON_ROWS = 5;
  * Generic list for every sales-system table. Desktop: a real <table> with
  * sortable headers (aria-sort). Mobile: one card per row with the columns not
  * marked `hideOnMobile`. Loading, error and empty states are built in, so
- * every screen shows them the same way.
+ * every screen shows them the same way. Fully loaded lists are paginated
+ * here (rows per page is the user's preference); server-paged lists pass
+ * `pagination`. Wide tables get the sticky sideways-scroll bar (ScrollX).
  */
 export function DataTable<T>({
   rows,
@@ -26,12 +31,19 @@ export function DataTable<T>({
   sort: controlledSort,
   onSortChange,
   pagination,
+  paginate = true,
   onRowClick,
 }: DataTableProps<T>) {
   const [localSort, setLocalSort] = useState<SortState>(null);
   const isControlled = onSortChange !== undefined;
   const sort = isControlled ? (controlledSort ?? null) : localSort;
-  const visibleRows = isControlled ? rows : sortRows(rows, columns, sort);
+  const sortedRows = isControlled ? rows : sortRows(rows, columns, sort);
+  const local = usePagination(sortedRows, {
+    resetKey: `${rows.length}|${sort?.columnId}|${sort?.direction}`,
+  });
+  const usesLocalPages = !pagination && paginate;
+  const visibleRows = usesLocalPages ? local.pageItems : sortedRows;
+  const pager = pagination ?? (usesLocalPages ? local.pagination : null);
   const mobileColumns = columns.filter((c) => !c.hideOnMobile);
 
   const handleSort = (columnId: string) => {
@@ -78,7 +90,7 @@ export function DataTable<T>({
   return (
     <div className="flex flex-col gap-3" aria-busy={isLoading}>
       {/* Desktop */}
-      <div className="ui-card hidden overflow-x-auto md:block">
+      <ScrollX label={caption ?? "Tabelle"} className="ui-card hidden md:block">
         <table className="w-full border-collapse text-sm">
           {caption && <caption className="sr-only">{caption}</caption>}
           <thead className="sticky top-0 z-[1] bg-color-bg-alt">
@@ -151,7 +163,7 @@ export function DataTable<T>({
                 ))}
           </tbody>
         </table>
-      </div>
+      </ScrollX>
 
       {/* Mobile */}
       <ul className="flex flex-col gap-2 md:hidden">
@@ -176,45 +188,7 @@ export function DataTable<T>({
             ))}
       </ul>
 
-      {pagination && <Pager {...pagination} />}
+      {pager && <Pagination {...pager} />}
     </div>
   );
 }
-
-const Pager = ({
-  page,
-  pageSize,
-  total,
-  onPageChange,
-}: {
-  page: number;
-  pageSize: number;
-  total: number;
-  onPageChange: (page: number) => void;
-}) => {
-  const pages = pageCount(total, pageSize);
-  const current = Math.min(Math.max(page, 1), pages);
-  const from = total === 0 ? 0 : (current - 1) * pageSize + 1;
-  const to = Math.min(current * pageSize, total);
-  const btn =
-    "inline-flex h-8 items-center gap-1 rounded-radius-md border border-color-border-strong bg-color-bg-card px-3 text-sm font-medium text-color-text-main transition-all duration-150 enabled:cursor-pointer enabled:hover:bg-color-bg-hover enabled:active:scale-[0.97] disabled:opacity-40";
-
-  return (
-    <nav aria-label="Seiten" className="flex items-center justify-between gap-3 text-sm text-color-text-subtle">
-      <span className="tabular">
-        {from}–{to} von {total}
-      </span>
-      <div className="flex items-center gap-2">
-        <button type="button" className={btn} disabled={current <= 1} onClick={() => onPageChange(current - 1)}>
-          Zurück
-        </button>
-        <span aria-current="page" className="tabular px-1 text-color-text-secondary">
-          {current} / {pages}
-        </span>
-        <button type="button" className={btn} disabled={current >= pages} onClick={() => onPageChange(current + 1)}>
-          Weiter
-        </button>
-      </div>
-    </nav>
-  );
-};

@@ -2,6 +2,8 @@
 
 import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
+import { Pagination } from "../../components/pagination/Pagination";
+import { usePagination } from "../../components/pagination/usePagination";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
@@ -44,6 +46,7 @@ export function appointmentState(a: Pick<Activity, "type" | "outcome" | "schedul
  */
 export const ActivityPanel = ({ filter = {}, canLog = true }: { filter?: ActivityFilter; canLog?: boolean }) => {
   const { data = [], isLoading, setOutcome } = useActivities(filter);
+  const { pageItems, pagination } = usePagination(data, { resetKey: JSON.stringify(filter) });
   const { showBanner } = useBanner();
   const now = new Date().toISOString();
 
@@ -69,26 +72,29 @@ export const ActivityPanel = ({ filter = {}, canLog = true }: { filter?: Activit
       {isLoading ? <LoadingState /> : data.length === 0 ? (
         <p className="text-sm text-color-text-subtle">Noch keine Aktivitäten.</p>
       ) : (
-        <ul className="flex flex-col">
-          {data.map((a) => {
-            const state = appointmentState(a, now);
-            return (
-              <li key={a.id} className="flex flex-wrap items-start justify-between gap-2 border-b border-color-border-light py-2 last:border-0">
-                <span className="text-sm">
-                  <span className="font-semibold">{ACTIVITY_TYPE_LABEL[a.type as ActivityType] ?? a.type}</span>
-                  <span className="text-color-text-subtle"> · {formatDateTime(a.type === "appointment" ? a.scheduled_at : a.occurred_at)}</span>
-                  {a.notes && <span className="block text-xs text-color-text-secondary">{a.notes}</span>}
-                </span>
-                <span className="flex flex-wrap items-center gap-2">
-                  {a.outcome && <StatusBadge status={a.outcome} map={OUTCOME} />}
-                  {state === "booked" && <StatusBadge status="booked" map={{ booked: { label: "vereinbart", tone: "info" } }} />}
-                  {state === "awaiting_outcome" && <StatusBadge status="open" map={{ open: { label: "Ergebnis fehlt", tone: "warning" } }} />}
-                  {(state === "booked" || state === "awaiting_outcome") && outcomeButtons(a)}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="flex flex-col gap-3">
+          <ul className="flex flex-col">
+            {pageItems.map((a) => {
+              const state = appointmentState(a, now);
+              return (
+                <li key={a.id} className="flex flex-wrap items-start justify-between gap-2 border-b border-color-border-light py-2 last:border-0">
+                  <span className="text-sm">
+                    <span className="font-semibold">{ACTIVITY_TYPE_LABEL[a.type as ActivityType] ?? a.type}</span>
+                    <span className="text-color-text-subtle"> · {formatDateTime(a.type === "appointment" ? a.scheduled_at : a.occurred_at)}</span>
+                    {a.notes && <span className="block text-xs text-color-text-secondary">{a.notes}</span>}
+                  </span>
+                  <span className="flex flex-wrap items-center gap-2">
+                    {a.outcome && <StatusBadge status={a.outcome} map={OUTCOME} />}
+                    {state === "booked" && <StatusBadge status="booked" map={{ booked: { label: "vereinbart", tone: "info" } }} />}
+                    {state === "awaiting_outcome" && <StatusBadge status="open" map={{ open: { label: "Ergebnis fehlt", tone: "warning" } }} />}
+                    {(state === "booked" || state === "awaiting_outcome") && outcomeButtons(a)}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <Pagination {...pagination} />
+        </div>
       )}
     </div>
   );

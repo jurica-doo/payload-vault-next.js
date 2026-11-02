@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
 import { throwDbError } from "../../utils/dbErrors";
 import type { Tables } from "../../types/supabase";
@@ -22,26 +22,26 @@ export type ProductionInput = {
 };
 
 const listKey = ["production"] as const;
-const PAGE_SIZE = 50;
 // Matches the API's max_rows (supabase/config.toml).
 const IMPORT_ROWS_PAGE = 1000;
 
 /** Production the caller may see (own + structure, RLS), newest first. */
-export function useProduction(page: number) {
+export function useProduction(page: number, pageSize: number) {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: [...listKey, page],
+    queryKey: [...listKey, page, pageSize],
+    placeholderData: keepPreviousData,
     queryFn: async () => {
-      const from = (page - 1) * PAGE_SIZE;
+      const from = (page - 1) * pageSize;
       const { data, error, count } = await supabase
         .from("v_production")
         .select("*", { count: "exact" })
         .order("production_date", { ascending: false })
         .order("created_at", { ascending: false })
-        .range(from, from + PAGE_SIZE - 1);
+        .range(from, from + pageSize - 1);
       if (error) throwDbError(error);
-      return { rows: (data ?? []) as ProductionRow[], total: count ?? 0, pageSize: PAGE_SIZE };
+      return { rows: (data ?? []) as ProductionRow[], total: count ?? 0 };
     },
   });
 

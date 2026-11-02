@@ -1,5 +1,6 @@
 "use client";
 
+import { ScrollX } from "../../components/scrollX/ScrollX";
 import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { useState } from "react";
@@ -119,7 +120,7 @@ const ProgressView = ({ progress }: { progress: CareerProgress }) => {
 
       <section className="ui-card p-4 sm:p-5">
         <h3 className="mb-3 text-base font-semibold">Herkunft der Punkte</h3>
-        <div className="overflow-x-auto">
+        <ScrollX label="Herkunft der Punkte">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-color-border-light text-left text-color-text-secondary">
@@ -151,7 +152,7 @@ const ProgressView = ({ progress }: { progress: CareerProgress }) => {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollX>
       </section>
 
       <CareerSimulator base={p} target={p.target} />

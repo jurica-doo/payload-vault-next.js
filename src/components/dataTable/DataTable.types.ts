@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { PaginationProps } from "../pagination/Pagination.types";
 
 export type SortDirection = "asc" | "desc";
 
@@ -15,12 +16,8 @@ export type DataTableColumn<T> = {
   hideOnMobile?: boolean;
 };
 
-export type DataTablePagination = {
-  page: number; // 1-based
-  pageSize: number;
-  total: number;
-  onPageChange: (page: number) => void;
-};
+/** Server-side pages; pass onPageSizeChange to offer 10/25/50/100. */
+export type DataTablePagination = PaginationProps;
 
 export type DataTableProps<T> = {
   rows: T[];
@@ -38,5 +35,7 @@ export type DataTableProps<T> = {
   sort?: SortState;
   onSortChange?: (sort: SortState) => void;
   pagination?: DataTablePagination;
+  /** Client-side pages for fully loaded rows (default on). Off for short, fixed lists. */
+  paginate?: boolean;
   onRowClick?: (row: T) => void;
 };

@@ -1,5 +1,7 @@
 "use client";
 
+import { Pagination } from "../../components/pagination/Pagination";
+import { usePagination } from "../../components/pagination/usePagination";
 import { DocumentToolbar } from "../../components/documentToolbar/DocumentToolbar";
 import JSZip from "jszip";
 import { usePathname } from "next/navigation";
@@ -243,6 +245,9 @@ export const AllExpensesPdfsPage = () => {
     }
   }, [bulk.selectedIds, filteredPdfs, showBanner]);
 
+  // Long document lists are paged; filters and search start again at page 1.
+  const docPages = usePagination(filteredPdfs, { resetKey: `${searchQuery}|${(filteredPdfs).length}` });
+
   if (!user) return <ErrorBlock />;
 
   if (error) return <ErrorBlock />;
@@ -435,36 +440,39 @@ export const AllExpensesPdfsPage = () => {
       {isLoading ? (
         <DocumentSkeletonLoader />
       ) : (
-        <div className="flex flex-col gap-2.5 stagger">
-          {filteredPdfs.length === 0 ? (
-            <EmptyState
-              message="Keine Dokumente gefunden"
-              hint="Passen Sie die Filter an oder laden Sie ein neues Dokument hoch."
-            />
-          ) : (
-            filteredPdfs.map((pdf, index) => (
-              <ContentCard
-                key={pdf.id || index}
-                variant="document"
-                title={pdf.file_name}
-                date={pdf.expense_date}
-                profit={pdf.amount}
-                downloadLink={pdf.signed_url}
-                openLink={pdf.signed_url}
-                searchQuery={searchQuery}
-                id={pdf.id}
-                onDelete={(id) =>
-                  removeFile.mutateAsync({ id, imageUrl: pdf.image_url })
-                }
-                onEdit={handleEditExpense}
-                products={pdf.products}
-                vendorName={pdf.vendor_name}
-                isSelecting={bulk.isSelecting}
-                isSelected={bulk.isSelected(pdf.id)}
-                onToggleSelect={bulk.toggle}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2.5 stagger">
+            {filteredPdfs.length === 0 ? (
+              <EmptyState
+                message="Keine Dokumente gefunden"
+                hint="Passen Sie die Filter an oder laden Sie ein neues Dokument hoch."
               />
-            ))
-          )}
+            ) : (
+              docPages.pageItems.map((pdf, index) => (
+                <ContentCard
+                  key={pdf.id || index}
+                  variant="document"
+                  title={pdf.file_name}
+                  date={pdf.expense_date}
+                  profit={pdf.amount}
+                  downloadLink={pdf.signed_url}
+                  openLink={pdf.signed_url}
+                  searchQuery={searchQuery}
+                  id={pdf.id}
+                  onDelete={(id) =>
+                    removeFile.mutateAsync({ id, imageUrl: pdf.image_url })
+                  }
+                  onEdit={handleEditExpense}
+                  products={pdf.products}
+                  vendorName={pdf.vendor_name}
+                  isSelecting={bulk.isSelecting}
+                  isSelected={bulk.isSelected(pdf.id)}
+                  onToggleSelect={bulk.toggle}
+                />
+              ))
+            )}
+          </div>
+          <Pagination {...docPages.pagination} />
         </div>
       )}
 

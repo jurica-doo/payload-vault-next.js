@@ -7,6 +7,8 @@ import { ButtonLink } from "../../components/button/ButtonLink";
 import { PageActions } from "../../components/pageHeader/PageActions";
 import { Tabs } from "../../components/tabs/Tabs";
 import { LoadingState } from "../../components/loadingState/LoadingState";
+import { Pagination } from "../../components/pagination/Pagination";
+import { usePagination } from "../../components/pagination/usePagination";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -71,10 +73,13 @@ export const TasksPage = () => {
   const { openModal, closeModal } = useModal();
   const [scope, setScope] = useState<"me" | "team">("me");
   const me = permissions.employeeId;
-  if (!me) return <EmptyState message="Aufgaben gibt es nur für aktive Mitarbeitende." />;
 
   const visible = data.filter((t) => (scope === "me" ? t.owner_id === me : t.owner_id !== me));
   const { overdue, upcoming, done } = sortTasks(visible);
+  const overduePages = usePagination(overdue, { resetKey: scope });
+  const upcomingPages = usePagination(upcoming, { resetKey: scope });
+  const donePages = usePagination(done, { resetKey: scope });
+  if (!me) return <EmptyState message="Aufgaben gibt es nur für aktive Mitarbeitende." />;
 
   const row = (t: Task) => {
     const link = t.linked_type && t.linked_id ? LINK_FOR[t.linked_type]?.(t.linked_id) : undefined;
@@ -130,17 +135,20 @@ export const TasksPage = () => {
           {overdue.length > 0 && (
             <section className="rounded-radius-lg border border-color-error-border/40 bg-color-bg-error-subtle p-3">
               <h2 className="text-sm font-semibold text-color-error-text">Überfällig ({overdue.length})</h2>
-              <ul>{overdue.map(row)}</ul>
+              <ul>{overduePages.pageItems.map(row)}</ul>
+              <Pagination {...overduePages.pagination} />
             </section>
           )}
           <section className="ui-card p-3">
             <h2 className="text-sm font-semibold">Offen ({upcoming.length})</h2>
-            {upcoming.length === 0 && overdue.length === 0 ? <p className="py-2 text-sm text-color-text-subtle">Keine offenen Aufgaben.</p> : <ul>{upcoming.map(row)}</ul>}
+            {upcoming.length === 0 && overdue.length === 0 ? <p className="py-2 text-sm text-color-text-subtle">Keine offenen Aufgaben.</p> : <ul>{upcomingPages.pageItems.map(row)}</ul>}
+            <Pagination {...upcomingPages.pagination} />
           </section>
           {done.length > 0 && (
             <details className="ui-card p-3">
               <summary className="cursor-pointer text-sm font-semibold">Erledigt / geschlossen ({done.length})</summary>
-              <ul>{done.slice(0, 50).map(row)}</ul>
+              <ul>{donePages.pageItems.map(row)}</ul>
+              <Pagination {...donePages.pagination} />
             </details>
           )}
         </>

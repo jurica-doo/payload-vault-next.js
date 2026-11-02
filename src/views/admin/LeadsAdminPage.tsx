@@ -1,5 +1,8 @@
 "use client";
 
+import { ScrollX } from "../../components/scrollX/ScrollX";
+import { Pagination } from "../../components/pagination/Pagination";
+import { usePagination } from "../../components/pagination/usePagination";
 import { errorText } from "../../utils/dbErrors";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { cardClass } from "../../components/card/card.const";
@@ -112,7 +115,7 @@ const StagesCard = ({ config }: { config: LeadConfig }) => {
   return (
     <section className={card}>
       <h2 className="text-base font-semibold">Phasen und Pflichtfelder</h2>
-      <div className="overflow-x-auto">
+      <ScrollX label="Phasen und Pflichtfelder">
         <table className="w-full text-left text-xs">
           <thead><tr><th className="p-1">Phase</th>{fields.map((f) => <th key={f} className="p-1 font-normal">{REQUIRED_FIELD_LABEL[f]}</th>)}<th className="p-1">Überspringbar</th><th className="p-1">Aktiv</th><th /></tr></thead>
           <tbody>
@@ -153,7 +156,7 @@ const StagesCard = ({ config }: { config: LeadConfig }) => {
             })}
           </tbody>
         </table>
-      </div>
+      </ScrollX>
       <p className="text-xs text-color-text-subtle">„Überspringbar“ aus: Die Phase kann nur aus der direkt davor liegenden Phase erreicht werden.</p>
     </section>
   );
@@ -163,6 +166,7 @@ const SourcesCard = ({ config }: { config: LeadConfig }) => {
   const { permissions } = usePermissions();
   const { saveSource, setSourceCost } = useLeadAdmin();
   const { data: costs = [] } = useLeadSourceCosts(true);
+  const costPages = usePagination(costs);
   const { showBanner } = useBanner();
   const [name, setName] = useState("");
   const [kind, setKind] = useState("campaign");
@@ -205,9 +209,12 @@ const SourcesCard = ({ config }: { config: LeadConfig }) => {
       </div>
       <p className="text-xs text-color-text-subtle">Leerer Betrag löscht den Eintrag. Kosten pro Lead/Abschluss werden nur angezeigt, wenn für die Quelle Kosten erfasst sind.</p>
       {costs.length > 0 && (
-        <ul className="text-xs">
-          {costs.slice(0, 24).map((c) => <li key={`${c.source_id}-${c.month}`}>{formatDate(c.month).slice(3)} · {sourceName.get(c.source_id)} · {formatMoney(c.amount)}</li>)}
-        </ul>
+        <div className="flex flex-col gap-3">
+          <ul className="text-xs">
+            {costPages.pageItems.map((c) => <li key={`${c.source_id}-${c.month}`}>{formatDate(c.month).slice(3)} · {sourceName.get(c.source_id)} · {formatMoney(c.amount)}</li>)}
+          </ul>
+          <Pagination {...costPages.pagination} />
+        </div>
       )}
     </section>
   );

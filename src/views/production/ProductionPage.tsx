@@ -10,6 +10,7 @@ import { PageActions } from "../../components/pageHeader/PageActions";
 import { rowActionClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
+import { pageAfterResize, usePageSize } from "../../components/pagination/usePagination";
 import { DataTable } from "../../components/dataTable/DataTable";
 import { StatusBadge, type StatusMap } from "../../components/statusBadge/StatusBadge";
 import { ReasonConfirmForm } from "../../components/reasonConfirm/ReasonConfirmForm";
@@ -39,7 +40,8 @@ export const ProductionPage = () => {
   const { openModal, closeModal } = useModal();
   const { showBanner } = useBanner();
   const [page, setPage] = useState(1);
-  const { data, isLoading, error, save, submit, removeDraft, markEligible, cancel } = useProduction(page);
+  const [pageSize, setPageSize] = usePageSize();
+  const { data, isLoading, error, save, submit, removeDraft, markEligible, cancel } = useProduction(page, pageSize);
   const { data: structure } = useStructure();
 
   const isApprover = (permissions.isAdmin || permissions.isFinance) && permissions.hasMfa;
@@ -143,7 +145,20 @@ export const ProductionPage = () => {
         error={error ? errorText(error) : null}
         emptyMessage="Noch keine Produktion erfasst"
         onRowClick={openDetails}
-        pagination={data ? { page, pageSize: data.pageSize, total: data.total, onPageChange: setPage } : undefined}
+        pagination={
+          data
+            ? {
+                page,
+                pageSize,
+                total: data.total,
+                onPageChange: setPage,
+                onPageSizeChange: (size) => {
+                  setPage(pageAfterResize(page, pageSize, size));
+                  setPageSize(size);
+                },
+              }
+            : undefined
+        }
         columns={[
           { id: "date", header: "Datum", cell: (r) => formatDate(r.production_date) },
           ...(showProducer

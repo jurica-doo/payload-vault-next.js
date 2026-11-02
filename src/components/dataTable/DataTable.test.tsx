@@ -2,7 +2,8 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { DataTable } from "./DataTable";
 import type { DataTableColumn } from "./DataTable.types";
-import { nextSort, pageCount, sortRows } from "./DataTable.utils";
+import { nextSort, sortRows } from "./DataTable.utils";
+import { pageCount } from "../pagination/usePagination";
 
 type Row = { id: string; name: string; points: number | null };
 

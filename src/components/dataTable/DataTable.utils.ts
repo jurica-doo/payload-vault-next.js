@@ -31,8 +31,3 @@ export function sortRows<T>(rows: T[], columns: DataTableColumn<T>[], sort: Sort
     })
     .map((entry) => entry.row);
 }
-
-export function pageCount(total: number, pageSize: number): number {
-  if (pageSize <= 0) return 1;
-  return Math.max(1, Math.ceil(total / pageSize));
-}

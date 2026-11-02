@@ -1,5 +1,7 @@
 "use client";
 
+import { Pagination } from "../../components/pagination/Pagination";
+import { usePagination } from "../../components/pagination/usePagination";
 import { DocumentToolbar } from "../../components/documentToolbar/DocumentToolbar";
 import JSZip from "jszip";
 import { usePathname } from "next/navigation";
@@ -230,6 +232,9 @@ export const AllPdfsPage = () => {
     }
   }, [bulk.selectedIds, filteredPdfs, showBanner]);
 
+  // Long document lists are paged; filters and search start again at page 1.
+  const docPages = usePagination(filteredPdfs, { resetKey: `${searchQuery}|${(filteredPdfs).length}` });
+
   if (!user) return <ErrorBlock />;
 
   if (error) return <ErrorBlock />;
@@ -424,32 +429,35 @@ export const AllPdfsPage = () => {
       {isLoading ? (
         <DocumentSkeletonLoader />
       ) : (
-        <div className="flex flex-col gap-2.5 stagger">
-          {filteredPdfs.length === 0 ? (
-            <EmptyState
-              message="Keine Dokumente gefunden"
-              hint="Passen Sie die Filter an oder laden Sie ein neues Dokument hoch."
-            />
-          ) : (
-            filteredPdfs.map((pdf, index) => (
-              <ContentCard
-                key={pdf.id || index}
-                variant="document"
-                title={pdf.title}
-                date={pdf.date}
-                profit={pdf.income}
-                downloadLink={pdf.signedUrl}
-                openLink={pdf.openLink}
-                searchQuery={searchQuery}
-                id={pdf.id}
-                onDelete={(id) => removePdf.mutateAsync(id)}
-                onEdit={handleEditPdf}
-                isSelecting={bulk.isSelecting}
-                isSelected={bulk.isSelected(pdf.id)}
-                onToggleSelect={bulk.toggle}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2.5 stagger">
+            {filteredPdfs.length === 0 ? (
+              <EmptyState
+                message="Keine Dokumente gefunden"
+                hint="Passen Sie die Filter an oder laden Sie ein neues Dokument hoch."
               />
-            ))
-          )}
+            ) : (
+              docPages.pageItems.map((pdf, index) => (
+                <ContentCard
+                  key={pdf.id || index}
+                  variant="document"
+                  title={pdf.title}
+                  date={pdf.date}
+                  profit={pdf.income}
+                  downloadLink={pdf.signedUrl}
+                  openLink={pdf.openLink}
+                  searchQuery={searchQuery}
+                  id={pdf.id}
+                  onDelete={(id) => removePdf.mutateAsync(id)}
+                  onEdit={handleEditPdf}
+                  isSelecting={bulk.isSelecting}
+                  isSelected={bulk.isSelected(pdf.id)}
+                  onToggleSelect={bulk.toggle}
+                />
+              ))
+            )}
+          </div>
+          <Pagination {...docPages.pagination} />
         </div>
       )}
 

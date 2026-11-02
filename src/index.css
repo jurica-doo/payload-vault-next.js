@@ -430,6 +430,14 @@ button {
   }
 }
 
+/* Hides a native scrollbar where a custom control replaces it (ScrollX). */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer components {
   .text-body {
     @apply text-sm

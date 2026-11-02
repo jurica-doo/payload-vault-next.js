@@ -1,5 +1,7 @@
 "use client";
 
+import { Pagination } from "../../components/pagination/Pagination";
+import { usePagination } from "../../components/pagination/usePagination";
 import { DocumentToolbar } from "../../components/documentToolbar/DocumentToolbar";
 import { useState, useMemo } from "react";
 import { usePathname } from "next/navigation";
@@ -89,6 +91,9 @@ export const OtherPages = ({ title }: CategoryProps) => {
     if (endMonthSelected.id !== "12") return true;
     return false;
   }, [startMonthSelected, endMonthSelected]);
+
+  // Long document lists are paged; a changed filter starts again at page 1.
+  const docPages = usePagination(contentCardData?.pdfs ?? [], { resetKey: (contentCardData?.pdfs ?? []).length });
 
   if (!user) return <ErrorBlock />;
 
@@ -243,27 +248,30 @@ export const OtherPages = ({ title }: CategoryProps) => {
       {isLoading ? (
         <DocumentSkeletonLoader />
       ) : (
-        <div className="flex flex-col gap-2.5 stagger">
-          {contentCardData.pdfs.length === 0 ? (
-            <EmptyState
-              message="Keine Dokumente gefunden"
-              hint="Passen Sie die Filter an oder laden Sie ein neues Dokument hoch."
-            />
-          ) : (
-            contentCardData.pdfs.map((pdf, index) => (
-              <ContentCard
-                key={pdf.id || index}
-                variant="document"
-                title={pdf.title}
-                date={pdf.date}
-                profit={pdf.income}
-                downloadLink={pdf.signedUrl}
-                openLink={pdf.openLink}
-                id={pdf.id}
-                onDelete={(id) => removePdf.mutateAsync(id)}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2.5 stagger">
+            {contentCardData.pdfs.length === 0 ? (
+              <EmptyState
+                message="Keine Dokumente gefunden"
+                hint="Passen Sie die Filter an oder laden Sie ein neues Dokument hoch."
               />
-            ))
-          )}
+            ) : (
+              docPages.pageItems.map((pdf, index) => (
+                <ContentCard
+                  key={pdf.id || index}
+                  variant="document"
+                  title={pdf.title}
+                  date={pdf.date}
+                  profit={pdf.income}
+                  downloadLink={pdf.signedUrl}
+                  openLink={pdf.openLink}
+                  id={pdf.id}
+                  onDelete={(id) => removePdf.mutateAsync(id)}
+                />
+              ))
+            )}
+          </div>
+          <Pagination {...docPages.pagination} />
         </div>
       )}
     </div>
