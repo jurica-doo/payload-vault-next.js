@@ -6,9 +6,11 @@ import {
   type ReactNode,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { DotsIcon } from "../icons";
 import type { IconProps } from "../icons/Icon.types";
 
@@ -31,9 +33,19 @@ type ActionMenuProps = {
   align?: "left" | "right";
 };
 
+/** Gap between trigger and menu, and minimum distance to the viewport edge. */
+const GAP = 4;
+const EDGE = 8;
+
+type Position = { top: number; left?: number; right?: number; up: boolean };
+
 /**
  * Overflow menu for secondary row/card actions. Keeps tables and cards
  * calm: one visible primary action, the rest behind "⋯".
+ *
+ * The menu renders in a portal with fixed positioning, so scroll boxes
+ * (wide tables, cards) never clip it: it opens below the trigger, or above
+ * when there is no room, and follows the trigger while anything scrolls.
  */
 export const ActionMenu = ({
   items,
@@ -42,28 +54,71 @@ export const ActionMenu = ({
   align = "right",
 }: ActionMenuProps) => {
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<Position | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const menuId = useId();
   const visible = items.filter((i) => !i.hidden);
+
+  // Closed menus forget their place (render-time reset, no effect).
+  if (!open && pos) setPos(null);
+
+  // Measure after render (menu is invisible until placed), then keep it
+  // attached to the trigger on any scroll (capture: inner scroll boxes too).
+  useLayoutEffect(() => {
+    if (!open) return;
+    const place = () => {
+      const trigger = triggerRef.current?.getBoundingClientRect();
+      const menu = menuRef.current;
+      if (!trigger || !menu) return;
+      const height = menu.offsetHeight;
+      const below = window.innerHeight - trigger.bottom - GAP - EDGE;
+      const up = below < height && trigger.top - GAP - EDGE > below;
+      const top = up ? trigger.top - GAP - height : trigger.bottom + GAP;
+      setPos(
+        align === "right"
+          ? { top, right: Math.max(EDGE, window.innerWidth - trigger.right), up }
+          : { top, left: Math.max(EDGE, trigger.left), up },
+      );
+    };
+    place();
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
+    return () => {
+      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("resize", place);
+    };
+  }, [open, align]);
 
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
-      if (!wrapperRef.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (!wrapperRef.current?.contains(target) && !menuRef.current?.contains(target)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
     };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
-    wrapperRef.current
-      ?.querySelector<HTMLButtonElement>('[role="menuitem"]:not([disabled])')
-      ?.focus();
     return () => {
       document.removeEventListener("mousedown", onDown);
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
+
+  // Focus the first item once the menu is placed (no scroll jump to 0,0).
+  const placed = pos !== null;
+  useEffect(() => {
+    if (!placed) return;
+    menuRef.current
+      ?.querySelector<HTMLButtonElement>('[role="menuitem"]:not([disabled])')
+      ?.focus({ preventScroll: true });
+  }, [placed]);
 
   if (visible.length === 0) return null;
 
@@ -86,6 +141,7 @@ export const ActionMenu = ({
   return (
     <div ref={wrapperRef} className="relative inline-flex">
       <button
+        ref={triggerRef}
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
@@ -105,14 +161,16 @@ export const ActionMenu = ({
       >
         {trigger ?? <DotsIcon size={18} />}
       </button>
-      {open && (
+      {open && createPortal(
         <div
+          ref={menuRef}
           id={menuId}
           role="menu"
           onKeyDown={onMenuKey}
           onClick={(e) => e.stopPropagation()}
-          className={`absolute top-full z-50 mt-1 min-w-48 origin-top rounded-radius-lg bg-color-surface-raised p-1 shadow-shadow-strong ring-1 ring-color-border-light animate-slide-down ${
-            align === "right" ? "right-0" : "left-0"
+          style={pos ? { top: pos.top, left: pos.left, right: pos.right } : { top: 0, left: 0 }}
+          className={`fixed z-90 min-w-48 rounded-radius-lg bg-color-surface-raised p-1 shadow-shadow-strong ring-1 ring-color-border-light ${
+            !pos ? "invisible" : pos.up ? "origin-bottom animate-slide-up" : "origin-top animate-slide-down"
           }`}
         >
           {visible.map((item, i) => {
@@ -143,7 +201,8 @@ export const ActionMenu = ({
               </div>
             );
           })}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
