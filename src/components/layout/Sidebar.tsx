@@ -20,7 +20,11 @@ type SidebarProps = {
   onCloseMobile: () => void;
 };
 
-const Brand = ({ collapsed }: { collapsed: boolean }) => (
+/** Labels stay mounted and fade in the rail so nothing pops while the width animates. */
+const fadeInRail =
+  "whitespace-nowrap transition-opacity duration-200 ease-out rail:opacity-0";
+
+const Brand = () => (
   <Link
     href="/"
     aria-label="Profina Payload Vault – zur Übersicht"
@@ -28,16 +32,14 @@ const Brand = ({ collapsed }: { collapsed: boolean }) => (
   >
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img src="/favicon.svg" alt="" className="h-8 w-8 shrink-0 rounded-radius-md" />
-    {!collapsed && (
-      <span className="flex min-w-0 flex-col leading-tight animate-fade-in">
-        <span className="truncate text-sm font-semibold text-color-text-main">
-          Profina
-        </span>
-        <span className="truncate text-[0.6875rem] font-medium uppercase tracking-wider text-color-text-subtle">
-          Payload Vault
-        </span>
+    <span className={`flex min-w-0 flex-col leading-tight ${fadeInRail}`}>
+      <span className="truncate text-sm font-semibold text-color-text-main">
+        Profina
       </span>
-    )}
+      <span className="truncate text-[0.6875rem] font-medium uppercase tracking-wider text-color-text-subtle">
+        Payload Vault
+      </span>
+    </span>
   </Link>
 );
 
@@ -72,9 +74,9 @@ const NavLink = ({
       aria-current={active ? "page" : undefined}
       title={collapsed ? item.label : undefined}
       onClick={onNavigate}
-      className={`group relative flex items-center gap-3 rounded-radius-md no-underline transition-all duration-150 ease-out hover:no-underline active:scale-[0.98] ${
+      className={`group relative flex items-center gap-3 rounded-radius-md no-underline transition-[background-color,color,scale] duration-150 ease-out hover:no-underline active:scale-[0.98] ${
         sub ? "h-8 pl-[2.375rem] pr-2.5 text-[0.8125rem]" : "h-9 px-2.5 text-sm"
-      } ${collapsed ? "justify-center px-0" : ""} ${
+      } ${
         active
           ? "bg-color-bg-accent-subtle font-semibold text-color-text-accent"
           : "font-medium text-color-text-secondary hover:bg-color-bg-hover hover:text-color-text-main"
@@ -102,8 +104,10 @@ const NavLink = ({
           }`}
         />
       )}
-      <span className={collapsed ? "sr-only" : "truncate"}>{item.label}</span>
-      {!collapsed && <PendingHint />}
+      <span className={`truncate ${fadeInRail}`}>{item.label}</span>
+      <span className="contents rail:hidden">
+        <PendingHint />
+      </span>
     </Link>
   );
 };
@@ -126,29 +130,27 @@ export const Sidebar = ({
     [permissions, modules],
   );
   const activeHref = activeNavHref(pathname, groups);
-  // The rail only applies on desktop; the drawer always shows labels.
-  const rail = collapsed && !mobileOpen;
 
   return (
     <>
-      {mobileOpen && (
-        <div
-          aria-hidden
-          onClick={onCloseMobile}
-          className="fixed inset-0 z-50 bg-color-overlay backdrop-blur-[2px] animate-fade-in lg:hidden"
-        />
-      )}
+      {/* Always mounted so it can fade out as well as in. */}
+      <div
+        aria-hidden
+        onClick={onCloseMobile}
+        className={`fixed inset-0 z-50 bg-color-overlay transition-[opacity,visibility] duration-300 ease-drawer lg:hidden ${
+          mobileOpen ? "visible opacity-100" : "invisible opacity-0"
+        }`}
+      />
+      {/* Tailwind v4 translate-* sets the `translate` property, not
+          `transform`, so that is what has to transition. Hidden while closed
+          on mobile so its links are not tabbable off-screen. */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-color-border-light bg-color-bg-card pt-[env(safe-area-inset-top)] transition-[width,transform] duration-200 ease-out lg:translate-x-0 ${
-          mobileOpen ? "translate-x-0 shadow-shadow-strong" : "-translate-x-full"
-        } w-[17rem] ${collapsed ? "lg:w-[4.25rem]" : "lg:w-[16.5rem]"}`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-[17rem] flex-col border-r border-color-border-light bg-color-bg-card pt-[env(safe-area-inset-top)] transition-[width,translate,box-shadow,visibility] duration-300 ease-drawer lg:visible lg:w-[16.5rem] lg:translate-x-0 lg:shadow-none rail:w-16 ${
+          mobileOpen ? "visible translate-x-0 shadow-shadow-strong" : "invisible -translate-x-full"
+        }`}
       >
-        <div
-          className={`flex h-14 shrink-0 items-center border-b border-color-border-light ${
-            rail ? "lg:justify-center lg:px-0" : ""
-          } justify-between px-4`}
-        >
-          <Brand collapsed={rail} />
+        <div className="flex h-14 shrink-0 items-center justify-between overflow-hidden border-b border-color-border-light px-4">
+          <Brand />
           <button
             type="button"
             onClick={onCloseMobile}
@@ -165,31 +167,39 @@ export const Sidebar = ({
         >
           {groups.map((group, gi) => (
             <div key={group.id} className={gi > 0 ? "mt-5" : ""}>
-              {rail ? (
-                gi > 0 && <div className="mx-2 mb-3 h-px bg-color-border-light" />
-              ) : (
-                <p className="mb-1.5 px-2.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-color-text-subtle">
+              {/* Fixed height: the label crossfades to a divider in the rail
+                  without shifting the icons below. */}
+              <div className="relative mb-1.5 h-4">
+                <p className={`px-2.5 text-[0.6875rem] font-semibold uppercase leading-4 tracking-wider text-color-text-subtle ${fadeInRail}`}>
                   {group.label}
                 </p>
-              )}
+                {gi > 0 && (
+                  <span
+                    aria-hidden
+                    className="absolute inset-x-2 top-1/2 h-px bg-color-border-light opacity-0 transition-opacity duration-200 rail:opacity-100"
+                  />
+                )}
+              </div>
               <ul className="flex flex-col gap-0.5">
                 {group.items.map((item) => {
                   const children = item.children ?? [];
                   const childActive = children.some((c) => c.href === activeHref);
                   const expanded =
-                    !rail &&
                     children.length > 0 &&
                     (activeHref === item.href || childActive);
                   return (
                     <li key={item.href}>
                       <NavLink
                         item={item}
-                        active={activeHref === item.href || (rail && childActive)}
-                        collapsed={rail}
+                        active={
+                          activeHref === item.href ||
+                          (collapsed && !mobileOpen && childActive)
+                        }
+                        collapsed={collapsed && !mobileOpen}
                         onNavigate={onCloseMobile}
                       />
                       {expanded && (
-                        <ul className="relative mt-0.5 flex flex-col gap-0.5 animate-slide-down before:absolute before:bottom-2 before:left-[1.45rem] before:top-0 before:w-px before:bg-color-border-light">
+                        <ul className="relative mt-0.5 flex flex-col gap-0.5 animate-slide-down rail:hidden before:absolute before:bottom-2 before:left-[1.45rem] before:top-0 before:w-px before:bg-color-border-light">
                           {children.map((child) => (
                             <li key={child.href}>
                               <NavLink
@@ -211,21 +221,19 @@ export const Sidebar = ({
           ))}
         </nav>
 
-        <div className="hidden shrink-0 border-t border-color-border-light p-3 lg:block">
+        <div className="hidden shrink-0 overflow-hidden border-t border-color-border-light p-3 lg:block">
           <button
             type="button"
             onClick={onToggleCollapsed}
             aria-label={collapsed ? "Navigation ausklappen" : "Navigation einklappen"}
             aria-pressed={collapsed}
-            className={`flex h-9 w-full cursor-pointer items-center gap-3 rounded-radius-md px-2.5 text-sm font-medium text-color-text-subtle transition-all duration-150 hover:bg-color-bg-hover hover:text-color-text-main active:scale-[0.98] ${
-              collapsed ? "justify-center px-0" : ""
-            }`}
+            className="flex h-9 w-full cursor-pointer items-center gap-3 rounded-radius-md px-2.5 text-sm font-medium text-color-text-subtle transition-[background-color,color,scale] duration-150 hover:bg-color-bg-hover hover:text-color-text-main active:scale-[0.98]"
           >
             <ChevronLeftIcon
               size={18}
-              className={`shrink-0 transition-transform duration-200 ${collapsed ? "rotate-180" : ""}`}
+              className="shrink-0 transition-transform duration-300 ease-drawer rail:rotate-180"
             />
-            {!collapsed && <span>Einklappen</span>}
+            <span className={fadeInRail}>Einklappen</span>
           </button>
         </div>
       </aside>

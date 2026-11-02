@@ -21,7 +21,7 @@ export const ButtonLink = ({
 }: ButtonLinkProps) => (
   <Link
     href={href}
-    className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-radius-md font-medium leading-none no-underline transition-[background-color,border-color,color,box-shadow,transform] duration-150 ease-out hover:no-underline active:scale-[0.97] ${variantClasses[variant]} ${sizeClasses[size]} ${onHover[variant]}`}
+    className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-radius-md font-medium leading-none no-underline transition-[background-color,border-color,color,box-shadow,transform,scale] duration-150 ease-out hover:no-underline active:scale-[0.97] ${variantClasses[variant]} ${sizeClasses[size]} ${onHover[variant]}`}
   >
     {Icon && <Icon className="h-[18px] w-[18px] shrink-0" />}
     {text}

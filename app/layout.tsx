@@ -100,12 +100,13 @@ export default async function RootLayout({
       <head>
         {/* Sets data-theme BEFORE first paint so the loading screen (and
             everything else) renders in the right theme immediately. No saved
-            choice means "system" (see src/utils/theme.ts). */}
+            choice means "system" (see src/utils/theme.ts). Also restores the
+            collapsed sidebar (data-sidebar, see AppShell) without a jump. */}
         <script
           suppressHydrationWarning
           nonce={nonce}
           dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}document.documentElement.dataset.theme=t;}catch(e){}`,
+            __html: `try{var t=localStorage.getItem("theme");if(t!=="light"&&t!=="dark"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}document.documentElement.dataset.theme=t;if(localStorage.getItem("sidebar-collapsed")==="1"){document.documentElement.dataset.sidebar="collapsed";}}catch(e){}`,
           }}
         />
       </head>

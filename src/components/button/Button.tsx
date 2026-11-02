@@ -26,7 +26,7 @@ export const Button = ({
 
   return (
     <button
-      className={`relative inline-flex select-none items-center justify-center gap-2 rounded-radius-md text-center font-medium leading-none sm:whitespace-nowrap transition-[background-color,border-color,color,box-shadow,transform,filter] duration-150 ease-out focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-color-focus-ring ${
+      className={`relative inline-flex select-none items-center justify-center gap-2 rounded-radius-md text-center font-medium leading-none sm:whitespace-nowrap transition-[background-color,border-color,color,box-shadow,transform,scale,filter] duration-150 ease-out focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-color-focus-ring ${
         fullWidth ? "w-full" : "w-auto"
       } ${variantClasses[variant]} ${sizeClasses[size]} ${
         isButtonDisabled

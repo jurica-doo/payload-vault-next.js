@@ -273,10 +273,27 @@ button {
   --radius-radius-md: var(--radius-md);
   --radius-radius-lg: var(--radius-lg);
   --radius-radius-xl: var(--radius-xl);
+
+  /* Sidebar slide/collapse: quick start, long soft settle. */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Desktop icon rail. Driven by <html data-sidebar="collapsed">, which the
+   pre-paint script in app/layout.tsx sets, so a collapsed sidebar renders
+   collapsed on the very first frame instead of animating there. */
+@custom-variant rail {
+  @media (width >= 64rem) {
+    :root[data-sidebar="collapsed"] & {
+      @slot;
+    }
+  }
 }
 
 @layer base {
   html {
+    /* Locking body scroll (drawer, modals) must not shift the page sideways
+       on systems with classic scrollbars (Windows, Linux). */
+    scrollbar-gutter: stable;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;

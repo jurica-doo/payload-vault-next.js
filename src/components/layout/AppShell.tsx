@@ -55,13 +55,11 @@ export const AppShell = ({
     setMobileOpen(false);
   }
 
+  // Widths come from <html data-sidebar> (set before first paint in
+  // app/layout.tsx); this state only drives labels and aria.
   useEffect(() => {
-    try {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCollapsed(localStorage.getItem(COLLAPSE_KEY) === "1");
-    } catch {
-      // Storage blocked: keep the expanded default.
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCollapsed(document.documentElement.dataset.sidebar === "collapsed");
   }, []);
 
   useEffect(() => {
@@ -78,14 +76,15 @@ export const AppShell = ({
   }, [mobileOpen]);
 
   const toggleCollapsed = () => {
-    setCollapsed((c) => {
-      try {
-        localStorage.setItem(COLLAPSE_KEY, c ? "0" : "1");
-      } catch {
-        // ignore
-      }
-      return !c;
-    });
+    const next = !collapsed;
+    setCollapsed(next);
+    if (next) document.documentElement.dataset.sidebar = "collapsed";
+    else delete document.documentElement.dataset.sidebar;
+    try {
+      localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
+    } catch {
+      // Storage blocked: the choice lasts until reload.
+    }
   };
 
   const backHref = useMemo(
@@ -110,9 +109,7 @@ export const AppShell = ({
       />
 
       <div
-        className={`flex min-h-screen flex-col transition-[padding] duration-200 ease-out ${
-          collapsed ? "lg:pl-[4.25rem]" : "lg:pl-[16.5rem]"
-        }`}
+        className="flex min-h-screen flex-col transition-[padding] duration-300 ease-drawer lg:pl-[16.5rem] rail:pl-16"
       >
         <HeaderHome
           pageTitle={title}
