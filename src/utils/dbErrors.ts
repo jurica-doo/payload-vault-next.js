@@ -90,6 +90,11 @@ const MESSAGES: Record<string, string> = {
   date_in_future: "Das Datum darf nicht in der Zukunft liegen.",
   appointment_in_future: "Der Termin liegt noch in der Zukunft. Er kann erst danach als durchgeführt oder nicht erschienen markiert werden.",
   not_an_appointment: "Das ist kein Termin.",
+  appointment_time_required: "Bitte Datum und Uhrzeit des Termins angeben.",
+  outcome_not_allowed: "Dieses Ergebnis passt nicht zur Art der Aktivität.",
+  text_too_long: "Ein Text ist zu lang. Bitte kürzen Sie ihn (Notizen höchstens 4.000 Zeichen).",
+  title_too_short: "Bitte einen Titel mit mindestens 3 Zeichen angeben.",
+  system_task_auto: "Diese Aufgabe schließt sich automatisch, sobald der Anlass erledigt ist. Führungskräfte können sie mit Begründung ausblenden.",
 
   // leads
   lead_name_required: "Bitte einen Nachnamen oder eine Firma angeben.",

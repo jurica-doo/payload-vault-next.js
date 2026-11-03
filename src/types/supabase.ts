@@ -2281,6 +2281,7 @@ export type Database = {
           region: string | null
           search_name: string | null
           sla_due_at: string | null
+          sla_escalated_at: string | null
           source_id: string
           stage: string
           stage_entered_at: string
@@ -2320,6 +2321,7 @@ export type Database = {
           region?: string | null
           search_name?: string | null
           sla_due_at?: string | null
+          sla_escalated_at?: string | null
           source_id: string
           stage?: string
           stage_entered_at?: string
@@ -2359,6 +2361,7 @@ export type Database = {
           region?: string | null
           search_name?: string | null
           sla_due_at?: string | null
+          sla_escalated_at?: string | null
           source_id?: string
           stage?: string
           stage_entered_at?: string
@@ -3151,6 +3154,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          dismissed: boolean
           due_at: string | null
           id: string
           linked_id: string | null
@@ -3169,6 +3173,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          dismissed?: boolean
           due_at?: string | null
           id?: string
           linked_id?: string | null
@@ -3187,6 +3192,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          dismissed?: boolean
           due_at?: string | null
           id?: string
           linked_id?: string | null

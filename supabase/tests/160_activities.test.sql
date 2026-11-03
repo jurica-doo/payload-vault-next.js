@@ -26,8 +26,8 @@ SELECT public.rpc_log_activity('appointment', NULL, NULL, NULL, now() + interval
 SELECT public.rpc_log_activity('offer', NULL, NULL, now() - interval '10 minutes', NULL, NULL, 'LV-Angebot');
 SELECT public.rpc_log_activity('followup', NULL, NULL);
 
-SELECT throws_ok($$SELECT public.rpc_log_activity('appointment')$$, '23514', NULL, 'appointments need a time');
-SELECT throws_ok($$SELECT public.rpc_log_activity('offer', NULL, NULL, NULL, NULL, 'held')$$, '23514', NULL, 'outcome must fit the type');
+SELECT throws_ok($$SELECT public.rpc_log_activity('appointment')$$, '22023', 'appointment_time_required', 'appointments need a time');
+SELECT throws_ok($$SELECT public.rpc_log_activity('offer', NULL, NULL, NULL, NULL, 'held')$$, '22023', 'outcome_not_allowed', 'outcome must fit the type');
 SELECT throws_ok($$SELECT public.rpc_log_activity('call', NULL, NULL, now() + interval '1 day')$$, 'P0001', 'date_in_future', 'past activities cannot be in the future');
 SELECT throws_ok($$SELECT public.rpc_log_activity('call', 'lead', NULL)$$, '23514', NULL, 'link type needs an id');
 
