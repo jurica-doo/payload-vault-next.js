@@ -66,6 +66,14 @@ objection in one step; manual contract links are always „aus Unterlagen“; fo
 
 Guide: [r1-p5-manual-guide-round2.md](r1-p5-manual-guide-round2.md). New findings get IDs P5-R2-xx.
 
+Browser pass 2026-11-03 (Chrome, 500 px light, keyboard), as Ali and compliance with 2FA.
+Works: objection dialog as bottom sheet, Escape closes, focus returns; contract form without portal source,
+inline date-order error, end date limited by the start date, edit/remove only on manual contracts; privacy request
+via the form shows „Kunde K-00136“; „Widerspruch umsetzen“ records the opt-out (evidence „Datenschutzanfrage DS-29“)
+and completes the request, with confirmation dialog and toast.
+
 | ID | Area | Steps | Expected | Actual | Severity | Status |
 |---|---|---|---|---|---|---|
-| | | | | | | |
+| P5-R2-01 | Customer forms | Double-click any save button | One record | Not re-tested separately; same kit Button as P4-R2-01, so customer, consent, contract and service forms are expected to double-submit too | high | fixed — same kit fix as P4-R2-01; re-tested: two clicks in the same instant → one customer |
+| P5-R2-02 | Consent card | 500 px | Readable table and form | „Feiertagsgrüße–“ without gap, „Werbe-E-Mails“ broken; selects in the form have uneven widths | low | fixed — cell spacing, no hyphenation of purposes, form fields in an equal-width grid |
+| P5-R2-03 | Objection dialog | Open with the keyboard | Focus on the first field | Focus lands on „Notiz“, skipping „Wie wurde das mitgeteilt?“ | low | fixed — modal focuses the first field including kit dropdowns (`role=combobox`) |

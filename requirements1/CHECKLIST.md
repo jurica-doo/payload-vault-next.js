@@ -5,10 +5,10 @@ Nothing has been applied to production, and nothing has been clicked through **s
 This list covers everything between "built" and "live", in the order it is best done.
 
 Status at the time of writing (2026-11-03):
-- 56 migrations (3 added 2026-10-28 for the Supabase advisor findings, 7 on 2026-10-31 for the Phase 1 review fixes, 2 on 2026-11-03 for the Phase 4 and Phase 5 review fixes)
+- 57 migrations (3 added 2026-10-28 for the Supabase advisor findings, 7 on 2026-10-31 for the Phase 1 review fixes, 3 on 2026-11-03 for the Phase 4/5 review fixes and the duplicate-check lock)
 - 836 pgTAP assertions in 29 files
-- 493 unit tests
-- 74 Playwright e2e tests: 53 for Phase 1, 13 Phase 4 and 8 Phase 5 regression tests (`npm run e2e`, local only)
+- 501 unit tests
+- 76 Playwright e2e tests: 53 for Phase 1, 15 Phase 4 and 8 Phase 5 regression tests (`npm run e2e`, local only)
 - 58 golden cases shared by the SQL and TypeScript engines
 - CI green
 - Every module behind a feature flag that is **off**

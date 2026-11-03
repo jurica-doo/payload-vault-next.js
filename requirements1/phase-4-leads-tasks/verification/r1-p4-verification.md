@@ -92,6 +92,21 @@ dismiss with a reason).
 
 Guide: [r1-p4-manual-guide-round2.md](r1-p4-manual-guide-round2.md). New findings get IDs P4-R2-xx.
 
+Browser pass 2026-11-03 (Chrome, 1,470 / 1,084 / 500 px, dark and light), as Ali and compliance.
+Works: login error and redirect; lead form with emoji, `ß`, RTL company, HTML/script in names and notes
+(rendered as text, page title untouched, line breaks kept); validation on blur; keyboard selection in dropdowns;
+e-mail trimmed and lower-cased; lead and customer detail without horizontal overflow at 500 px.
+
 | ID | Area | Steps | Expected | Actual | Severity | Status |
 |---|---|---|---|---|---|---|
-| | | | | | | |
+| P4-R2-01 | All create forms | Lead anlegen → fill → **double-click** „Lead anlegen“; same on „Erfassen“ in the activity form | One record | **Two identical leads** (L-00211/L-00212, 13 ms apart; the duplicate check can't see the parallel insert) and two activities, two toasts each. The kit Button only disables after the pending state renders | high | fixed — kit `Form` (ref guard, pending context for submit buttons) and `Button` (ignores clicks while an async onClick runs); all 19 forms; vitest, e2e |
+| P4-R2-02 | Lead detail | Log a contact attempt on a lead in „Zugewiesen“ | Stepper, SLA badge and Verlauf update | Stay on „Zugewiesen“ / „offen“ until reload (DB already moved to Kontaktversuch); `useActivities.log` doesn't refresh the lead | medium | fixed — activity mutations refresh lead, leads, tasks, customer; e2e |
+| P4-R2-03 | Leads list | Window ≈ 1,080 px | Readable cells | Short words hyphenated („Zuge-wiesen“, „Web-site“), names broken mid-word, horizontal scroll for 7 columns | low | fixed — no automatic hyphenation in DataTable cells (wide tables scroll) |
+| P4-R2-04 | Session expiry | Task dialog open, session ends, Speichern | Redirect, dialog closed, „Sitzung abgelaufen“ | Redirect worked, but the dialog stayed open over the login page and the toast said „Dafür fehlt Ihnen die Berechtigung“ | medium | fixed — dialogs close on route change; refusals after sign-out map to the session text; vitest |
+| P4-R2-05 | Search | Search `_` | Literal underscore | Matched every lead (ILIKE wildcard) | low | fixed — `_` escaped in lead and customer search; vitest |
+| P4-R2-06 | Duplicates | Two parallel `rpc_create_lead` with the same phone (two users, imports) | One lead + `possible_duplicate` | Both created — the check didn't see the other uncommitted row | medium | fixed — advisory lock per phone/e-mail (migration `20261101120000`, also customers); e2e |
+
+Round 2 re-test (2026-11-03, after the fixes): double-click and double Enter create one record (lead, activity,
+task, customer); the lead page shows the new stage, SLA and history right after logging; an expired session closes
+the dialog and says „Ihre Sitzung ist abgelaufen“; search with `% _ , ( ) * \ ' < emoji`, 300 characters → no error;
+parallel conversion → one customer (`already_converted`); parallel reassignment → applied in order, both audited.
