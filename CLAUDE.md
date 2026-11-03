@@ -21,7 +21,7 @@ Read this first; it replaces a codebase crawl. Facts below were verified in the 
 |---|---|
 | `npm run dev` | dev server on **:5173** |
 | `npm run typecheck` / `npm run lint` | tsc / eslint (3 pre-existing warnings are known) |
-| `npm test` | vitest (~410 tests) |
+| `npm test` | vitest (~490 tests) |
 | `npm run test:db` | all migrations + pgTAP in a throwaway Docker Postgres (`KEEP_DB=1`, filter arg) |
 | `npm run check:golden` | SQL ↔ TS engine parity on golden cases |
 | `npm run types` | regenerate DB types (Docker only; after any schema change, commit the result) |
@@ -65,7 +65,7 @@ src/data/                 navigation.ts, salesModules.ts, pageMeta.ts, routes.ts
 src/utils/                dbErrors.ts, authErrors.ts, format.ts (German numbers/dates), theme.ts, csvExport.ts, safeRedirect.ts, taxReport/
 src/context/              AuthContext, ProtectedRoutes, banner/, modal/, YearContext, title/TitleContext, BulkSelectContext
 src/lib/                  supabase.ts (client), pdf/ (PDF text extraction)
-supabase/migrations/      54 migrations (timestamped, see §13); supabase/tests/ pgTAP (27 files, 789 assertions); supabase/functions/ (4 edge functions); supabase/seeds/local_dev.sql (dev seed)
+supabase/migrations/      55 migrations (timestamped, see §13); supabase/tests/ pgTAP (28 files, 817 assertions); supabase/functions/ (4 edge functions); supabase/seeds/local_dev.sql (dev seed)
 e2e/                      Playwright suite: fixtures/ (test data + expected numbers), fill/ (API fill per phase), lib/, tests/, README.md
 requirements1/            plan, CHECKLIST.md, phase docs (+ phase-N-*/verification/: review findings + click-by-click manual test guide)
 check.md                  local-only security notes (git-excluded) — don't commit
@@ -156,6 +156,7 @@ Patterns: toast titles name what failed ("Löschen fehlgeschlagen"), never just 
 - Branches: `main` (prod), **`feat/requirements1`** (all phase work + the UI redesign, which was merged in from `feat/ux-ui-improvements`; work here). The `r1/*` branches are historical slices, already merged.
 - Done 2026-10-28 (local only, nothing applied to prod): dev seed; `[local_smtp]` config; advisor clean-up (`v_commission_ledger` invoker, `rpc_*` bodies moved to `app_rpc`, policies with `(SELECT auth.uid())`). These migrations must go to staging/prod together with the rest of requirements1.
 - Done 2026-10-31 (local only): Phase 1 review fixes — migrations `20261031130000`…`20261031190000` (business date setting, roles of deactivated employees, no back-dating + cancelled moves, promotion day, invite re-send/revoke, import validation, `app_private` grants), `[auth] enable_signup = false`, team tree fully expanded, re-invite button; Playwright e2e suite (`e2e/`, 53 tests) and the Phase 1 manual test guide. Findings and status: `requirements1/phase-1-foundation/verification/r1-p1-verification.md`. After pulling these: `supabase migration up` **and** `supabase stop && supabase start` (auth config changed), `npm ci` (Playwright, pinned CLI).
+- Done 2026-11-03 (local only): Phase 4 review — browser/API pass found 36 findings (`requirements1/phase-4-leads-tasks/verification/r1-p4-verification.md`), all fixed except P4-NOTE-01. Migration `20261101100000_phase4_review_fixes` (pool leads belong to the creator's structure, appointments/offers = first contact, notification digest during generator runs, system tasks close themselves, named error keys), pgTAP `270`, e2e `phase4-leads-tasks.spec.ts`. Round-2 test guide: `verification/r1-p4-manual-guide-round2.md`.
 - Prod rollout note: signups off = dashboard → Authentication → "Allow new users to sign up" **off**; the Email provider stays **on** (switching it off blocks every login).
 - `extract-data-from-expense-image` with the new error keys is already deployed to production (project ref `mitvsxswoagzixcbrhia`, 2026-10-27).
 - Still open (see `requirements1/CHECKLIST.md`): staging project, migrations to prod, Profina decisions (OD-xx), manual signed-in test pass at 360 px, retire `/signup`, finance/admin dashboard decision, security review (Gate D), email sending (off).

@@ -26,6 +26,12 @@
 | Notification bell | In the sales sub-navigation: unread badge, list with links (marks read on click), "Alle gelesen", and mute settings that explain critical kinds stay visible. |
 | `berlinLocalToUtcIso(date, time)` | Due dates are Berlin wall-clock times converted to UTC **correctly across DST** (a hard-coded `+01:00` in the first draft would have been an hour off in summer; fixed and tested). |
 
+## Changes from the Phase 4 review (2026-11-03, migration `20261101100000_phase4_review_fixes`)
+- **Digest:** during `run_task_generators()` notifications are collected per recipient and kind and sent once at the end. A single item keeps its own title and link; several become e.g. "Erstkontakt: 12 neue Einträge" (→ `/vertrieb/aufgaben`) or "12 Erstkontakte im Team überfällig" (→ `/vertrieb/leads?ansicht=team&sla=overdue`). Each overdue lead escalates once (`leads.sla_escalated_at`; a reassignment resets it). The run result has a `notifications` count.
+- **System tasks close themselves:** `rpc_set_task_status` refuses `done`/reopen on `source = 'system'` (`system_task_auto`). The owner's manager may dismiss one with a reason (`cancelled`, `tasks.dismissed = true`); the generator then doesn't recreate it for that owner.
+- The task list loads all open tasks plus closed ones from the last 90 days (two queries), so history can't push open tasks out of a row limit.
+- Admins can run the generators from the tasks page ("Generatoren ausführen", 2FA).
+
 ## Production rollout notes
 1. Enable the **pg_cron** extension in the Supabase dashboard (Database → Extensions).
 2. Run `select app_private.schedule_jobs();` once (it returns `scheduled`).

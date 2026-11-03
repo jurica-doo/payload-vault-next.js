@@ -15,7 +15,7 @@ Spec: §9.1–9.3, §9.5, §11.2 (lead alerts), §14.5 (lead workflow acceptance
 | `business_calendar` | Nationwide holidays 2026–2027 seeded; Bundesland rows (e.g. `DE-BY`) can be added. |
 | `app_settings.lead_sla` | First-contact hours, working day, workdays, holiday region, escalation. **Provisional (OD-19)** until an admin saves it. |
 
-Visibility (RLS): owner, the owner's managers, admins. Unassigned leads (the pool) are visible to leaders and admins. Finance and compliance get **no** lead access. Every write goes through an RPC; there are no direct table writes. Audit: lead changes are audited with name, phone, email, company and notes **redacted**.
+Visibility (RLS): owner, the owner's managers, admins. Unassigned leads (the pool) belong to the creator's structure: visible and workable for admins and for leaders who created the lead or manage its creator (changed in the Phase 4 review, P4-SEC-01; before, every leader saw every pool lead). Finance and compliance get **no** lead access. Every write goes through an RPC; there are no direct table writes. Audit: lead changes are audited with name, phone, email, company and notes **redacted**.
 
 **RPCs**
 - `rpc_create_lead(data, owner, to_pool, confirm_duplicates)`
@@ -45,7 +45,7 @@ Visibility (RLS): owner, the owner's managers, admins. Unassigned leads (the poo
   - appointment booked → Termin vereinbart
   - appointment held → Termin durchgeführt
   - These moves only go forward, only from open stages, and never past „Termin durchgeführt“. Offer, won and lost stay manual.
-- The first contact attempt, call or email sets `first_contact_at`.
+- The first contact attempt, call, email, offer or appointment sets `first_contact_at` (appointments and offers added in the Phase 4 review, P4-DATA-01; a booked appointment means the lead was reached).
 - `app_private.check_activity_link` (the hook from the activities slice) now checks that the lead exists, isn't merged, and that the caller may work on it.
 - **SLA**: `sla_due_at = add_business_hours(received_at, first_contact_hours)`. It's recalculated for open, uncontacted leads when the SLA or the holidays change.
 - **Task generators**: `run_task_generators()` is now the core generators plus `run_lead_task_generators()`. The old function was renamed to `run_core_task_generators`, so the pg_cron job is unchanged.
