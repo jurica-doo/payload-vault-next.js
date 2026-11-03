@@ -87,6 +87,31 @@ test.describe("Datenbank-Regeln", () => {
   });
 });
 
+test.describe("Runde 2", () => {
+  test("P4-R2-06 parallele Anlage mit gleicher Telefonnummer ergibt einen Lead", async () => {
+    const ph = phone(7);
+    const name = `Qx${Math.random().toString(36).slice(2, 10)}`;
+    const results = await Promise.allSettled([0, 1].map(() =>
+      rpc(ali(), "rpc_create_lead", { p_data: { last_name: name, phone: ph, source_id: sourceId("Website") } })));
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    expect(sql(`select count(*) from public.leads where phone = '${ph}'`)).toBe("1");
+  });
+
+  test("P4-R2-01 + P4-R2-02 Doppelklick legt einen Lead an; Aktivität aktualisiert die Phase ohne Neuladen", async ({ page }) => {
+    const name = `Doppel ${RUN}`;
+    await loginAs(page, "fa.a@test.com");
+    await page.goto("/vertrieb/leads");
+    await page.getByRole("button", { name: "Lead anlegen" }).click();
+    await page.getByLabel("Nachname").fill(name);
+    await page.getByRole("dialog").getByRole("button", { name: "Lead anlegen" }).dblclick();
+    await expect(page).toHaveURL(/\/vertrieb\/leads\/[0-9a-f-]{36}$/);
+    expect(sql(`select count(*) from public.leads where last_name = '${name}'`)).toBe("1");
+    await page.getByRole("button", { name: "Erfassen" }).dblclick();
+    await expect(page.locator("ol[aria-label=Phase] [aria-current=step]")).toHaveText("Kontaktversuch");
+    expect(sql(`select count(*) from public.activities a join public.leads l on l.id = a.linked_id where l.last_name = '${name}'`)).toBe("1");
+  });
+});
+
 test.describe("Oberfläche", () => {
   test("P4-UI-02 Suche findet die Telefonnummer in deutscher Schreibweise", async ({ page }) => {
     await loginAs(page, "fa.a@test.com");
