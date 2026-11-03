@@ -26,7 +26,7 @@ SELECT ok((SELECT date_source = 'manual_confirmed' AND dates_confirmed_by IS NOT
 SELECT throws_ok(format($$SELECT public.rpc_save_contract_link(NULL, %L, '{"external_contract_id": "X1", "deep_link": "http://portal.example/x"}')$$, :'c1'),
   '22023', 'invalid_deep_link', 'deep links must be https');
 SELECT throws_ok(format($$SELECT public.rpc_save_contract_link(NULL, %L, '{"external_contract_id": "X2", "source_system": "scraper"}')$$, :'c1'),
-  '22023', 'unknown_source_system', 'only configured source systems');
+  '22023', 'manual_source_only', 'manual links can only be manual (P5-UX-06; the sync checks configured systems)');
 SELECT throws_ok(format($$SELECT public.rpc_save_contract_link(NULL, %L, '{"external_contract_id": "X3", "premium": 10}')$$, :'c1'),
   '22023', 'invalid_input', 'unknown fields rejected');
 SELECT lives_ok(format($$SELECT public.rpc_save_contract_link(%L, NULL, '{"status": "cancelled"}')$$, :'k1'), 'manual links can be edited');

@@ -17,7 +17,8 @@ SELECT public.rpc_create_lead(jsonb_build_object('first_name', 'Erika', 'last_na
   'phone', '+491709998887', 'source_id', :'src', 'consent_basis', 'consent', 'notes', 'Kinder: zwei')) AS l1 \gset
 SELECT public.rpc_log_activity('call', 'lead', :'l1', NULL, NULL, 'reached', 'Gesundheitszustand besprochen');
 SELECT public.rpc_convert_lead(:'l1') AS c1 \gset
-SELECT public.rpc_update_customer(:'c1', '{"date_of_birth": "1980-01-01", "street": "Geheimweg 1", "next_follow_up_at": "2026-01-01T10:00:00Z"}');
+SELECT public.rpc_update_customer(:'c1', jsonb_build_object('date_of_birth', '1980-01-01', 'street', 'Geheimweg 1',
+  'next_follow_up_at', now() + interval '1 day'));
 SELECT public.rpc_record_consent(:'c1', 'marketing_email', 'granted', 'consent', 'form', 'Unterschrift Erika Geheim');
 SELECT public.rpc_save_contract_link(NULL, :'c1', '{"external_contract_id": "KV-777", "category_code": "KV", "status": "active"}');
 SELECT public.rpc_save_service_item(NULL, :'c1', 'pending_documents', 'Attest von Erika Geheim', '2026-01-01');

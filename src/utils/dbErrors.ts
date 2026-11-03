@@ -117,6 +117,11 @@ const MESSAGES: Record<string, string> = {
 
   // customers
   customer_name_required: "Bitte einen Nachnamen oder eine Firma angeben.",
+  invalid_postal_code: "Die Postleitzahl ist ungültig (3–10 Zeichen, Ziffern und Buchstaben).",
+  consent_invalid: "Zweck, Art des Eintrags und Rechtsgrundlage passen nicht zusammen.",
+  manual_source_only: "Verträge werden von Hand immer als „aus Unterlagen“ verknüpft. Die Portalquelle setzt nur die Synchronisation.",
+  contract_dates_order: "Das Vertragsende darf nicht vor dem Beginn liegen.",
+  objection_customer_only: "Ein Widerspruch kann nur bei Kunden direkt umgesetzt werden. Bei Leads bitte den Lead schließen und die Anfrage mit Ergebnis abschließen.",
   invalid_date_of_birth: "Das Geburtsdatum ist ungültig.",
   customer_erased: "Die Daten dieses Kunden wurden gelöscht (pseudonymisiert).",
   already_converted: "Dieser Lead wurde bereits in einen Kunden umgewandelt.",

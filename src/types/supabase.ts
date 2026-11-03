@@ -2766,6 +2766,7 @@ export type Database = {
           request_no: number
           status: string
           subject_id: string
+          subject_no: number | null
           subject_type: string
           updated_at: string
         }
@@ -2784,6 +2785,7 @@ export type Database = {
           request_no?: never
           status?: string
           subject_id: string
+          subject_no?: number | null
           subject_type: string
           updated_at?: string
         }
@@ -2802,6 +2804,7 @@ export type Database = {
           request_no?: never
           status?: string
           subject_id?: string
+          subject_no?: number | null
           subject_type?: string
           updated_at?: string
         }
@@ -3564,6 +3567,10 @@ export type Database = {
           p_summary: string
         }
         Returns: string
+      }
+      rpc_apply_objection: {
+        Args: { p_request_id: string }
+        Returns: undefined
       }
       rpc_approve_promotion: {
         Args: { p_employee_id: string; p_reason: string }

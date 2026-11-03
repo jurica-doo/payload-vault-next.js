@@ -47,7 +47,7 @@ SELECT is(public.rpc_may_contact(:'c1', 'marketing_email') ->> 'reason', 'withdr
 SELECT public.rpc_record_consent(:'c1', 'all', 'opt_out', NULL, 'phone', 'Kunde wünscht keine Kontaktaufnahme');
 SELECT is(public.rpc_may_contact(:'c1', 'contact_phone') ->> 'reason', 'opt_out', 'opt-out overrides every basis');
 SELECT throws_ok(format($$SELECT public.rpc_record_consent(%L, 'all', 'granted', 'consent', 'form', 'xxxxx')$$, :'c1'),
-  '23514', NULL, 'the global switch only knows opt-out / opt-in');
+  '22023', 'consent_invalid', 'the global switch only knows opt-out / opt-in');
 SELECT public.rpc_record_consent(:'c1', 'all', 'opt_in', NULL, 'phone', 'Widerspruch zurückgenommen');
 SELECT is((public.rpc_may_contact(:'c1', 'contact_phone') ->> 'allowed')::boolean, true, 'opt-in restores the previous bases');
 
