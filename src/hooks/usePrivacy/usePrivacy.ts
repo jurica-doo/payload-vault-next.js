@@ -76,5 +76,29 @@ export function usePrivacy(enabled: boolean, withSync: boolean) {
     }),
     exportData: useMutation({ mutationFn: (id: string) => call("rpc_export_subject_data", { p_request_id: id }), onSuccess: invalidate }),
     erase: useMutation({ mutationFn: (id: string) => call("rpc_erase_subject", { p_request_id: id }), onSuccess: invalidate }),
+    /** Records the opt-out for an objection request and completes it (P5-PRIV-01). */
+    applyObjection: useMutation({
+      mutationFn: (id: string) => call("rpc_apply_objection", { p_request_id: id }),
+      onSuccess: () => {
+        invalidate();
+        queryClient.invalidateQueries({ queryKey: ["consents"] });
+        queryClient.invalidateQueries({ queryKey: ["consent-report"] });
+      },
+    }),
   };
+}
+
+/** Ids of the given customers that are already pseudonymised (compliance reads customers). */
+export function useErasedCustomers(ids: string[]): Set<string> {
+  const key = [...new Set(ids)].sort();
+  const { data } = useQuery({
+    queryKey: ["erased-customers", key],
+    enabled: key.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("customers").select("id").in("id", key).not("erased_at", "is", null);
+      if (error) throwDbError(error);
+      return new Set((data ?? []).map((c) => c.id));
+    },
+  });
+  return data ?? new Set();
 }

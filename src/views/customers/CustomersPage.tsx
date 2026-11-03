@@ -10,11 +10,14 @@ import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DataTable } from "../../components/dataTable/DataTable";
 import { EmptyState } from "../../components/emptyState/EmptyState";
+import { Notice } from "../../components/notice/Notice";
+import { SearchBar } from "../../components/searchBar/SearchBar";
+import { useBanner } from "../../context/banner/BannerContext";
 import { useModal } from "../../context/modal/ModalContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useStructure } from "../../hooks/useStructure/useStructure";
-import { customerName, customerNo, useCustomers, type Customer } from "../../hooks/useCustomers/useCustomers";
-import { formatDateTime } from "../../utils/format";
+import { customerName, customerNo, useCustomers, type CustomerListItem } from "../../hooks/useCustomers/useCustomers";
+import { formatDateTime, formatNumber } from "../../utils/format";
 import { CUSTOMER_STATUS_LABEL, CustomerForm } from "./CustomerForm";
 
 type Scope = "me" | "team" | "archived";
@@ -22,34 +25,34 @@ type Scope = "me" | "team" | "archived";
 /** Customer list (§10.1): own customers, the structure's for leaders, all for admins/compliance. */
 export const CustomersPage = () => {
   const { permissions } = usePermissions();
-  const { data = [], isLoading, error } = useCustomers();
+  const [query, setQuery] = useState("");
+  const { data, isLoading, error } = useCustomers(query);
   const { data: structure } = useStructure();
   const { openModal, closeModal } = useModal();
+  const { showBanner } = useBanner();
   const router = useRouter();
   const me = permissions.employeeId;
   const seesOthers = permissions.isLeader || permissions.isAdmin || permissions.isCompliance;
   const [scope, setScope] = useState<Scope>(me ? "me" : "team");
-  const [query, setQuery] = useState("");
 
   if (!me && !permissions.isAdmin && !permissions.isCompliance) return <EmptyState message="Kunden gibt es nur für aktive Mitarbeitende." />;
 
-  const q = query.trim().toLowerCase();
-  const rows = data.filter((c) => {
-    if (scope === "archived" ? !c.archived_at : c.archived_at) return false;
-    if (scope === "me" && c.owner_id !== me) return false;
-    if (scope === "team" && c.owner_id === me) return false;
-    return !q || c.search_name?.includes(q) || customerNo(c.customer_no).toLowerCase().includes(q)
-      || (c.phone ?? "").includes(q.replace(/\s/g, "")) || (c.email ?? "").includes(q) || (c.postal_code ?? "").startsWith(q);
-  });
+  const all = data?.rows ?? [];
+  const inScope = (c: CustomerListItem, s: Scope) =>
+    s === "archived" ? Boolean(c.archived_at) : !c.archived_at && (s === "me" ? c.owner_id === me : c.owner_id !== me);
+  const rows = all.filter((c) => inScope(c, scope));
+  // Counters follow the search (P5-UX-09).
+  const count = (s: Scope) => formatNumber(all.filter((c) => inScope(c, s)).length);
   const ownerName = (id: string) => {
     const r = structure?.byId.get(id);
     return r ? `${r.first_name} ${r.last_name}` : "–";
   };
   const scopes: { id: Scope; label: string }[] = [
-    ...(me ? [{ id: "me" as const, label: "Meine Kunden" }] : []),
-    ...(seesOthers ? [{ id: "team" as const, label: me ? "Team" : "Alle" }] : []),
-    { id: "archived", label: "Archiviert" },
+    ...(me ? [{ id: "me" as const, label: `Meine Kunden (${count("me")})` }] : []),
+    ...(seesOthers ? [{ id: "team" as const, label: `${!me ? "Alle" : permissions.isLeader ? "Team" : "Alle anderen"} (${count("team")})` }] : []),
+    { id: "archived", label: `Archiviert (${count("archived")})` },
   ];
+  const truncated = data !== undefined && data.total > all.length;
 
   return (
     <div className="flex flex-col gap-4">
@@ -61,22 +64,30 @@ export const CustomersPage = () => {
           {me && (
             <Button text="Kunde anlegen" icon={PlusIcon} onClick={() => openModal({
               title: "Kunde anlegen", size: "large",
-              children: <CustomerForm onDone={(id) => { closeModal(); router.push(`/vertrieb/kunden/${id}`); }} />,
+              children: <CustomerForm onDone={(id) => {
+                closeModal();
+                showBanner("Kunde angelegt", "Der Kunde ist gespeichert.", "success");
+                router.push(`/vertrieb/kunden/${id}`);
+              }} />,
             })} />
           )}
         </PageActions>
       </div>
-      <input type="search" aria-label="Suche" placeholder="Name, Firma, K-Nummer, Telefon, E-Mail, PLZ" value={query} onChange={(e) => setQuery(e.target.value)}
-        className="ui-input" />
+      <SearchBar value={query} onChange={setQuery} debounceMs={300} placeholder="Name, Firma, K-Nummer, Telefon, E-Mail, PLZ" />
+      {truncated && (
+        <Notice tone="info" compact>
+          Es werden {formatNumber(all.length)} von {formatNumber(data.total)} Kunden angezeigt. Bitte nutzen Sie die Suche, um weitere zu finden.
+        </Notice>
+      )}
       <DataTable
         rows={rows}
         isLoading={isLoading}
         error={error ? errorText(error) : null}
         getRowId={(c) => c.id}
         onRowClick={(c) => router.push(`/vertrieb/kunden/${c.id}`)}
-        emptyMessage="Keine Kunden in dieser Ansicht"
+        emptyMessage={query.trim() ? "Keine Kunden passen zur Suche" : "Keine Kunden in dieser Ansicht"}
         columns={[
-          { id: "name", header: "Kunde", sortValue: (c: Customer) => customerName(c), cell: (c: Customer) => (
+          { id: "name", header: "Kunde", sortValue: (c: CustomerListItem) => customerName(c), cell: (c: CustomerListItem) => (
             <span><span className="font-semibold">{c.erased_at ? "Gelöscht (pseudonymisiert)" : customerName(c)}</span>
               <span className="block text-xs text-color-text-subtle">{customerNo(c.customer_no)}{c.city ? ` · ${c.city}` : ""}</span></span>
           ) },

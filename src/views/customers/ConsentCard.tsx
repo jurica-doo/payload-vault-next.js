@@ -5,8 +5,10 @@ import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
+import { ModalActions } from "../../components/modal/ModalActions";
 import { StatusBadge } from "../../components/statusBadge/StatusBadge";
 import { useBanner } from "../../context/banner/BannerContext";
+import { useModal } from "../../context/modal/ModalContext";
 import { useConsents, type Customer } from "../../hooks/useCustomers/useCustomers";
 import {
   BASIS_LABEL, PURPOSE_LABEL, REASON_LABEL, SOURCE_LABEL, currentState, mayContact, type ConsentEvent,
@@ -15,18 +17,27 @@ import { berlinLocalToUtcIso, berlinToday, formatDate, formatDateTime } from "..
 import { Select } from "../../components/select/Select";
 
 const card = cardClass;
+const SOURCE_OPTIONS = Object.entries(SOURCE_LABEL).filter(([k]) => k !== "lead" && k !== "import").map(([value, label]) => ({ value, label }));
+
+/**
+ * What the viewer may record: everything (adviser and structure), only
+ * withdrawals and the objection (compliance with 2FA, P5-PRIV-01), or nothing.
+ */
+export type ConsentMode = "full" | "objection" | "read";
 
 /**
  * Consents and communication permissions (§10.1, §10.5). Append-only: a
  * mistake is corrected by recording a new entry. Opt-out overrides all.
  */
-export const ConsentCard = ({ customer, canWork }: { customer: Customer; canWork: boolean }) => {
+export const ConsentCard = ({ customer, mode }: { customer: Customer; mode: ConsentMode }) => {
   const { data = [], record } = useConsents(customer.id);
   const { showBanner } = useBanner();
+  const { openModal, closeModal } = useModal();
   const events = data as ConsentEvent[];
   const state = currentState(events);
   const optedOut = state.get("all")?.action === "opt_out";
-  const [form, setForm] = useState({ purpose: "contact_email", action: "granted", basis: "consent", source: "form", evidence: "", date: berlinToday() });
+  const full = mode === "full";
+  const [form, setForm] = useState({ purpose: "contact_email", action: full ? "granted" : "withdrawn", basis: "consent", source: "form", evidence: "", date: berlinToday() });
   const set = (k: keyof typeof form) => (v: string) => setForm((x) => ({ ...x, [k]: v }));
   const needsEvidence = form.action === "granted" && form.basis === "consent" && form.evidence.trim().length < 5;
 
@@ -36,10 +47,23 @@ export const ConsentCard = ({ customer, canWork }: { customer: Customer; canWork
         ...a, effectiveAt: a.date && a.date !== berlinToday() ? berlinLocalToUtcIso(a.date, "12:00") : null,
       });
       setForm((x) => ({ ...x, evidence: "" }));
+      showBanner("Eintrag gespeichert", a.purpose === "all"
+        ? (a.action === "opt_out" ? "Widerspruch: keine Kontaktaufnahme mehr." : "Widerspruch aufgehoben.")
+        : `${PURPOSE_LABEL[a.purpose]}: ${a.action === "granted" ? "erteilt" : "widerrufen"}.`, "success");
+      return true;
     } catch (e) {
       showBanner("Nicht gespeichert", errorText(e), "error");
+      return false;
     }
   };
+
+  // The objection blocks every contact, so it is confirmed with its own source and note (P5-UX-01).
+  const confirmObjection = () => openModal({
+    title: optedOut ? "Widerspruch aufheben" : "Widerspruch gegen jede Kontaktaufnahme",
+    children: <ObjectionForm lift={optedOut} onCancel={closeModal} onConfirm={async (source, note) => {
+      if (await save({ purpose: "all", action: optedOut ? "opt_in" : "opt_out", legalBasis: null, source, evidence: note, date: berlinToday() })) closeModal();
+    }} />,
+  });
 
   return (
     <section className={card}>
@@ -68,26 +92,31 @@ export const ConsentCard = ({ customer, canWork }: { customer: Customer; canWork
         </tbody>
       </table>
 
-      {canWork && (
+      {mode !== "read" && (
         <>
           <div className="flex flex-wrap items-end gap-3 border-t border-color-border-light pt-3">
             <Select label="Zweck" value={form.purpose} onChange={set("purpose")} options={Object.entries(PURPOSE_LABEL).map(([value, label]) => ({ value, label }))} />
-            <Select label="Erfassen" value={form.action} onChange={set("action")} options={[{ value: "granted", label: "erteilt / Rechtsgrundlage" }, { value: "withdrawn", label: "widerrufen" }]} />
+            {full && (
+              <Select label="Erfassen" value={form.action} onChange={set("action")} options={[{ value: "granted", label: "erteilt / Rechtsgrundlage" }, { value: "withdrawn", label: "widerrufen" }]} />
+            )}
             {form.action === "granted" && (
               <Select label="Rechtsgrundlage" value={form.basis} onChange={set("basis")} options={Object.entries(BASIS_LABEL).map(([value, label]) => ({ value, label }))} />
             )}
-            <Select label="Quelle" value={form.source} onChange={set("source")}
-              options={Object.entries(SOURCE_LABEL).filter(([k]) => k !== "lead" && k !== "import").map(([value, label]) => ({ value, label }))} />
+            <Select label="Quelle" value={form.source} onChange={set("source")} options={SOURCE_OPTIONS} />
             <DateInput label="Wirksam am" value={form.date} onChange={set("date")} max={berlinToday()} />
           </div>
           <TextArea label={form.action === "granted" && form.basis === "consent" ? "Nachweis (Pflicht: wo/wie erteilt)" : "Nachweis / Notiz"}
             value={form.evidence} onChange={set("evidence")} rows={2} />
+          {mode === "objection" && (
+            <p className="text-xs text-color-text-subtle">Als Datenschutz können Sie Widerrufe und Widersprüche erfassen, aber keine Einwilligungen.</p>
+          )}
           <div className="flex flex-wrap gap-3">
-            <Button text="Erfassen" isLoading={record.isPending} isDisabled={needsEvidence || !form.date}
+            <Button text={full ? "Erfassen" : "Widerruf erfassen"} isLoading={record.isPending} isDisabled={needsEvidence || !form.date}
               onClick={() => save({ purpose: form.purpose, action: form.action, legalBasis: form.action === "granted" ? form.basis : null, source: form.source, evidence: form.evidence, date: form.date })} />
-            <Button text={optedOut ? "Widerspruch aufheben" : "Widerspruch: keine Kontaktaufnahme"} variant={optedOut ? "secondary" : "decline"}
-              isLoading={record.isPending}
-              onClick={() => save({ purpose: "all", action: optedOut ? "opt_in" : "opt_out", legalBasis: null, source: form.source, evidence: form.evidence, date: berlinToday() })} />
+            {(full || !optedOut) && (
+              <Button text={optedOut ? "Widerspruch aufheben…" : "Widerspruch: keine Kontaktaufnahme…"} variant={optedOut ? "secondary" : "decline"}
+                isLoading={record.isPending} onClick={confirmObjection} />
+            )}
           </div>
         </>
       )}
@@ -107,5 +136,28 @@ export const ConsentCard = ({ customer, canWork }: { customer: Customer; canWork
         </details>
       )}
     </section>
+  );
+};
+
+const ObjectionForm = ({ lift, onConfirm, onCancel }: { lift: boolean; onConfirm: (source: string, note: string) => Promise<void>; onCancel: () => void }) => {
+  const [source, setSource] = useState("phone");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  return (
+    <form className="flex flex-col gap-3 pt-2 text-sm" onSubmit={async (e) => {
+      e.preventDefault();
+      setBusy(true);
+      try { await onConfirm(source, note); } finally { setBusy(false); }
+    }}>
+      <p>{lift
+        ? "Der Widerspruch wird aufgehoben. Danach gelten wieder die einzelnen Einwilligungen und Rechtsgrundlagen."
+        : "Ab sofort ist keine Kontaktaufnahme mehr erlaubt, unabhängig von einzelnen Einwilligungen. Der Eintrag wird protokolliert."}</p>
+      <Select label="Wie wurde das mitgeteilt?" value={source} onChange={setSource} options={SOURCE_OPTIONS} fullWidth />
+      <TextArea label="Notiz (optional)" value={note} onChange={setNote} rows={2} />
+      <ModalActions>
+        <Button text="Abbrechen" variant="secondary" onClick={onCancel} />
+        <Button type="submit" text={lift ? "Widerspruch aufheben" : "Widerspruch erfassen"} variant={lift ? "primary" : "decline"} isLoading={busy} />
+      </ModalActions>
+    </form>
   );
 };

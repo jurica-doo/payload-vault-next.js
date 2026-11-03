@@ -4,13 +4,15 @@ import { errorText } from "../../utils/dbErrors";
 import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
-import { DateInput } from "../../components/formFields/FormFields";
+import { DateInput, TextArea } from "../../components/formFields/FormFields";
 import { InputField } from "../../components/inputField/InputField";
 import { EmployeePicker } from "../../components/employeePicker/EmployeePicker";
+import { ModalActions } from "../../components/modal/ModalActions";
 import { useBanner } from "../../context/banner/BannerContext";
+import { useModal } from "../../context/modal/ModalContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useStructure } from "../../hooks/useStructure/useStructure";
-import { useContracts, useServiceItems, type Customer } from "../../hooks/useCustomers/useCustomers";
+import { useContracts, useServiceItems, type Customer, type ServiceItem } from "../../hooks/useCustomers/useCustomers";
 import { nextAnniversary } from "../../domain/serviceDates";
 import { berlinToday, formatDate } from "../../utils/format";
 import { Select } from "../../components/select/Select";
@@ -30,11 +32,12 @@ export const SERVICE_KIND_LABEL: Record<string, string> = {
  * confirmed contract date; due items appear as tasks before the date.
  */
 export const ServiceCard = ({ customer, canWork }: { customer: Customer; canWork: boolean }) => {
-  const { data = [], save, setStatus } = useServiceItems(customer.id);
+  const { data = [], save } = useServiceItems(customer.id);
   const { data: contracts = [] } = useContracts(customer.id);
   const { permissions } = usePermissions();
   const { data: structure } = useStructure();
   const { showBanner } = useBanner();
+  const { openModal, closeModal } = useModal();
   const today = berlinToday();
   const [f, setF] = useState({ kind: "annual_review", title: "", due: "", recurrence: "none", contract: "", note: "" });
   const [owner, setOwner] = useState<string | null>(customer.owner_id);
@@ -48,10 +51,14 @@ export const ServiceCard = ({ customer, canWork }: { customer: Customer; canWork
     ? [...structure.byId.values()].filter((r) => r.status === "active")
         .map((r) => ({ id: r.employee_id, first_name: r.first_name, last_name: r.last_name, employee_no: r.employee_no }))
     : [];
+  const titleError = f.title.trim().length > 0 && f.title.trim().length < 3 ? "Bitte mindestens 3 Zeichen angeben." : undefined;
   const valid = f.title.trim().length >= 3 && (isRenewal ? Boolean(contract) : Boolean(f.due));
-  const run = async (fn: () => Promise<unknown>) => {
-    try { await fn(); } catch (e) { showBanner("Nicht gespeichert", errorText(e), "error"); }
-  };
+
+  // Closing an item asks for an optional note; cancelling is confirmed (P5-UX-07).
+  const close = (i: ServiceItem, status: "done" | "cancelled") => openModal({
+    title: status === "done" ? "Serviceanlass erledigt" : "Serviceanlass absagen",
+    children: <CloseItemForm item={i} status={status} customerId={customer.id} onDone={closeModal} />,
+  });
 
   return (
     <section className={card}>
@@ -67,11 +74,12 @@ export const ServiceCard = ({ customer, canWork }: { customer: Customer; canWork
                   {SERVICE_KIND_LABEL[i.kind]}{i.recurrence === "yearly" ? " · jährlich" : ""}
                   {i.owner_id !== customer.owner_id && structure?.byId.get(i.owner_id) ? ` · ${structure.byId.get(i.owner_id)?.first_name} ${structure.byId.get(i.owner_id)?.last_name}` : ""}
                 </span>
+                {i.note && <span className="block text-xs text-color-text-secondary">{i.note}</span>}
               </span>
               {canWork && (
-                <span className="flex gap-2 text-xs font-semibold">
-                  <button type="button" className="cursor-pointer text-color-text-accent" onClick={() => run(() => setStatus.mutateAsync({ id: i.id, status: "done" }))}>Erledigt</button>
-                  <button type="button" className="cursor-pointer text-color-text-subtle" onClick={() => run(() => setStatus.mutateAsync({ id: i.id, status: "cancelled" }))}>Absagen</button>
+                <span className="flex gap-1">
+                  <Button text="Erledigt" variant="ghost" size="small" ariaLabel={`${i.title} erledigt`} onClick={() => close(i, "done")} />
+                  <Button text="Absagen" variant="ghost" size="small" ariaLabel={`${i.title} absagen`} onClick={() => close(i, "cancelled")} />
                 </span>
               )}
             </li>
@@ -83,7 +91,7 @@ export const ServiceCard = ({ customer, canWork }: { customer: Customer; canWork
           <div className="grid gap-3 sm:grid-cols-2">
             <Select label="Anlass" value={f.kind} onChange={(v) => setF((x) => ({ ...x, kind: v, recurrence: v === "contract_renewal" || v === "annual_review" ? "yearly" : x.recurrence }))}
               options={Object.entries(SERVICE_KIND_LABEL).map(([value, label]) => ({ value, label }))} />
-            <InputField label="Titel" placeholder="z. B. Jahresgespräch 2027" value={f.title} onChange={set("title")} />
+            <InputField label="Titel" placeholder="z. B. Jahresgespräch 2027" value={f.title} onChange={set("title")} error={titleError} />
             {isRenewal ? (
               <Select label="Vertrag (mit bestätigter Hauptfälligkeit)" value={f.contract} onChange={set("contract")}
                 options={[{ value: "", label: renewable.length ? "– wählen –" : "kein Vertrag mit bestätigtem Datum" },
@@ -99,11 +107,17 @@ export const ServiceCard = ({ customer, canWork }: { customer: Customer; canWork
           {(permissions.isLeader || permissions.isAdmin) && people.length > 1 && (
             <EmployeePicker label="Zuständig" employees={people} value={owner} onChange={setOwner} />
           )}
+          <TextArea label="Notiz (optional)" value={f.note} onChange={set("note")} rows={2} />
           <div>
-            <Button text="Anlegen" isLoading={save.isPending} isDisabled={!valid} onClick={() => run(async () => {
-              await save.mutateAsync({ kind: f.kind, title: f.title, dueOn: isRenewal ? null : f.due, ownerId: owner, recurrence: f.recurrence, contractId: isRenewal ? f.contract : null, note: f.note });
-              setF((x) => ({ ...x, title: "", due: "" }));
-            })} />
+            <Button text="Anlegen" isLoading={save.isPending} isDisabled={!valid} onClick={async () => {
+              try {
+                await save.mutateAsync({ kind: f.kind, title: f.title, dueOn: isRenewal ? null : f.due, ownerId: owner, recurrence: f.recurrence, contractId: isRenewal ? f.contract : null, note: f.note });
+                showBanner("Serviceanlass angelegt", f.title.trim(), "success");
+                setF((x) => ({ ...x, title: "", due: "", note: "" }));
+              } catch (e) {
+                showBanner("Nicht gespeichert", errorText(e), "error");
+              }
+            }} />
           </div>
         </div>
       )}
@@ -116,5 +130,36 @@ export const ServiceCard = ({ customer, canWork }: { customer: Customer; canWork
         </details>
       )}
     </section>
+  );
+};
+
+const CloseItemForm = ({ item, status, customerId, onDone }: { item: ServiceItem; status: "done" | "cancelled"; customerId: string; onDone: () => void }) => {
+  const { setStatus } = useServiceItems(customerId);
+  const { showBanner } = useBanner();
+  const [note, setNote] = useState("");
+  const [error, setError] = useState<string>();
+  return (
+    <form className="flex flex-col gap-3 pt-2 text-sm" onSubmit={async (e) => {
+      e.preventDefault();
+      setError(undefined);
+      try {
+        await setStatus.mutateAsync({ id: item.id, status, note: note.trim() || undefined });
+        showBanner(status === "done" ? "Serviceanlass erledigt" : "Serviceanlass abgesagt",
+          item.recurrence === "yearly" && status === "done" ? `${item.title} – der nächste Termin ist angelegt.` : item.title, "success");
+        onDone();
+      } catch (err) {
+        setError(errorText(err));
+      }
+    }}>
+      <p>{status === "done"
+        ? `„${item.title}“ wird als erledigt markiert.${item.recurrence === "yearly" ? " Der Termin im nächsten Jahr wird automatisch angelegt." : ""}`
+        : `„${item.title}“ wird abgesagt und nicht mehr erinnert.`}</p>
+      <TextArea label="Notiz (optional)" value={note} onChange={setNote} rows={2} />
+      {error && <p role="alert" className="text-color-error-text">{error}</p>}
+      <ModalActions>
+        <Button text="Abbrechen" variant="secondary" onClick={onDone} />
+        <Button type="submit" text={status === "done" ? "Erledigt" : "Absagen"} variant={status === "done" ? "primary" : "decline"} isLoading={setStatus.isPending} />
+      </ModalActions>
+    </form>
   );
 };

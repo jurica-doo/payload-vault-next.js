@@ -18,13 +18,20 @@ import { useBanner } from "../../context/banner/BannerContext";
 import { useModal } from "../../context/modal/ModalContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useConsentReport } from "../../hooks/useCustomers/useCustomers";
-import { usePrivacy, type PrivacyRequest } from "../../hooks/usePrivacy/usePrivacy";
+import { useErasedCustomers, usePrivacy, type PrivacyRequest } from "../../hooks/usePrivacy/usePrivacy";
 import { PURPOSE_LABEL } from "../../domain/consent";
 import { berlinLocalToUtcIso, berlinToday, formatDate, formatDateTime } from "../../utils/format";
 import { Select } from "../../components/select/Select";
+import { ModalActions } from "../../components/modal/ModalActions";
 
 const card = cardClass;
 const KIND_LABEL: Record<string, string> = { access: "Auskunft", rectification: "Berichtigung", erasure: "Löschung", objection: "Widerspruch" };
+/** Export log codes in German (P5-UI-02). */
+const EXPORT_KIND_LABEL: Record<string, string> = { subject_access: "Auskunft (Datenexport)" };
+const ENTITY_LABEL: Record<string, string> = { customer: "Kunde", lead: "Lead" };
+/** "K-00012" / "L-00012" for a request's subject (P5-UX-02). */
+export const subjectLabel = (r: Pick<PrivacyRequest, "subject_type" | "subject_no">) =>
+  `${r.subject_type === "customer" ? "Kunde" : "Lead"}${r.subject_no ? ` ${r.subject_type === "customer" ? "K" : "L"}-${String(r.subject_no).padStart(5, "0")}` : ""}`;
 const VIA_LABEL: Record<string, string> = { email: "E-Mail", letter: "Brief", phone: "Telefon", in_person: "persönlich", portal: "Portal" };
 
 /** Parses "K-00012", "L-7" or "12" into a number. */
@@ -52,6 +59,9 @@ export const PrivacyPage = () => {
   const open = (p.requests.data ?? []).filter((r) => r.status === "open");
   const closed = (p.requests.data ?? []).filter((r) => r.status !== "open");
   const closedPages = usePagination(closed);
+  const requestNo = new Map((p.requests.data ?? []).map((r) => [r.id, r.request_no]));
+  // Customers already pseudonymised get a hint next to new requests (P5-UX-10).
+  const erased = useErasedCustomers(open.filter((r) => r.subject_type === "customer").map((r) => r.subject_id));
   const exportPages = usePagination(p.exports.data ?? []);
   if (!allowed) return <p className="text-sm">Nur für Datenschutz/Compliance und Administratoren.</p>;
 
@@ -63,14 +73,14 @@ export const PrivacyPage = () => {
         <h2 className="text-base font-semibold">Anfragen betroffener Personen</h2>
         <NewRequestForm />
         {open.length === 0 ? <p className="text-sm text-color-text-subtle">Keine offenen Anfragen.</p> : (
-          <ul className="flex flex-col gap-2">{open.map((r) => <RequestRow key={r.id} r={r} />)}</ul>
+          <ul className="flex flex-col gap-2">{open.map((r) => <RequestRow key={r.id} r={r} erased={erased.has(r.subject_id)} />)}</ul>
         )}
         {closed.length > 0 && (
           <details>
             <summary className="cursor-pointer text-sm font-semibold">Abgeschlossen ({closed.length})</summary>
             <ul className="mt-2 text-xs text-color-text-secondary">
               {closedPages.pageItems.map((r) => (
-                <li key={r.id}>DS-{r.request_no} · {KIND_LABEL[r.kind]} · {r.status === "completed" ? "erledigt" : "abgelehnt"} am {formatDate(r.completed_at?.slice(0, 10))}{r.outcome_note ? ` – ${r.outcome_note}` : ""}</li>
+                <li key={r.id}>DS-{r.request_no} · {KIND_LABEL[r.kind]} · {subjectLabel(r)} · {r.status === "completed" ? "erledigt" : "abgelehnt"} am {formatDate(r.completed_at?.slice(0, 10))}{r.outcome_note ? ` – ${r.outcome_note}` : ""}</li>
               ))}
             </ul>
             <div className="mt-3">
@@ -117,7 +127,12 @@ export const PrivacyPage = () => {
         {(p.exports.data ?? []).length === 0 ? <p className="text-sm text-color-text-subtle">Noch keine Exporte.</p> : (
           <>
             <ul className="text-xs text-color-text-secondary">
-              {exportPages.pageItems.map((e) => <li key={e.id}>{formatDateTime(e.at)} · {e.kind} · {e.entity_type} · {e.row_count ?? "–"} Einträge</li>)}
+              {exportPages.pageItems.map((e) => (
+                <li key={e.id}>
+                  {formatDateTime(e.at)} · {EXPORT_KIND_LABEL[e.kind] ?? e.kind} · {ENTITY_LABEL[e.entity_type ?? ""] ?? e.entity_type ?? "–"}
+                  {e.request_id && requestNo.has(e.request_id) ? ` · DS-${requestNo.get(e.request_id)}` : ""} · {e.row_count ?? "–"} Einträge
+                </li>
+              ))}
             </ul>
             <Pagination {...exportPages.pagination} />
           </>
@@ -174,6 +189,7 @@ const NewRequestForm = () => {
               kind: f.kind, subjectType: f.type, subjectId: subject.id, via: f.via, note: f.note,
               receivedAt: f.date === berlinToday() ? null : berlinLocalToUtcIso(f.date, "09:00"),
             });
+            showBanner("Anfrage erfasst", `${KIND_LABEL[f.kind]} · ${f.type === "customer" ? "Kunde" : "Lead"} ${f.no.trim()}${subject.erased ? " (bereits pseudonymisiert)" : ""}`, "success");
             setF((x) => ({ ...x, no: "", note: "" }));
           } catch (e) {
             showBanner("Nicht gespeichert", errorText(e), "error");
@@ -184,57 +200,85 @@ const NewRequestForm = () => {
   );
 };
 
-const RequestRow = ({ r }: { r: PrivacyRequest }) => {
+const RequestRow = ({ r, erased }: { r: PrivacyRequest; erased: boolean }) => {
   const { permissions } = usePermissions();
   const p = usePrivacy(true, false);
   const { openModal, closeModal } = useModal();
   const { showBanner } = useBanner();
   const overdue = r.due_at < new Date().toISOString();
-  const subject = `${r.subject_type === "customer" ? "Kunde" : "Lead"}`;
+  const subject = subjectLabel(r);
   const disabled = !permissions.hasMfa;
   return (
     <li className="flex flex-wrap items-start justify-between gap-2 text-sm">
       <span>
         <span className="font-semibold">DS-{r.request_no} · {KIND_LABEL[r.kind]}</span> · {subject}
         {r.subject_type === "customer" && <> · <Link href={`/vertrieb/kunden/${r.subject_id}`}>öffnen</Link></>}
+        {erased && <span className="text-color-text-subtle"> · bereits pseudonymisiert</span>}
         <span className={`block text-xs ${overdue ? "text-color-error-text" : "text-color-text-subtle"}`}>
           eingegangen {formatDate(r.received_at.slice(0, 10))} ({VIA_LABEL[r.received_via]}) · Frist {formatDate(r.due_at.slice(0, 10))}{overdue ? " – überschritten" : ""}
         </span>
         {r.note && <span className="block text-xs text-color-text-secondary">{r.note}</span>}
       </span>
-      <span className="flex flex-wrap gap-2 text-xs font-semibold">
+      <span className="flex flex-wrap gap-1">
         {r.kind === "access" && (
-          <button type="button" disabled={disabled} className="cursor-pointer text-color-text-accent" onClick={async () => {
+          <Button text="Daten exportieren" variant="ghost" size="small" isDisabled={disabled} isLoading={p.exportData.isPending} onClick={async () => {
             try {
               const data = await p.exportData.mutateAsync(r.id);
               downloadJson(`auskunft-DS-${r.request_no}.json`, data);
+              showBanner("Daten exportiert", `DS-${r.request_no}: Datei heruntergeladen, Anfrage abgeschlossen.`, "success");
             } catch (e) {
               showBanner("Export fehlgeschlagen", errorText(e), "error");
             }
-          }}>Daten exportieren</button>
+          }} />
         )}
         {r.kind === "erasure" && (
-          <button type="button" disabled={disabled} className="cursor-pointer text-color-error-text" onClick={() => openModal({
+          <Button text="Pseudonymisieren" variant="decline" size="small" isDisabled={disabled} onClick={() => openModal({
             title: `Löschanfrage DS-${r.request_no} ausführen`,
-            children: <EraseConfirm onCancel={closeModal} onConfirm={async () => { await p.erase.mutateAsync(r.id); closeModal(); }} />,
-          })}>Pseudonymisieren</button>
+            children: <EraseConfirm onCancel={closeModal} onConfirm={async () => {
+              await p.erase.mutateAsync(r.id);
+              closeModal();
+              showBanner("Pseudonymisiert", `DS-${r.request_no}: personenbezogene Daten entfernt.`, "success");
+            }} />,
+          })} />
         )}
-        {(r.kind === "rectification" || r.kind === "objection") && (
-          <button type="button" disabled={disabled} className="cursor-pointer text-color-text-accent" onClick={() => openModal({
+        {r.kind === "objection" && r.subject_type === "customer" && !erased && (
+          // One step: records the opt-out on the customer and completes the request (P5-PRIV-01).
+          <Button text="Widerspruch umsetzen" variant="secondary" size="small" isDisabled={disabled} onClick={() => openModal({
+            title: `Widerspruch DS-${r.request_no} umsetzen`,
+            children: (
+              <ConfirmAction message="Für den Kunden wird ein Widerspruch gegen jede Kontaktaufnahme erfasst (Nachweis: diese Anfrage). Die Anfrage wird damit abgeschlossen."
+                confirmText="Widerspruch umsetzen" onCancel={closeModal} onConfirm={async () => {
+                  await p.applyObjection.mutateAsync(r.id);
+                  closeModal();
+                  showBanner("Widerspruch umgesetzt", `DS-${r.request_no}: keine Kontaktaufnahme mehr.`, "success");
+                }} />
+            ),
+          })} />
+        )}
+        {(r.kind === "rectification" || (r.kind === "objection" && r.subject_type === "lead")) && (
+          <Button text="Abschließen" variant="ghost" size="small" isDisabled={disabled} onClick={() => openModal({
             title: `DS-${r.request_no} abschließen`,
             children: (
               <ReasonConfirmForm message="Was wurde geändert bzw. veranlasst?" reasonLabel="Ergebnis" onCancel={closeModal}
-                onConfirm={async (outcome) => { await p.close.mutateAsync({ id: r.id, status: "completed", outcome }); closeModal(); }} />
+                onConfirm={async (outcome) => {
+                  await p.close.mutateAsync({ id: r.id, status: "completed", outcome });
+                  closeModal();
+                  showBanner("Anfrage abgeschlossen", `DS-${r.request_no}`, "success");
+                }} />
             ),
-          })}>Abschließen</button>
+          })} />
         )}
-        <button type="button" disabled={disabled} className="cursor-pointer text-color-text-subtle" onClick={() => openModal({
+        <Button text="Ablehnen" variant="ghost" size="small" isDisabled={disabled} onClick={() => openModal({
           title: `DS-${r.request_no} ablehnen`,
           children: (
             <ReasonConfirmForm message="Die Ablehnung wird mit Begründung dokumentiert." variant="decline" onCancel={closeModal}
-              onConfirm={async (outcome) => { await p.close.mutateAsync({ id: r.id, status: "rejected", outcome }); closeModal(); }} />
+              onConfirm={async (outcome) => {
+                await p.close.mutateAsync({ id: r.id, status: "rejected", outcome });
+                closeModal();
+                showBanner("Anfrage abgelehnt", `DS-${r.request_no}`, "success");
+              }} />
           ),
-        })}>Ablehnen</button>
+        })} />
       </span>
     </li>
   );
@@ -256,6 +300,25 @@ const EraseConfirm = ({ onConfirm, onCancel }: { onConfirm: () => Promise<void>;
         }} />
         <Button text="Abbrechen" variant="secondary" onClick={onCancel} />
       </div>
+    </div>
+  );
+};
+
+const ConfirmAction = ({ message, confirmText, onConfirm, onCancel }: { message: string; confirmText: string; onConfirm: () => Promise<void>; onCancel: () => void }) => {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  return (
+    <div className="flex flex-col gap-3 pt-2 text-sm">
+      <p>{message}</p>
+      {error && <p role="alert" className="text-color-error-text">{error}</p>}
+      <ModalActions>
+        <Button text="Abbrechen" variant="secondary" onClick={onCancel} />
+        <Button text={confirmText} isLoading={busy} onClick={async () => {
+          setBusy(true);
+          setError(undefined);
+          try { await onConfirm(); } catch (e) { setError(errorText(e)); } finally { setBusy(false); }
+        }} />
+      </ModalActions>
     </div>
   );
 };

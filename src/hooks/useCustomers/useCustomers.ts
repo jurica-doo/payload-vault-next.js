@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
 import { throwDbError } from "../../utils/dbErrors";
 import type { Tables } from "../../types/supabase";
+import { phoneSearchFragment } from "../../domain/normalize";
 
 export type Customer = Tables<"customers">;
 export type CustomerInput = Partial<{
@@ -26,15 +27,45 @@ export const customerName = (c: Pick<Customer, "first_name" | "last_name" | "com
   [c.first_name, c.last_name].filter(Boolean).join(" ") || c.company || "Kunde";
 export const customerNo = (n: number) => `K-${String(n).padStart(5, "0")}`;
 
-/** Customers visible to the caller (own, structure; admins and compliance all — RLS). */
-export function useCustomers() {
+/** Columns the customer list needs. */
+const LIST_COLUMNS =
+  "id, customer_no, first_name, last_name, company, city, phone, status, owner_id, next_follow_up_at, archived_at, erased_at";
+export type CustomerListItem = Pick<Customer,
+  "id" | "customer_no" | "first_name" | "last_name" | "company" | "city" | "phone" | "status" | "owner_id"
+  | "next_follow_up_at" | "archived_at" | "erased_at">;
+/** The API returns at most 1,000 rows per request (PostgREST max rows). */
+export const CUSTOMER_LIST_LIMIT = 1000;
+
+/** PostgREST `or` filter for the customer search: name/company, K-number, phone, e-mail, postcode. */
+export function customerSearchFilter(query: string): string | null {
+  const q = query.trim().toLowerCase().replace(/[,()*%\\"]/g, " ").replace(/\s+/g, " ").trim();
+  if (!q) return null;
+  const parts = [`search_name.ilike.*${q}*`, `email.ilike.*${q}*`, `postal_code.ilike.${q}*`];
+  const no = /^k?-?0*(\d{1,9})$/.exec(q);
+  if (no) parts.push(`customer_no.eq.${no[1]}`);
+  const phone = phoneSearchFragment(query);
+  if (phone) parts.push(`phone.ilike.*${phone.replace("+", "\\+")}*`);
+  return parts.join(",");
+}
+
+/**
+ * Customers visible to the caller (own, structure; admins and compliance all — RLS).
+ * The search runs in the database so it reaches every customer (P5-PERF-01, P5-UI-01);
+ * `total` says how many match when more than CUSTOMER_LIST_LIMIT exist.
+ */
+export function useCustomers(search = "") {
+  const q = search.trim();
   return useQuery({
-    queryKey: ["customers"],
+    queryKey: ["customers", q],
     queryFn: async () => {
-      const { data, error } = await supabase.from("customers").select("*").order("last_name").limit(2000);
+      let query = supabase.from("customers").select(LIST_COLUMNS, { count: "exact" });
+      const or = customerSearchFilter(q);
+      if (or) query = query.or(or);
+      const { data, error, count } = await query.order("last_name", { nullsFirst: false }).order("company").limit(CUSTOMER_LIST_LIMIT);
       if (error) throwDbError(error);
-      return (data ?? []) as Customer[];
+      return { rows: (data ?? []) as CustomerListItem[], total: count ?? data?.length ?? 0 };
     },
+    placeholderData: (previous) => previous,
   });
 }
 
