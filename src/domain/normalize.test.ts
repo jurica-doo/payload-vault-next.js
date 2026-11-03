@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeEmail, normalizePhone } from "./normalize";
+import { normalizeEmail, normalizePhone, phoneSearchFragment } from "./normalize";
 
 describe("normalizePhone", () => {
   it.each([
@@ -28,5 +28,20 @@ describe("normalizeEmail", () => {
 
   it.each(["", "nora", "nora@", "@pro-fina.de", "a b@c.de", "a@b"])("rejects %j", (input) => {
     expect(normalizeEmail(input)).toBeNull();
+  });
+});
+
+describe("phoneSearchFragment", () => {
+  it.each([
+    ["0170 1234567", "+491701234567"],
+    ["0170 12", "+4917012"],
+    ["+49170", "+49170"],
+    ["0049 170", "+49170"],
+  ])("P4-UI-02 %j → %j (matches the stored E.164 spelling)", (input, expected) => {
+    expect(phoneSearchFragment(input)).toBe(expected);
+  });
+
+  it.each(["", "Lena", "L-00001", "01"])("ignores %j", (input) => {
+    expect(phoneSearchFragment(input)).toBeNull();
   });
 });

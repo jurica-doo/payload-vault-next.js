@@ -8,7 +8,10 @@ import {
   formatDateTime,
   formatMoney,
   formatPercent,
+  formatPhone,
   formatPoints,
+  isValidDate,
+  isValidTime,
   safeRatio,
   toDecimal,
 } from "./format";
@@ -104,5 +107,35 @@ describe("berlinLocalToUtcIso", () => {
   it("is correct on the switch days", () => {
     expect(berlinLocalToUtcIso("2026-03-29", "12:00")).toBe("2026-03-29T10:00:00.000Z");
     expect(berlinLocalToUtcIso("2026-10-25", "12:00")).toBe("2026-10-25T11:00:00.000Z");
+  });
+
+  it.each(["25:99", "24:00", "12:60", "abc", "", "1230"])("P4-BUG-01 refuses the time %j instead of rolling over", (time) => {
+    expect(() => berlinLocalToUtcIso("2026-11-03", time)).toThrow("gültige Uhrzeit");
+  });
+
+  it.each(["2026-02-30", "2026-13-01", "03.11.2026", ""])("refuses the date %j", (date) => {
+    expect(() => berlinLocalToUtcIso(date, "10:00")).toThrow("gültiges Datum");
+  });
+
+  it("accepts a one-digit hour", () => {
+    expect(berlinLocalToUtcIso("2026-12-01", "9:05")).toBe("2026-12-01T08:05:00.000Z");
+  });
+});
+
+describe("isValidTime / isValidDate", () => {
+  it("knows the edges", () => {
+    expect(isValidTime("00:00")).toBe(true);
+    expect(isValidTime("23:59")).toBe(true);
+    expect(isValidTime("24:00")).toBe(false);
+    expect(isValidDate("2028-02-29")).toBe(true);
+    expect(isValidDate("2027-02-29")).toBe(false);
+  });
+});
+
+describe("formatPhone", () => {
+  it("P4-UI-03 groups German numbers for display", () => {
+    expect(formatPhone("+491701234567")).toBe("+49 170 1234567");
+    expect(formatPhone("+436641234567")).toBe("+436641234567");
+    expect(formatPhone(null)).toBe("–");
   });
 });

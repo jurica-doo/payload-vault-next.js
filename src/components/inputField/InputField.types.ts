@@ -13,6 +13,8 @@ type InputFieldProps = {
   isRequired?: boolean;
   name?: string;
   autoComplete?: string;
+  /** E.g. to validate when the user leaves the field instead of on every keystroke. */
+  onBlur?: () => void;
 };
 
 export type { InputFieldProps, InputFieldPosition, InputType };

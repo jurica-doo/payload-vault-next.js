@@ -27,6 +27,20 @@ export function normalizePhone(input: string): string | null {
   return E164.test(digits) ? digits : null;
 }
 
+/**
+ * A (possibly partial) phone number typed into a search box, in the stored
+ * E.164 spelling, or null if the text isn't number-like. Unlike
+ * normalizePhone it accepts fragments: "0170 12" → "+4917012".
+ */
+export function phoneSearchFragment(input: string): string | null {
+  const trimmed = input.trim();
+  if (!/^[+\d][\d\s()\-./]{2,}$/.test(trimmed)) return null;
+  let digits = trimmed.replace(/\(0\)/g, "").replace(/[\s()\-./]/g, "");
+  if (digits.startsWith("00")) digits = `+${digits.slice(2)}`;
+  else if (digits.startsWith("0")) digits = `+49${digits.slice(1)}`;
+  return digits;
+}
+
 /** Lowercased, trimmed email, or null when it doesn't look like one. */
 export function normalizeEmail(input: string): string | null {
   const email = input.trim().toLowerCase();

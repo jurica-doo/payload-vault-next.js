@@ -14,6 +14,7 @@ export const InputField = ({
   isRequired = false,
   name,
   autoComplete,
+  onBlur,
 }: InputFieldProps) => {
   const inputId = useId();
 
@@ -44,6 +45,7 @@ export const InputField = ({
         autoComplete={autoComplete}
         value={value ?? undefined}
         onChange={handleChange}
+        onBlur={onBlur}
         aria-invalid={Boolean(error) || undefined}
         aria-describedby={error ? `${inputId}-error` : undefined}
         required={isRequired}

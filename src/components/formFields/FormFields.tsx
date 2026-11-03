@@ -124,6 +124,43 @@ export const DateInput = ({
   </FieldShell>
 );
 
+/**
+ * Wall-clock time as "HH:MM" (24 h). The native picker only produces valid
+ * times, so "25:99" or "abc" can't be entered (P4-BUG-01).
+ */
+export const TimeInput = ({
+  label,
+  value,
+  onChange,
+  min,
+  max,
+  isRequired,
+  isReadOnly = false,
+  error,
+  hint,
+  name,
+}: BaseProps & { min?: string; max?: string }) => (
+  <FieldShell label={label} isRequired={isRequired} error={error} hint={hint}>
+    {(id, describedBy) => (
+      <input
+        id={id}
+        type="time"
+        name={name}
+        min={min}
+        max={max}
+        step={60}
+        readOnly={isReadOnly}
+        required={isRequired}
+        aria-invalid={Boolean(error)}
+        aria-describedby={describedBy}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={getInputStyles("full", "text", Boolean(error), isReadOnly)}
+      />
+    )}
+  </FieldShell>
+);
+
 // Moved to utils so domain code can use it without importing a component.
 export { parseGermanDecimal } from "../../utils/format";
 

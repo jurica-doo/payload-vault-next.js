@@ -1,4 +1,5 @@
 import Decimal from "decimal.js";
+import { UserFacingError } from "./dbErrors";
 
 /**
  * Display formatting for the sales system (de-DE).
@@ -68,6 +69,11 @@ export function formatAe(value: NumericInput): string {
 }
 
 /** 0.4 → "40 %". Ratio, not percentage, as input. */
+/** Whole number with German thousands separator: 1506 → "1.506". */
+export function formatNumber(value: number): string {
+  return new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(value);
+}
+
 export function formatPercent(ratio: NumericInput, fractionDigits = 0): string {
   return formatDecimal(ratio, {
     style: "percent",
@@ -136,12 +142,39 @@ export function parseGermanDecimal(text: string): string | null {
   return /^-?\d+(\.\d+)?$/.test(normalized) ? normalized : null;
 }
 
+/** "HH:MM" (or "H:MM") within 00:00–23:59. */
+export function isValidTime(time: string): boolean {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(time);
+  return m !== null && Number(m[1]) <= 23 && Number(m[2]) <= 59;
+}
+
+/** "YYYY-MM-DD" that exists in the calendar. */
+export function isValidDate(date: string): boolean {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+  if (!m) return false;
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  return d.getUTCFullYear() === +m[1] && d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[3];
+}
+
+/**
+ * E.164 phone for display, grouped like German numbers are written:
+ * "+491701234567" → "+49 170 1234567". Other formats are returned unchanged.
+ */
+export function formatPhone(phone: string | null | undefined): string {
+  if (!phone) return "–";
+  const de = /^\+49(1\d{2}|[2-9]\d{1,3})(\d+)$/.exec(phone);
+  return de ? `+49 ${de[1]} ${de[2]}` : phone;
+}
+
 /**
  * A Berlin wall-clock time ("2026-07-01", "17:00") as a UTC ISO timestamp,
  * correct across daylight-saving changes. Used for due dates, which people
  * mean in local time.
  */
 export function berlinLocalToUtcIso(date: string, time = "00:00"): string {
+  // Strict: "25:99" or "abc" must not roll over into another day (P4-BUG-01, P4-UI-05).
+  if (!isValidTime(time)) throw new UserFacingError("Bitte eine gültige Uhrzeit angeben (00:00–23:59).");
+  if (!isValidDate(date)) throw new UserFacingError("Bitte ein gültiges Datum angeben.");
   const [y, m, d] = date.split("-").map(Number);
   const [hh, mm] = time.split(":").map(Number);
   const guess = Date.UTC(y, m - 1, d, hh, mm);

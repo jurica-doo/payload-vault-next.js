@@ -30,6 +30,10 @@ export const CHANNEL_LABEL: Record<string, string> = {
   any: "egal", phone: "Telefon", email: "E-Mail", whatsapp: "WhatsApp", in_person: "persönlich",
 };
 
+/** Priority of leads and tasks (shared so no raw code reaches the screen, P4-UI-03). */
+export const PRIORITY_LABEL: Record<string, string> = { low: "niedrig", normal: "normal", high: "hoch" };
+export const PRIORITY_OPTIONS = Object.entries(PRIORITY_LABEL).map(([value, label]) => ({ value, label }));
+
 export const CONSENT_LABEL: Record<string, string> = {
   consent: "Einwilligung", contract: "Vertrag / Anfrage", legitimate_interest: "Berechtigtes Interesse",
 };

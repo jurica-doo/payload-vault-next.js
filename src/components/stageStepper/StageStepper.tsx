@@ -5,15 +5,19 @@ export type Stage = { id: string; label: string };
  * Pipeline position (§9.2). Stages before the current one are "done", the
  * current one has aria-current="step". A terminal outcome that isn't on the
  * main path (e.g. "Verloren") is passed as `outcome` and replaces the tail.
+ * With `visited`, earlier stages that were never entered show as "skipped"
+ * instead of done (P4-UX-11).
  */
 export const StageStepper = ({
   stages,
   currentId,
   outcome,
+  visited,
 }: {
   stages: Stage[];
   currentId: string;
   outcome?: { label: string; tone: "success" | "error" };
+  visited?: ReadonlySet<string>;
 }) => {
   const currentIndex = stages.findIndex((s) => s.id === currentId);
 
@@ -21,7 +25,9 @@ export const StageStepper = ({
     <ol className="flex flex-wrap items-center gap-y-2 text-xs" aria-label="Phase">
       {stages.map((stage, index) => {
         const state =
-          currentIndex === -1 ? "todo" : index < currentIndex ? "done" : index === currentIndex ? "current" : "todo";
+          currentIndex === -1 ? "todo"
+            : index < currentIndex ? (visited && !visited.has(stage.id) ? "skipped" : "done")
+            : index === currentIndex ? "current" : "todo";
         if (outcome && index > currentIndex && currentIndex !== -1) return null;
         return (
           <li
@@ -34,7 +40,7 @@ export const StageStepper = ({
               <span
                 aria-hidden
                 className={`mx-1.5 h-px w-4 sm:w-6 transition-colors duration-300 ${
-                  state === "todo" ? "bg-color-border-strong" : "bg-color-primary"
+                  state === "todo" || state === "skipped" ? "bg-color-border-strong" : "bg-color-primary"
                 }`}
               />
             )}
@@ -44,11 +50,15 @@ export const StageStepper = ({
                   ? "bg-color-primary text-color-on-primary shadow-shadow-soft"
                   : state === "done"
                     ? "bg-color-bg-accent-subtle text-color-text-accent"
-                    : "bg-color-bg-alt text-color-text-subtle ring-1 ring-inset ring-color-border-light"
+                    : state === "skipped"
+                      ? "border border-dashed border-color-border-strong text-color-text-subtle"
+                      : "bg-color-bg-alt text-color-text-subtle ring-1 ring-inset ring-color-border-light"
               }`}
+              title={state === "skipped" ? "übersprungen" : undefined}
             >
               {state === "done" && <CheckIcon size={12} aria-hidden />}
               {stage.label}
+              {state === "skipped" && <span className="sr-only"> (übersprungen)</span>}
             </span>
           </li>
         );
