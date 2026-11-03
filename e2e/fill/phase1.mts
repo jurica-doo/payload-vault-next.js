@@ -117,6 +117,13 @@ export async function fillPhase1(state: E2EState): Promise<void> {
   writeState(state);
   log(`${financeEmail}: TOTP enrolled, session aal2`);
 
+  // ---- compliance with TOTP (every privacy action requires aal2; Phase 5 tests) ----
+  const complianceEmail = CAST.find((m) => m.roles?.includes("compliance"))!.email;
+  const complianceTotp = await enrollTotp(await signIn(complianceEmail));
+  state.totp[complianceEmail] = { secret: complianceTotp.secret, factorId: complianceTotp.factorId };
+  writeState(state);
+  log(`${complianceEmail}: TOTP enrolled`);
+
   // ---- production: producer enters, finance confirms/cancels/corrects ----
   const producers = new Map<string, Session>();
   for (const p of PRODUCTION) {

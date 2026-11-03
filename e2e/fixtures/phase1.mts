@@ -51,7 +51,7 @@ export const CAST: CastMember[] = [
   { email: "nolevel@test.com", first: "Nora", last: "Ohnestufe", employeeNo: "E2E-NOLEVEL", level: null, manager: "tl2@test.com", login: true },
   { email: "inactive@test.com", first: "Igor", last: "Inaktiv", employeeNo: "E2E-INAKTIV", level: "FA", manager: "tl2@test.com", login: true, inactive: true },
   { email: "finance@test.com", first: "Frank", last: "Finanz", employeeNo: "E2E-FINANZ", level: "FA", manager: null, roles: ["finance"], login: true, totp: true },
-  { email: "compliance@test.com", first: "Clara", last: "Compliance", employeeNo: "E2E-COMPLIANCE", level: "FA", manager: null, roles: ["compliance"], login: true },
+  { email: "compliance@test.com", first: "Clara", last: "Compliance", employeeNo: "E2E-COMPLIANCE", level: "FA", manager: null, roles: ["compliance"], login: true, totp: true },
   { email: "invited@test.com", first: "Ida", last: "Wartend", employeeNo: "E2E-WARTEND", level: null, manager: null, login: false },
 ];
 
