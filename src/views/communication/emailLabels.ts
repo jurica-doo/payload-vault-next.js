@@ -27,4 +27,14 @@ export const SUPPRESSION_REASON: Record<string, string> = {
   occasion_passed: "Anlass vorbei",
 };
 
+/** Why an address is on the suppression list (P6-07). */
+export const BLOCK_REASON: Record<string, string> = {
+  opt_out: "Abmeldung / Widerspruch",
+  bounce: "Unzustellbar",
+  complaint: "Beschwerde",
+  invalid: "Ungültige Adresse",
+  manual: "Manuell gesperrt",
+};
+export const BLOCK_REASON_OPTIONS = Object.entries(BLOCK_REASON).map(([value, label]) => ({ value, label }));
+
 export const card = cardClass;

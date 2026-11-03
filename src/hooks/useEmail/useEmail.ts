@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
 import { throwDbError } from "../../utils/dbErrors";
 import type { Tables } from "../../types/supabase";
@@ -58,6 +58,43 @@ export type EmailStatus = {
   in_window: boolean; last_7_days: Record<string, number>;
 };
 
+export type SuppressionImportResult = {
+  added: number; already_blocked: number; failed: number; errors: { row: number; code: string }[];
+};
+export type SendLogEntry = SendLogRow & { customers: { customer_no: number } | null };
+type Page = { page: number; pageSize: number };
+
+/** Server-side search and pages, so the list never stops silently at a limit (P6-07). */
+export function useSuppressions(enabled: boolean, { search, page, pageSize }: Page & { search: string }) {
+  return useQuery({
+    queryKey: ["email-suppressions", search, page, pageSize], enabled, placeholderData: keepPreviousData,
+    queryFn: async () => {
+      let q = supabase.from("email_suppressions").select("*", { count: "exact" });
+      const term = search.trim().toLowerCase().replace(/[\\%_]/g, (c) => `\\${c}`);
+      if (term) q = q.ilike("email", `%${term}%`);
+      const from = (page - 1) * pageSize;
+      const { data, error, count } = await q.order("created_at", { ascending: false }).range(from, from + pageSize - 1);
+      if (error) throwDbError(error);
+      return { rows: (data ?? []) as Suppression[], total: count ?? 0 };
+    },
+  });
+}
+
+/** Send log filtered and paged in the database (P6-06), with the customer's K-number. */
+export function useSendLog(enabled: boolean, { status, page, pageSize }: Page & { status: string }) {
+  return useQuery({
+    queryKey: ["email-log", status, page, pageSize], enabled, placeholderData: keepPreviousData,
+    queryFn: async () => {
+      let q = supabase.from("email_send_log").select("*, customers(customer_no)", { count: "exact" });
+      if (status) q = q.eq("status", status);
+      const from = (page - 1) * pageSize;
+      const { data, error, count } = await q.order("created_at", { ascending: false }).range(from, from + pageSize - 1);
+      if (error) throwDbError(error);
+      return { rows: (data ?? []) as unknown as SendLogEntry[], total: count ?? 0 };
+    },
+  });
+}
+
 /** Kill switch, window, campaigns, suppressions and the send log (admin/compliance). */
 export function useEmailOps(enabled: boolean) {
   const queryClient = useQueryClient();
@@ -70,25 +107,9 @@ export function useEmailOps(enabled: boolean) {
       return (data ?? []) as Campaign[];
     },
   });
-  const suppressions = useQuery({
-    queryKey: ["email-suppressions"], enabled,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("email_suppressions").select("*").order("created_at", { ascending: false }).limit(500);
-      if (error) throwDbError(error);
-      return (data ?? []) as Suppression[];
-    },
-  });
-  const log = useQuery({
-    queryKey: ["email-log"], enabled,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("email_send_log").select("*").order("created_at", { ascending: false }).limit(200);
-      if (error) throwDbError(error);
-      return (data ?? []) as SendLogRow[];
-    },
-  });
   const invalidate = (...keys: string[]) => () => keys.forEach((k) => queryClient.invalidateQueries({ queryKey: [k] }));
   return {
-    status, campaigns, suppressions, log,
+    status, campaigns,
     setEnabled: useMutation({
       mutationFn: (a: { enabled: boolean; reason: string }) => call("rpc_set_email_enabled", { p_enabled: a.enabled, p_reason: a.reason }),
       onSuccess: invalidate("email-status"),
@@ -109,21 +130,30 @@ export function useEmailOps(enabled: boolean) {
     }),
     setSuppression: useMutation({
       mutationFn: (a: { email: string; suppressed: boolean; reason?: string; note?: string }) =>
-        call("rpc_set_suppression", { p_email: a.email, p_suppressed: a.suppressed, p_reason: a.reason ?? "manual", p_note: a.note ?? null }),
+        call("rpc_set_suppression", { p_email: a.email, p_suppressed: a.suppressed, p_reason: a.reason ?? "manual", p_note: a.note || null }),
+      onSuccess: invalidate("email-suppressions"),
+    }),
+    importSuppressions: useMutation({
+      mutationFn: async (a: { rows: { email: string; reason?: string }[]; reason: string; note?: string }) =>
+        (await call("rpc_import_suppressions", { p_rows: a.rows, p_reason: a.reason, p_note: a.note || null })) as unknown as SuppressionImportResult,
       onSuccess: invalidate("email-suppressions"),
     }),
     sendTest: useMutation({ mutationFn: (versionId: string) => call("rpc_send_test_email", { p_version_id: versionId }), onSuccess: invalidate("email-log") }),
   };
 }
 
+/** Newest entries shown per customer; the card says how many there are in total. */
+export const CUSTOMER_EMAIL_LIMIT = 50;
+
 /** Email history of one customer (§10.1); advisers see their customers' rows. */
 export function useCustomerEmails(customerId: string) {
   return useQuery({
     queryKey: ["customer-emails", customerId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("email_send_log").select("*").eq("customer_id", customerId).order("created_at", { ascending: false }).limit(50);
+      const { data, error, count } = await supabase.from("email_send_log").select("*", { count: "exact" })
+        .eq("customer_id", customerId).order("created_at", { ascending: false }).limit(CUSTOMER_EMAIL_LIMIT);
       if (error) throwDbError(error);
-      return (data ?? []) as SendLogRow[];
+      return { rows: (data ?? []) as SendLogRow[], total: count ?? 0 };
     },
   });
 }

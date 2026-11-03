@@ -15,10 +15,8 @@ export const CommunicationPage = () => {
       <SwitchSection />
       <TemplatesSection />
       <CampaignsSection />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <SuppressionsSection />
-        <SendLogSection />
-      </div>
+      <SuppressionsSection />
+      <SendLogSection />
     </div>
   );
 };

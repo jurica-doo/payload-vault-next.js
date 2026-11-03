@@ -1,19 +1,20 @@
 "use client";
 
 import { StatusBadge } from "../../components/statusBadge/StatusBadge";
-import { useCustomerEmails } from "../../hooks/useEmail/useEmail";
-import { formatDate, formatDateTime } from "../../utils/format";
+import { CUSTOMER_EMAIL_LIMIT, useCustomerEmails } from "../../hooks/useEmail/useEmail";
+import { formatDate, formatDateTime, formatNumber } from "../../utils/format";
 import { SEND_STATUS, SUPPRESSION_REASON } from "../communication/emailLabels";
 
 /** Per-customer send history incl. why a mail was not sent (§10.1, §14.6). */
 export const EmailHistoryCard = ({ customerId }: { customerId: string }) => {
-  const { data = [] } = useCustomerEmails(customerId);
-  if (data.length === 0) return null;
+  const { data } = useCustomerEmails(customerId);
+  const rows = data?.rows ?? [];
+  if (rows.length === 0) return null;
   return (
     <section className="flex flex-col gap-2 ui-card p-4 sm:p-5">
       <h2 className="text-base font-semibold">Automatische E-Mails</h2>
       <ul className="text-sm">
-        {data.map((r) => (
+        {rows.map((r) => (
           <li key={r.id}>
             {formatDate(r.occasion_date)} · <StatusBadge status={r.status} map={SEND_STATUS} />
             {r.suppression_reason && <span className="text-xs text-color-text-subtle"> · {SUPPRESSION_REASON[r.suppression_reason] ?? r.suppression_reason}</span>}
@@ -21,6 +22,9 @@ export const EmailHistoryCard = ({ customerId }: { customerId: string }) => {
           </li>
         ))}
       </ul>
+      {data!.total > rows.length && (
+        <p className="text-xs text-color-text-subtle">Die neuesten {CUSTOMER_EMAIL_LIMIT} von {formatNumber(data!.total)} Einträgen. Alle stehen im Versandprotokoll unter Kommunikation.</p>
+      )}
     </section>
   );
 };
