@@ -22,6 +22,7 @@ import {
 } from "../../hooks/useActivities/useActivities";
 import { leadName, leadNo } from "../../hooks/useLeads/useLeads";
 import { berlinLocalToUtcIso, berlinToday, formatDateTime, formatNumber } from "../../utils/format";
+import { Form } from "../../components/form/Form";
 
 export const ACTIVITY_TYPE_LABEL: Record<ActivityType, string> = {
   contact_attempt: "Kontaktversuch",
@@ -155,7 +156,7 @@ const RescheduleForm = ({ appointment, filter, onDone }: { appointment: Activity
   const [error, setError] = useState<string>();
   const busy = log.isPending || setOutcome.isPending;
   return (
-    <form className="flex flex-col gap-3 pt-2" onSubmit={async (e) => {
+    <Form className="flex flex-col gap-3 pt-2" onSubmit={async (e) => {
       e.preventDefault();
       setError(undefined);
       try {
@@ -183,7 +184,7 @@ const RescheduleForm = ({ appointment, filter, onDone }: { appointment: Activity
         <Button text="Abbrechen" variant="secondary" onClick={onDone} />
         <Button type="submit" text="Verschieben" isLoading={busy} isDisabled={!date || !time} />
       </ModalActions>
-    </form>
+    </Form>
   );
 };
 
@@ -201,7 +202,7 @@ const ActivityForm = ({ filter }: { filter: ActivityFilter }) => {
   const hasReach = type === "contact_attempt" || type === "call" || type === "email";
 
   return (
-    <form className="flex flex-col gap-3 rounded-radius-md border border-color-border-light p-3" onSubmit={async (e) => {
+    <Form className="flex flex-col gap-3 rounded-radius-md border border-color-border-light p-3" onSubmit={async (e) => {
       e.preventDefault();
       if (!date || (isAppointment && !time)) return;
       try {
@@ -243,6 +244,6 @@ const ActivityForm = ({ filter }: { filter: ActivityFilter }) => {
       </div>
       <TextArea label="Notiz" value={notes} onChange={setNotes} rows={2} hint={notes.length > 3500 ? `${notes.length}/4.000 Zeichen` : undefined} />
       <div><Button type="submit" text="Erfassen" isLoading={log.isPending} isDisabled={!date || (isAppointment && !time) || notes.length > 4000} /></div>
-    </form>
+    </Form>
   );
 };

@@ -15,6 +15,7 @@ import {
 } from "../../domain/consent";
 import { berlinLocalToUtcIso, berlinToday, formatDate, formatDateTime } from "../../utils/format";
 import { Select } from "../../components/select/Select";
+import { Form } from "../../components/form/Form";
 
 const card = cardClass;
 const SOURCE_OPTIONS = Object.entries(SOURCE_LABEL).filter(([k]) => k !== "lead" && k !== "import").map(([value, label]) => ({ value, label }));
@@ -79,8 +80,8 @@ export const ConsentCard = ({ customer, mode }: { customer: Customer; mode: Cons
             const check = mayContact(customer, state, purpose);
             return (
               <tr key={purpose} className="border-t border-color-border-light">
-                <td className="py-1">{label}</td>
-                <td className="py-1 text-xs">
+                <td className="py-1 pr-3 [hyphens:manual]">{label}</td>
+                <td className="py-1 pr-3 text-xs">
                   {last ? (last.action === "granted" ? `${BASIS_LABEL[last.legal_basis ?? ""]} seit ${formatDate(last.effective_at.slice(0, 10))}` : `widerrufen am ${formatDate(last.effective_at.slice(0, 10))}`) : "–"}
                 </td>
                 <td className="py-1">
@@ -94,15 +95,15 @@ export const ConsentCard = ({ customer, mode }: { customer: Customer; mode: Cons
 
       {mode !== "read" && (
         <>
-          <div className="flex flex-wrap items-end gap-3 border-t border-color-border-light pt-3">
-            <Select label="Zweck" value={form.purpose} onChange={set("purpose")} options={Object.entries(PURPOSE_LABEL).map(([value, label]) => ({ value, label }))} />
+          <div className="grid gap-3 border-t border-color-border-light pt-3 sm:grid-cols-2">
+            <Select fullWidth label="Zweck" value={form.purpose} onChange={set("purpose")} options={Object.entries(PURPOSE_LABEL).map(([value, label]) => ({ value, label }))} />
             {full && (
-              <Select label="Erfassen" value={form.action} onChange={set("action")} options={[{ value: "granted", label: "erteilt / Rechtsgrundlage" }, { value: "withdrawn", label: "widerrufen" }]} />
+              <Select fullWidth label="Erfassen" value={form.action} onChange={set("action")} options={[{ value: "granted", label: "erteilt / Rechtsgrundlage" }, { value: "withdrawn", label: "widerrufen" }]} />
             )}
             {form.action === "granted" && (
-              <Select label="Rechtsgrundlage" value={form.basis} onChange={set("basis")} options={Object.entries(BASIS_LABEL).map(([value, label]) => ({ value, label }))} />
+              <Select fullWidth label="Rechtsgrundlage" value={form.basis} onChange={set("basis")} options={Object.entries(BASIS_LABEL).map(([value, label]) => ({ value, label }))} />
             )}
-            <Select label="Quelle" value={form.source} onChange={set("source")} options={SOURCE_OPTIONS} />
+            <Select fullWidth label="Quelle" value={form.source} onChange={set("source")} options={SOURCE_OPTIONS} />
             <DateInput label="Wirksam am" value={form.date} onChange={set("date")} max={berlinToday()} />
           </div>
           <TextArea label={form.action === "granted" && form.basis === "consent" ? "Nachweis (Pflicht: wo/wie erteilt)" : "Nachweis / Notiz"}
@@ -144,7 +145,7 @@ const ObjectionForm = ({ lift, onConfirm, onCancel }: { lift: boolean; onConfirm
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   return (
-    <form className="flex flex-col gap-3 pt-2 text-sm" onSubmit={async (e) => {
+    <Form className="flex flex-col gap-3 pt-2 text-sm" onSubmit={async (e) => {
       e.preventDefault();
       setBusy(true);
       try { await onConfirm(source, note); } finally { setBusy(false); }
@@ -158,6 +159,6 @@ const ObjectionForm = ({ lift, onConfirm, onCancel }: { lift: boolean; onConfirm
         <Button text="Abbrechen" variant="secondary" onClick={onCancel} />
         <Button type="submit" text={lift ? "Widerspruch aufheben" : "Widerspruch erfassen"} variant={lift ? "primary" : "decline"} isLoading={busy} />
       </ModalActions>
-    </form>
+    </Form>
   );
 };

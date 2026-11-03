@@ -8,6 +8,7 @@ import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
 import { MIN_REASON_LENGTH } from "../../components/reasonConfirm/ReasonConfirmForm";
 import { LEVEL_CODES } from "../../domain/rules";
+import { Form } from "../../components/form/Form";
 
 const LEVEL_NAMES: Record<string, string> = {
   FA: "Finanzassistent", FB: "Fachberater", TL: "Teamleiter", OL: "Organisationsleiter",
@@ -50,7 +51,7 @@ export const EmployeeLevelForm = ({
   };
 
   return (
-    <form className="flex flex-col gap-4 pt-2" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
+    <Form className="flex flex-col gap-4 pt-2" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
       <p className="text-sm">
         {currentLevel
           ? `Aktuelle Stufe: ${currentLevel}. Eine Änderung hier ist eine Korrektur und wird mit Begründung protokolliert. Beförderungen laufen über die Karriereprüfung.`
@@ -69,6 +70,6 @@ export const EmployeeLevelForm = ({
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} isDisabled={busy} />
         <Button type="submit" text="Speichern" isLoading={busy} />
       </ModalActions>
-    </form>
+    </Form>
   );
 };

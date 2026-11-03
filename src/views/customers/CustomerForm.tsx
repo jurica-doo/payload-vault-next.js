@@ -17,6 +17,7 @@ import { normalizeEmail, normalizePhone } from "../../domain/normalize";
 import { CHANNEL_LABEL } from "../../domain/leads";
 import { berlinToday } from "../../utils/format";
 import { Select } from "../../components/select/Select";
+import { Form } from "../../components/form/Form";
 
 export const CUSTOMER_STATUS_LABEL: Record<string, string> = {
   prospect: "Interessent", active: "Aktiv", inactive: "Inaktiv", former: "Ehemalig",
@@ -78,7 +79,7 @@ export const CustomerForm = ({ customer, onDone }: { customer?: Customer; onDone
   };
 
   return (
-    <form className="flex flex-col gap-3 pt-2" onSubmit={submit}>
+    <Form className="flex flex-col gap-3 pt-2" onSubmit={submit}>
       <div className="grid gap-3 sm:grid-cols-3">
         <InputField label="Vorname" placeholder="Erika" value={f.first_name} onChange={set("first_name")} />
         <InputField label="Nachname" placeholder="Musterfrau" value={f.last_name} onChange={set("last_name")} />
@@ -110,6 +111,6 @@ export const CustomerForm = ({ customer, onDone }: { customer?: Customer; onDone
         <Button type="submit" text={customer ? "Speichern" : dupes && dupes.length > 0 ? "Trotzdem anlegen" : "Kunde anlegen"}
           isLoading={pending} isDisabled={!valid || (dupes !== null && dupes.length > 0 && !confirmed)} />
       </div>
-    </form>
+    </Form>
   );
 };

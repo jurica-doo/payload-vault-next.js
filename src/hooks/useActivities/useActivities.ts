@@ -48,6 +48,11 @@ export function useActivities(filter: ActivityFilter = {}) {
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["activities"] });
     queryClient.invalidateQueries({ queryKey: ["activity-summary"] });
+    // Activities move the lead's stage and first contact, and close tasks (P4-R2-02).
+    queryClient.invalidateQueries({ queryKey: ["lead"] });
+    queryClient.invalidateQueries({ queryKey: ["leads"] });
+    queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    queryClient.invalidateQueries({ queryKey: ["customer"] });
   };
   const log = useMutation({
     mutationFn: (a: {

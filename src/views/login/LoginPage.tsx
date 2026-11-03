@@ -13,6 +13,7 @@ import { Button } from "../../components/button/Button";
 import { loginSchema } from "../../validation/LoginValidation";
 import { AuthLayout } from "../../components/auth/AuthLayout";
 import { safeInternalPath } from "../../utils/safeRedirect";
+import { Form } from "../../components/form/Form";
 
 export const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -76,7 +77,7 @@ export const LoginPage = () => {
             </div>
           )}
 
-          <form
+          <Form
             className="flex flex-col gap-5"
             onSubmit={(e) => {
               e.preventDefault();
@@ -102,7 +103,7 @@ export const LoginPage = () => {
             />
 
             <Button type="submit" text="Anmelden" isLoading={loading} size="large" fullWidth className="mt-1" />
-          </form>
+          </Form>
     </AuthLayout>
   );
 };

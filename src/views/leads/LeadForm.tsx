@@ -16,6 +16,7 @@ import { findLeadDuplicates, leadNo, useLeadConfig, useLeadMutations, type Dupli
 import { CHANNEL_LABEL, CONSENT_LABEL, PRIORITY_OPTIONS } from "../../domain/leads";
 import { berlinLocalToUtcIso, berlinToday } from "../../utils/format";
 import { useContactFields } from "./useContactFields";
+import { Form } from "../../components/form/Form";
 
 /**
  * Lead intake (§9.1, §9.3, §9.5). Before saving, the form asks the database
@@ -88,7 +89,7 @@ export const LeadForm = ({ onDone }: { onDone: (id: string) => void }) => {
   };
 
   return (
-    <form className="flex flex-col gap-3 pt-2" onSubmit={submit}>
+    <Form className="flex flex-col gap-3 pt-2" onSubmit={submit}>
       <div className="grid gap-3 sm:grid-cols-3">
         <InputField label="Vorname" placeholder="Max" value={f.first_name} onChange={set("first_name")} />
         <InputField label="Nachname" placeholder="Mustermann" value={f.last_name} onChange={set("last_name")} />
@@ -142,6 +143,6 @@ export const LeadForm = ({ onDone }: { onDone: (id: string) => void }) => {
         <Button type="submit" text={dupes && dupes.length > 0 ? "Trotzdem anlegen" : "Lead anlegen"} isLoading={create.isPending}
           isDisabled={!valid || (dupes !== null && dupes.length > 0 && !confirmed)} />
       </div>
-    </form>
+    </Form>
   );
 };

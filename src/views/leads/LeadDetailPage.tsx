@@ -35,6 +35,7 @@ import { Select } from "../../components/select/Select";
 import { ConvertLead } from "./ConvertLead";
 import { SLA_BADGE } from "./LeadsPage";
 import { useContactFields } from "./useContactFields";
+import { Form } from "../../components/form/Form";
 
 const card = cardClass;
 
@@ -256,7 +257,7 @@ const EditLeadForm = ({ lead, onDone }: { lead: Lead; onDone: () => void }) => {
   const set = (k: keyof typeof f) => (v: string) => setF((x) => ({ ...x, [k]: v }));
   const contact = useContactFields(f.phone, f.email);
   return (
-    <form className="flex flex-col gap-3 pt-2" onSubmit={async (e) => {
+    <Form className="flex flex-col gap-3 pt-2" onSubmit={async (e) => {
       e.preventDefault();
       contact.touchAll();
       if (contact.invalid) return;
@@ -294,7 +295,7 @@ const EditLeadForm = ({ lead, onDone }: { lead: Lead; onDone: () => void }) => {
       </fieldset>
       <TextArea label="Notiz" value={f.notes} onChange={set("notes")} rows={3} hint={`${f.notes.length}/4.000 Zeichen`} />
       <div><Button type="submit" text="Speichern" isLoading={update.isPending} isDisabled={f.notes.length > 4000} /></div>
-    </form>
+    </Form>
   );
 };
 

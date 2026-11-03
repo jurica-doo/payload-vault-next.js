@@ -16,6 +16,7 @@ import { useContracts, useServiceItems, type Customer, type ServiceItem } from "
 import { nextAnniversary } from "../../domain/serviceDates";
 import { berlinToday, formatDate } from "../../utils/format";
 import { Select } from "../../components/select/Select";
+import { Form } from "../../components/form/Form";
 
 const card = cardClass;
 
@@ -139,7 +140,7 @@ const CloseItemForm = ({ item, status, customerId, onDone }: { item: ServiceItem
   const [note, setNote] = useState("");
   const [error, setError] = useState<string>();
   return (
-    <form className="flex flex-col gap-3 pt-2 text-sm" onSubmit={async (e) => {
+    <Form className="flex flex-col gap-3 pt-2 text-sm" onSubmit={async (e) => {
       e.preventDefault();
       setError(undefined);
       try {
@@ -160,6 +161,6 @@ const CloseItemForm = ({ item, status, customerId, onDone }: { item: ServiceItem
         <Button text="Abbrechen" variant="secondary" onClick={onDone} />
         <Button type="submit" text={status === "done" ? "Erledigt" : "Absagen"} variant={status === "done" ? "primary" : "decline"} isLoading={setStatus.isPending} />
       </ModalActions>
-    </form>
+    </Form>
   );
 };

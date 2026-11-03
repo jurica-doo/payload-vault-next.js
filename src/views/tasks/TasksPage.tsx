@@ -28,6 +28,7 @@ import { useStructure } from "../../hooks/useStructure/useStructure";
 import { CLOSED_TASK_DAYS, useTasks, type Task } from "../../hooks/useTasks/useTasks";
 import { PRIORITY_LABEL, PRIORITY_OPTIONS } from "../../domain/leads";
 import { berlinLocalToUtcIso, berlinToday, formatDate } from "../../utils/format";
+import { Form } from "../../components/form/Form";
 
 export const TASK_TYPE_LABEL: Record<string, string> = {
   manual: "Aufgabe",
@@ -224,7 +225,7 @@ const TaskForm = ({ onDone }: { onDone: () => void }) => {
   const titleTooShort = title.trim().length > 0 && title.trim().length < 3;
 
   return (
-    <form className="flex flex-col gap-3 pt-2" onSubmit={async (e) => {
+    <Form className="flex flex-col gap-3 pt-2" onSubmit={async (e) => {
       e.preventDefault();
       if (!owner || title.trim().length < 3) return;
       try {
@@ -245,6 +246,6 @@ const TaskForm = ({ onDone }: { onDone: () => void }) => {
       <TextArea label="Beschreibung" value={description} onChange={setDescription} rows={3}
         hint={description.length > 3500 ? `${description.length}/4.000 Zeichen` : undefined} />
       <div><Button type="submit" text="Speichern" isLoading={create.isPending} isDisabled={title.trim().length < 3 || description.length > 4000} /></div>
-    </form>
+    </Form>
   );
 };

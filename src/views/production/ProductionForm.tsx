@@ -16,6 +16,7 @@ import { calculatePoints } from "../../domain/points";
 import { dbErrorMessage, errorText } from "../../utils/dbErrors";
 import { parseGermanDecimal } from "../../utils/format";
 import type { ProductionInput } from "../../hooks/useProduction/useProduction";
+import { Form } from "../../components/form/Form";
 
 const PERIOD_LABELS = { monthly: "monatlich", annual: "jährlich", one_off: "einmalig" } as const;
 const berlinToday = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin" }).format(new Date());
@@ -104,7 +105,7 @@ export const ProductionForm = ({
 
 
   return (
-    <form className="flex flex-col gap-4 pt-2" onSubmit={(e) => { e.preventDefault(); void submit(false); }}>
+    <Form className="flex flex-col gap-4 pt-2" onSubmit={(e) => { e.preventDefault(); void submit(false); }}>
       {producerId === null && (
         <EmployeePicker label="Person" employees={employees} value={producer} onChange={setProducer} isRequired />
       )}
@@ -194,6 +195,6 @@ export const ProductionForm = ({
         <Button type="submit" variant="secondary" text="Als Entwurf speichern" isLoading={busy} />
         <Button text="Speichern & einreichen" onClick={() => submit(true)} isLoading={busy} />
       </ModalActions>
-    </form>
+    </Form>
   );
 };

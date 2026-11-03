@@ -5,6 +5,7 @@ import { ModalActions } from "../modal/ModalActions";
 import { useState } from "react";
 import { Button } from "../button/Button";
 import { TextArea } from "../formFields/FormFields";
+import { Form } from "../form/Form";
 
 export const MIN_REASON_LENGTH = 10;
 export const MAX_REASON_LENGTH = 500;
@@ -57,7 +58,7 @@ export const ReasonConfirmForm = ({
   };
 
   return (
-    <form
+    <Form
       className="flex flex-col gap-4 pt-2"
       onSubmit={(e) => {
         e.preventDefault();
@@ -81,6 +82,6 @@ export const ReasonConfirmForm = ({
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} isDisabled={isLoading} />
         <Button type="submit" variant={variant} text={confirmText} isLoading={isLoading} />
       </ModalActions>
-    </form>
+    </Form>
   );
 };

@@ -7,6 +7,7 @@ import { BellIcon, SettingsIcon } from "../icons";
 import { useNotifications } from "../../hooks/useTasks/useTasks";
 import { formatDateTime } from "../../utils/format";
 import { useBanner } from "../../context/banner/BannerContext";
+import { Form } from "../form/Form";
 
 const MUTABLE = [
   { kind: "manual", label: "Zugewiesene Aufgaben" },
@@ -96,7 +97,7 @@ export const NotificationBell = () => {
             </div>
           </div>
           {settings ? (
-            <form className="flex flex-col gap-2 p-4 text-sm animate-fade-in" onSubmit={(e) => {
+            <Form className="flex flex-col gap-2 p-4 text-sm animate-fade-in" onSubmit={(e) => {
               e.preventDefault();
               mute.mutate(muted, {
                 onSuccess: () => showBanner("Einstellungen gespeichert", muted.length ? `${muted.length} Art(en) stummgeschaltet.` : "Alle Benachrichtigungen sind aktiv.", "success"),
@@ -113,7 +114,7 @@ export const NotificationBell = () => {
                 </label>
               ))}
               <button type="submit" className="mt-1 inline-flex h-8 cursor-pointer items-center self-start rounded-radius-md bg-color-primary px-3 text-xs font-medium text-color-on-primary transition-all hover:bg-color-primary-dark active:scale-95">Speichern</button>
-            </form>
+            </Form>
           ) : data.length === 0 ? (
             <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-color-bg-alt text-color-text-subtle">

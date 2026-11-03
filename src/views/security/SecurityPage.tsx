@@ -13,6 +13,7 @@ import { Button } from "../../components/button/Button";
 import { InputField } from "../../components/inputField/InputField";
 import { useBanner } from "../../context/banner/BannerContext";
 import { supabase } from "../../lib/supabase";
+import { Form } from "../../components/form/Form";
 
 type State =
   | { kind: "loading" }
@@ -105,7 +106,7 @@ export const SecurityPage = () => {
   };
 
   const codeForm = (factorId: string, submitText: string) => (
-    <form
+    <Form
       className="flex flex-col gap-3 sm:max-w-xs"
       onSubmit={(e) => {
         e.preventDefault();
@@ -127,7 +128,7 @@ export const SecurityPage = () => {
       <div>
         <Button type="submit" text={submitText} isLoading={busy} />
       </div>
-    </form>
+    </Form>
   );
 
   return (

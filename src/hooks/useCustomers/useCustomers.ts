@@ -40,7 +40,9 @@ export const CUSTOMER_LIST_LIMIT = 1000;
 export function customerSearchFilter(query: string): string | null {
   const q = query.trim().toLowerCase().replace(/[,()*%\\"]/g, " ").replace(/\s+/g, " ").trim();
   if (!q) return null;
-  const parts = [`search_name.ilike.*${q}*`, `email.ilike.*${q}*`, `postal_code.ilike.${q}*`];
+  // "_" is a one-character wildcard in ILIKE; search for it literally (P4-R2-05).
+  const like = q.replace(/_/g, "\\_");
+  const parts = [`search_name.ilike.*${like}*`, `email.ilike.*${like}*`, `postal_code.ilike.${like}*`];
   const no = /^k?-?0*(\d{1,9})$/.exec(q);
   if (no) parts.push(`customer_no.eq.${no[1]}`);
   const phone = phoneSearchFragment(query);

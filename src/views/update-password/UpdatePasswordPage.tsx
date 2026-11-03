@@ -10,6 +10,7 @@ import { Banner } from "../../components/banner/Banner";
 import { Button } from "../../components/button/Button";
 import { passwordChangeSchema } from "../../validation/ChangePasswordValidation";
 import { AuthLayout, AuthResult } from "../../components/auth/AuthLayout";
+import { Form } from "../../components/form/Form";
 
 export const UpdatePasswordPage = () => {
   const [password, setPassword] = useState("");
@@ -80,7 +81,7 @@ export const UpdatePasswordPage = () => {
             </div>
           )}
 
-          <form
+          <Form
             className="flex flex-col gap-5"
             onSubmit={(e) => {
               e.preventDefault();
@@ -105,7 +106,7 @@ export const UpdatePasswordPage = () => {
             />
 
             <Button type="submit" text="Passwort speichern" isLoading={loading} size="large" fullWidth className="mt-1" />
-          </form>
+          </Form>
     </AuthLayout>
   );
 };

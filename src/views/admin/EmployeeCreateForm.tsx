@@ -9,6 +9,7 @@ import { InputField } from "../../components/inputField/InputField";
 import { DateInput } from "../../components/formFields/FormFields";
 import { employeeSchema, type EmployeeFormInput } from "../../validation/EmployeeValidation";
 import type { NewEmployee } from "../../hooks/useEmployees/useEmployees";
+import { Form } from "../../components/form/Form";
 
 type Errors = Partial<Record<keyof EmployeeFormInput | "form", string>>;
 
@@ -64,7 +65,7 @@ export const EmployeeCreateForm = ({
   };
 
   return (
-    <form
+    <Form
       className="flex flex-col gap-4 pt-2"
       onSubmit={(e) => {
         e.preventDefault();
@@ -98,6 +99,6 @@ export const EmployeeCreateForm = ({
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} isDisabled={isLoading} />
         <Button type="submit" text="Anlegen & einladen" isLoading={isLoading} />
       </ModalActions>
-    </form>
+    </Form>
   );
 };

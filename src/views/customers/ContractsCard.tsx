@@ -14,6 +14,7 @@ import { useRules } from "../../hooks/useRules/useRules";
 import { useContracts, type ContractLink, type Customer } from "../../hooks/useCustomers/useCustomers";
 import { formatDate, formatDateTime } from "../../utils/format";
 import { Select } from "../../components/select/Select";
+import { Form } from "../../components/form/Form";
 
 const card = cardClass;
 
@@ -140,7 +141,7 @@ const ContractForm = ({ customerId, contract, onDone }: { customerId: string; co
   const linkError = f.deep_link && !/^https:\/\/\S+$/.test(f.deep_link) ? "Nur https-Links" : undefined;
   const dateError = f.start_date && f.end_date && f.end_date < f.start_date ? "Das Ende darf nicht vor dem Beginn liegen." : undefined;
   return (
-    <form className="flex flex-col gap-3 pt-2" onSubmit={async (e) => {
+    <Form className="flex flex-col gap-3 pt-2" onSubmit={async (e) => {
       e.preventDefault();
       try {
         await save.mutateAsync({
@@ -178,6 +179,6 @@ const ContractForm = ({ customerId, contract, onDone }: { customerId: string; co
         <Button type="submit" text={contract ? "Speichern" : "Verknüpfen"} isLoading={save.isPending}
           isDisabled={!f.external_contract_id.trim() || Boolean(linkError) || Boolean(dateError) || (hasDates && !confirmed)} />
       </div>
-    </form>
+    </Form>
   );
 };
