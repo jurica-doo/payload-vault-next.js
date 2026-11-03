@@ -127,3 +127,66 @@ export function mapProductionCsv(table: string[][]): MappedImport {
   });
   return { rows, missingColumns, unknownColumns };
 }
+
+/**
+ * File bytes → text. UTF-8 first (with or without BOM); a byte sequence that
+ * is not valid UTF-8 is an older Excel export in Windows-1252 (P6-12), so
+ * "Müller" never turns into "M�ller".
+ */
+export function decodeCsvBytes(bytes: ArrayBuffer | Uint8Array): string {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return new TextDecoder("windows-1252").decode(bytes);
+  }
+}
+
+// ---------- suppression list (P6-13) ----------
+
+export const SUPPRESSION_REASONS = ["opt_out", "bounce", "complaint", "invalid", "manual"] as const;
+
+const EMAIL_HEADERS = new Set(["email", "e-mail", "e-mail-adresse", "emailadresse", "mail", "adresse"]);
+const REASON_HEADERS = new Set(["reason", "grund", "sperrgrund"]);
+const REASON_ALIASES: Record<string, string> = {
+  opt_out: "opt_out", abmeldung: "opt_out", widerspruch: "opt_out", abgemeldet: "opt_out", unsubscribe: "opt_out",
+  bounce: "bounce", bounced: "bounce", unzustellbar: "bounce",
+  complaint: "complaint", beschwerde: "complaint", spam: "complaint",
+  invalid: "invalid", "ungültig": "invalid", ungueltig: "invalid",
+  manual: "manual", manuell: "manual",
+};
+
+export type SuppressionRow = { email: string; reason?: string };
+
+/**
+ * A suppression CSV: a column "E-Mail" (optionally "Grund"), or a plain list
+ * of addresses without a header. Validation is the database's job; unknown
+ * reasons are passed on as written so the row comes back with its error.
+ */
+export type MappedSuppressions = {
+  rows: SuppressionRow[];
+  missingEmailColumn: boolean;
+  /** Lines before the first data row (the header), so row n is line n + headerLines in the file. */
+  headerLines: number;
+};
+
+export function mapSuppressionCsv(table: string[][]): MappedSuppressions {
+  const [header = [], ...body] = table;
+  const names = header.map((h) => h.trim().toLowerCase());
+  let emailAt = names.findIndex((h) => EMAIL_HEADERS.has(h));
+  const reasonAt = names.findIndex((h) => REASON_HEADERS.has(h));
+  let lines = body;
+  if (emailAt === -1) {
+    // No header: a plain list whose first cell is an address.
+    if (!(header[0] ?? "").includes("@")) return { rows: [], missingEmailColumn: true, headerLines: 1 };
+    emailAt = 0;
+    lines = table;
+  }
+  const rows = lines.map((cells) => {
+    const email = (cells[emailAt] ?? "").trim();
+    const raw = reasonAt === -1 ? "" : (cells[reasonAt] ?? "").trim();
+    return raw ? { email, reason: REASON_ALIASES[raw.toLowerCase()] ?? raw } : { email };
+  });
+  return { rows, missingEmailColumn: false, headerLines: lines === table ? 0 : 1 };
+}
+
+export const SUPPRESSION_CSV_TEMPLATE = "E-Mail;Grund\r\nmax.mustermann@beispiel.de;Abmeldung\r\nalte.adresse@beispiel.de;Unzustellbar\r\n";

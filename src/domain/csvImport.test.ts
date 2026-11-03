@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapProductionCsv, normalizeDate, parseCsv } from "./csvImport";
+import { decodeCsvBytes, mapProductionCsv, mapSuppressionCsv, normalizeDate, parseCsv, SUPPRESSION_CSV_TEMPLATE } from "./csvImport";
 
 describe("parseCsv", () => {
   it("parses semicolon CSV with BOM, CRLF, quotes and escaped quotes", () => {
@@ -68,5 +68,36 @@ describe("mapProductionCsv", () => {
     expect(mapProductionCsv(parseCsv("Sparte;Beitrag\nKV;700")).missingColumns).toEqual([
       "source_id", "employee_no", "period", "production_date",
     ]);
+  });
+});
+
+describe("decodeCsvBytes", () => {
+  it("P6-12 reads UTF-8 with BOM", () => {
+    const bytes = new Uint8Array([0xef, 0xbb, 0xbf, ...new TextEncoder().encode("Müller")]);
+    expect(parseCsv(decodeCsvBytes(bytes))).toEqual([["Müller"]]);
+  });
+  it("P6-12 falls back to Windows-1252 for an old Excel export", () => {
+    // "Müller;Größe" in Windows-1252
+    const bytes = new Uint8Array([0x4d, 0xfc, 0x6c, 0x6c, 0x65, 0x72, 0x3b, 0x47, 0x72, 0xf6, 0xdf, 0x65]);
+    expect(parseCsv(decodeCsvBytes(bytes))).toEqual([["Müller", "Größe"]]);
+  });
+});
+
+describe("mapSuppressionCsv", () => {
+  it("P6-13 maps German headers and reasons", () => {
+    expect(mapSuppressionCsv(parseCsv("E-Mail;Grund\na@x.de;Abmeldung\nb@x.de;unzustellbar\nc@x.de;\nd@x.de;irgendwas"))).toEqual({
+      rows: [{ email: "a@x.de", reason: "opt_out" }, { email: "b@x.de", reason: "bounce" }, { email: "c@x.de" }, { email: "d@x.de", reason: "irgendwas" }],
+      missingEmailColumn: false,
+      headerLines: 1,
+    });
+  });
+  it("P6-13 accepts a plain list without a header", () => {
+    expect(mapSuppressionCsv(parseCsv("a@x.de\nb@x.de\n"))).toMatchObject({ rows: [{ email: "a@x.de" }, { email: "b@x.de" }], headerLines: 0 });
+  });
+  it("P6-13 reports a file without an address column", () => {
+    expect(mapSuppressionCsv(parseCsv("Name;Ort\nMax;Köln")).missingEmailColumn).toBe(true);
+  });
+  it("P6-13 the template parses to two valid rows", () => {
+    expect(mapSuppressionCsv(parseCsv(SUPPRESSION_CSV_TEMPLATE)).rows).toHaveLength(2);
   });
 });

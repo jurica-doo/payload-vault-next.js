@@ -11,7 +11,7 @@ import { EmptyState } from "../../components/emptyState/EmptyState";
 import { useBanner } from "../../context/banner/BannerContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useProductionImport, type StagedImportRow } from "../../hooks/useProduction/useProduction";
-import { mapProductionCsv, parseCsv, REQUIRED_FIELDS } from "../../domain/csvImport";
+import { decodeCsvBytes, mapProductionCsv, parseCsv, REQUIRED_FIELDS } from "../../domain/csvImport";
 import { dbErrorMessage, errorText } from "../../utils/dbErrors";
 
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -45,7 +45,7 @@ export const ProductionImportPage = () => {
     setStaged(null);
     if (!file) return setProblem("Bitte eine CSV-Datei wählen.");
     if (file.size > MAX_BYTES) return setProblem("Die Datei ist größer als 2 MB.");
-    const mapped = mapProductionCsv(parseCsv(await file.text()));
+    const mapped = mapProductionCsv(parseCsv(decodeCsvBytes(await file.arrayBuffer())));
     if (mapped.missingColumns.length) {
       return setProblem(`Pflichtspalten fehlen: ${mapped.missingColumns.join(", ")}. Erwartet: ${REQUIRED_FIELDS.join(", ")}.`);
     }
