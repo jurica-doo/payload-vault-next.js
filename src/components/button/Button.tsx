@@ -1,4 +1,6 @@
+import { useContext, useRef, useState } from "react";
 import { LoadingIcon } from "../icons/LoadingIcon";
+import { FormPendingContext } from "../form/Form";
 import { type ButtonProps } from "./Button.types";
 import {
   sizeClasses,
@@ -21,7 +23,25 @@ export const Button = ({
   className = "",
   ariaLabel,
 }: ButtonProps) => {
-  const isButtonDisabled = isDisabled || isLoading;
+  // A second click while an async onClick or the surrounding <Form> is still
+  // running is ignored (P4-R2-01); the ref holds before the re-render.
+  const formPending = useContext(FormPendingContext) && type === "submit";
+  const busy = useRef(false);
+  const [clickPending, setClickPending] = useState(false);
+  const loading = isLoading || formPending || clickPending;
+  const isButtonDisabled = isDisabled || loading;
+  const handleClick = () => {
+    if (busy.current || !onClick) return;
+    const result = onClick();
+    if (result && typeof (result as Promise<unknown>).then === "function") {
+      busy.current = true;
+      setClickPending(true);
+      (result as Promise<unknown>).finally(() => {
+        busy.current = false;
+        setClickPending(false);
+      });
+    }
+  };
   const Icon = icon;
 
   return (
@@ -34,12 +54,12 @@ export const Button = ({
           : `cursor-pointer ${onHover[variant]} active:translate-y-0 active:scale-[0.97]`
       } ${className}`}
       disabled={isButtonDisabled}
-      aria-busy={isLoading || undefined}
+      aria-busy={loading || undefined}
       aria-label={ariaLabel}
       type={type}
-      onClick={onClick}
+      onClick={type === "submit" && !onClick ? undefined : handleClick}
     >
-      {isLoading ? (
+      {loading ? (
         <LoadingIcon
           color={spinnerColors[variant]}
           className="h-4 w-4 shrink-0 animate-spin"

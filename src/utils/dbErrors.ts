@@ -270,6 +270,13 @@ const KNOWN_TEXTS = new Set<string>([
   STORAGE_DUPLICATE,
 ]);
 
+// Set by AuthContext when the auth client has no session any more (expired or
+// signed out elsewhere). A refusal then means "signed out", not "not allowed".
+let sessionEnded = false;
+export function setSessionEnded(ended: boolean): void {
+  sessionEnded = ended;
+}
+
 export function dbErrorMessage(error: unknown): string {
   if (error instanceof UserFacingError) return error.message;
   const e = error as ErrorLike;
@@ -280,6 +287,7 @@ export function dbErrorMessage(error: unknown): string {
   const storage = storageMessage(e);
   if (storage) return storage;
   const code = str(e?.code);
+  if (sessionEnded && (code === "42501" || code.startsWith("PGRST3") || key.includes("permission denied"))) return SESSION_EXPIRED;
   if (Object.hasOwn(CODE_MESSAGES, code)) return CODE_MESSAGES[code];
   if (key.toLowerCase().includes("jwt expired")) return SESSION_EXPIRED;
   // RLS refusals come without a key but with this wording.

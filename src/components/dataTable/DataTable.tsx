@@ -154,7 +154,7 @@ export function DataTable<T>({
                     {columns.map((col) => (
                       <td
                         key={col.id}
-                        className={`border-b border-color-border-light px-4 py-3 text-color-text-main group-last/row:border-b-0 ${col.align === "right" ? "text-right tabular-nums" : ""}`}
+                        className={`border-b border-color-border-light px-4 py-3 text-color-text-main [hyphens:manual] group-last/row:border-b-0 ${col.align === "right" ? "text-right tabular-nums" : ""}`}
                       >
                         {col.cell(row)}
                       </td>

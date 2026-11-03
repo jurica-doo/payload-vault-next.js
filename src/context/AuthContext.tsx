@@ -10,6 +10,7 @@ import {
 import { useRouter } from "next/navigation";
 import { type Session, type User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import { setSessionEnded } from "../utils/dbErrors";
 
 interface AuthContextType {
   session: Session | null;
@@ -44,6 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      setSessionEnded(session === null);
     });
 
     return () => subscription.unsubscribe();

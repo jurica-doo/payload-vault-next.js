@@ -134,3 +134,15 @@ describe("authErrorMessage", () => {
     expect(authErrorMessage(null, "mfa_code")).toContain("Code");
   });
 });
+
+describe("signed out", () => {
+  it("P4-R2-04 a refusal after the session ended says so instead of „keine Berechtigung“", async () => {
+    const { dbErrorMessage, setSessionEnded, SESSION_EXPIRED } = await import("./dbErrors");
+    const denied = { code: "42501", message: "permission denied for function rpc_create_task" };
+    expect(dbErrorMessage(denied)).toBe("Dafür fehlt Ihnen die Berechtigung.");
+    setSessionEnded(true);
+    expect(dbErrorMessage(denied)).toBe(SESSION_EXPIRED);
+    expect(dbErrorMessage({ code: "PGRST301", message: "JWT expired" })).toBe(SESSION_EXPIRED);
+    setSessionEnded(false);
+  });
+});

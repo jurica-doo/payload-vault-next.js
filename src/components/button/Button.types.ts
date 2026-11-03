@@ -26,7 +26,8 @@ interface ButtonProps {
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
   /** "submit" inside a <form> lets Enter trigger it; default "button". */
   type?: "button" | "submit";
-  onClick?: () => void;
+  /** May return a promise: the button shows loading and ignores clicks until it settles. */
+  onClick?: () => void | Promise<unknown>;
   fullWidth?: boolean;
   className?: string;
   ariaLabel?: string;

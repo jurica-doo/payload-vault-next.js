@@ -52,7 +52,8 @@ export const Modal = ({
 
     const panel = panelRef.current;
     const firstField = panel?.querySelector<HTMLElement>(
-      "input:not([disabled]), select:not([disabled]), textarea:not([disabled])",
+      // Kit dropdowns are buttons with role="combobox"; they count as the first field too (P5-R2-03).
+      "input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [role=combobox]:not([disabled])",
     );
     (firstField ?? panel)?.focus({ preventScroll: true });
 

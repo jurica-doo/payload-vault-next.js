@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { type ModalState, type ModalData } from "./types";
 import { ModalContext } from "./ModalContext";
 import { Modal } from "../../components/modal/Modal";
@@ -19,6 +20,17 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     }
     setModalState({ isOpen: false });
   }, []);
+  // A dialog belongs to its page: leaving the page (incl. the redirect to the
+  // login when the session ends) closes it.
+  const pathname = usePathname();
+  const lastPath = useRef(pathname);
+  useEffect(() => {
+    if (lastPath.current !== pathname) {
+      lastPath.current = pathname;
+      if (modalStateRef.current.isOpen) closeModal();
+    }
+  }, [pathname, closeModal]);
+
   const setDisableClose = (disabled: boolean) =>
     setModalState((prev) =>
       prev.isOpen ? { ...prev, disableClose: disabled } : prev,
