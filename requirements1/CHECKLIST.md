@@ -4,11 +4,11 @@ Everything from the specification is built, tested in the database harness and m
 Nothing has been applied to production, and nothing has been clicked through **signed in**, because there is no staging project yet.
 This list covers everything between "built" and "live", in the order it is best done.
 
-Status at the time of writing (2026-11-01):
-- 54 migrations (3 added 2026-10-28 for the Supabase advisor findings, 7 on 2026-10-31 for the Phase 1 review fixes)
-- 789 pgTAP assertions in 27 files
-- 408 unit tests
-- 53 Playwright e2e tests for Phase 1 (`npm run e2e`, local only)
+Status at the time of writing (2026-11-03):
+- 55 migrations (3 added 2026-10-28 for the Supabase advisor findings, 7 on 2026-10-31 for the Phase 1 review fixes, 1 on 2026-11-03 for the Phase 4 review fixes)
+- 817 pgTAP assertions in 28 files
+- 485 unit tests
+- 66 Playwright e2e tests: 53 for Phase 1, 13 Phase 4 regression tests (`npm run e2e`, local only)
 - 58 golden cases shared by the SQL and TypeScript engines
 - CI green
 - Every module behind a feature flag that is **off**
@@ -195,7 +195,7 @@ What the tests already prove (pgTAP), and what a reviewer should look at:
 ### 6.1 UX pass (agreed: "UX later")
 - [ ] Signup/invite wording; the "Database error saving new user" text on `/signup` is now mapped to the German allowlist message (`src/utils/authErrors.ts`) and the login page no longer links to `/signup`. Still open: retire the `/signup` route itself in favour of the invite-only flow.
 - [x] Empty states and wording review across all new pages (`feat/ux-ui-improvements`: shared EmptyState/ErrorBlock/LoadingState, German "Sie" copy, mapped error texts).
-- [ ] Mobile layout of the admin stage × required-field matrix (`/admin/leads`).
+- [x] Mobile layout of the admin stage × required-field matrix (`/admin/leads`): fixed minimum width inside ScrollX, no hyphenation (Phase 4 review, P4-UI-07).
 - [x] Navigation entries for the new sub-pages (sidebar sub-items in `src/data/navigation.ts`, `feat/ux-ui-improvements`).
 - [ ] Finance/admin users without an employee record have no personal `/vertrieb` dashboard. They now see an explanatory empty state plus the admin/finance sections; decide whether they need more.
 
@@ -206,7 +206,7 @@ What the tests already prove (pgTAP), and what a reviewer should look at:
 - [ ] Leaders entering production for their team. Business decision first.
 - [ ] Reserve release/clawback entries (OD-10) and a payment/payroll export.
 - [ ] Leader team-statement page (only if OD-17 is switched on).
-- [ ] Rescheduling an appointment creates the follow-up appointment automatically.
+- [x] Rescheduling an appointment creates the follow-up appointment automatically: „verschoben“ opens a dialog that books the new slot (Phase 4 review, P4-UX-05).
 - [ ] Automatic reassignment queue for **customers** of deactivated advisers (tasks and leads already move).
 - [ ] "Missing in last sync" detection for contracts (after OD-14).
 - [ ] Per-kind lead times and more recurrence options for service items.
@@ -222,9 +222,25 @@ What the tests already prove (pgTAP), and what a reviewer should look at:
 ### 6.4 Technical
 - [ ] 5 old lint warnings in untouched components (`Dropdown`, `HeaderHome` images, `DeleteIcon`, `SearchBar`).
 - [ ] Performance check on staging with synthetic volume (5k employees / 200k production rows): dashboard and analytics RPCs < 300 ms p95 (plan §10).
-- [ ] End-to-end tests (Playwright) for the walkthroughs in section 4. Phase 1 is covered (`e2e/`, 53 tests, local stack); later phases still open.
+- [ ] End-to-end tests (Playwright) for the walkthroughs in section 4. Phase 1 is covered (`e2e/`, 53 tests, local stack) and Phase 4 has a regression spec (`e2e/tests/phase4-leads-tasks.spec.ts`, 13 tests, one per review finding); the other phases are still open.
 - [ ] `ubuntu-latest` moves to Ubuntu 26 in CI (GitHub notice); pin the runner if anything breaks.
 - [ ] `supabase/seed.sql` with synthetic personas for staging (one per role and level).
+
+### 6.5 Phase 4 review follow-ups (not yet browser-tested)
+The Phase 4 review (2026-11-03, `phase-4-leads-tasks/verification/`) fixed 35 of 36 findings and covered them with
+pgTAP 270, `e2e/tests/phase4-leads-tasks.spec.ts` and unit tests. These parts were only checked through the existing
+tests or by reading the code, so click them through once:
+- [ ] **Core task generators** after the digest and self-closing changes (migration `20261101100000`): goal review,
+  coaching action/review, career period end, calculation exception, and a deactivated owner's tasks moving to the
+  manager. Expect one notification per person and kind per run, and no checkbox on system tasks.
+- [ ] **Cockpit „Mein Monat“** activity tiles (appointments booked/held, offers, follow-ups vs. the monthly goal).
+- [ ] **Lead merge** (Duplikate → Übernehmen), **lead → customer conversion** (also after a merge) and
+  **automatic assignment** (`/admin/leads`, max per person) clicked end to end.
+- [ ] **Round 2, Part B** of `phase-4-leads-tasks/verification/r1-p4-manual-guide-round2.md` (concurrency, sessions,
+  DST, odd input, XSS, chains, accessibility, 5,000-lead volume).
+- [ ] **Phase 1 e2e re-run** (`npm run e2e`, wipes the local DB) on top of the Phase 4 commits.
+- [ ] Phase 4 feature gaps (decide whether to build): lead CSV import (also in 6.2), configurable escalation chains,
+  recurring tasks, analytics attributed to the owner at receipt instead of the current owner.
 
 ---
 
