@@ -125,11 +125,12 @@ export const NotificationBell = () => {
           ) : (
             <ul className="flex max-h-[24rem] flex-col overflow-y-auto p-1.5 text-sm">
               {data.map((n) => (
-                <li key={n.id} className={`relative rounded-radius-md px-3 py-2.5 transition-colors hover:bg-color-bg-hover ${n.read_at ? "opacity-60" : ""}`}>
+                <li key={n.id} className={`group relative rounded-radius-md px-3 py-2.5 transition-colors ${n.link ? "hover:bg-color-bg-hover" : ""} ${n.read_at ? "opacity-60" : ""}`}>
                   {!n.read_at && <span aria-hidden className="absolute left-1 top-4 h-1.5 w-1.5 rounded-full bg-color-primary" />}
                   {n.critical && <span className="mr-1.5 rounded-sm bg-color-bg-warning-subtle px-1 text-[0.625rem] font-semibold uppercase text-color-warning-text">Wichtig</span>}
+                  {/* The link's ::after covers the whole row, so the entire card is clickable. */}
                   {n.link ? (
-                    <Link href={n.link} onClick={() => { markRead.mutate([n.id]); setOpen(false); }} className="font-medium text-color-text-main no-underline hover:text-color-text-accent">{n.title}</Link>
+                    <Link href={n.link} onClick={() => { markRead.mutate([n.id]); setOpen(false); }} className="font-medium text-color-text-main no-underline outline-none group-hover:text-color-text-accent after:absolute after:inset-0 after:rounded-radius-md focus-visible:after:ring-2 focus-visible:after:ring-color-primary">{n.title}</Link>
                   ) : (
                     <span className="font-medium text-color-text-main">{n.title}</span>
                   )}
