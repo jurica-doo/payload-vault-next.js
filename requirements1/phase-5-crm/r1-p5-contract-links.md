@@ -15,7 +15,7 @@ Spec: §10.1 (links to contracts / portal, sync timestamp, source system), §10.
 | `app_settings.contract_portal` | `sources` (default `manual`, `portal`) and `hosts`. If `hosts` is set, deep links must point to one of them. Every deep link must be https. |
 
 **RPCs**
-- `rpc_save_contract_link(id, customer, data, dates_confirmed)`: create or edit manually (adviser, managers, admins with MFA).
+- `rpc_save_contract_link(id, customer, data, dates_confirmed)`: create or edit manually (adviser, managers, admins with MFA). Manual links are always source `manual` (`manual_source_only`); only the sync sets the portal source (Phase 5 review, P5-UX-06).
   - Dates are rejected unless confirmed (`dates_unconfirmed`), and a duplicate number gives `contract_exists`.
   - Unknown fields and unknown source systems are rejected.
   - A linked production record must be visible to the caller.

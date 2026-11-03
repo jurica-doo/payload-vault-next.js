@@ -19,7 +19,7 @@ Spec: §10.1 (consent/permission records, opt-out status), §10.5, §12.3 (custo
   4. Address or number present (and a birth date for birthday mail).
   5. Current entry is `granted`.
 - `rpc_may_contact` is the same check for the UI, limited to customers you may see.
-- `rpc_record_consent(...)`: adviser, managers, or admins (MFA). Audited, with the evidence redacted in the audit log.
+- `rpc_record_consent(...)`: adviser, managers, or admins (MFA). Audited, with the evidence redacted in the audit log. **Compliance (MFA) may record opt-outs and withdrawals, never grants**, and carries out an objection request in one step with `rpc_apply_objection` (Phase 5 review, P5-PRIV-01).
 - **Lead conversion** copies the lead's recorded basis as „Anruf“ and „E-Mail (Service)“ consents, with source „aus Lead“ (trigger on `leads.customer_id`).
 - `rpc_consent_report()` (compliance and admin): active customers, opt-outs, granted/withdrawn per purpose, withdrawals in the last 30 days. It's shown on the privacy page in the privacy-ops slice.
 - Visibility follows the customer: adviser, managers, admin and compliance (read).

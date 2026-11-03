@@ -5,10 +5,10 @@ Nothing has been applied to production, and nothing has been clicked through **s
 This list covers everything between "built" and "live", in the order it is best done.
 
 Status at the time of writing (2026-11-03):
-- 55 migrations (3 added 2026-10-28 for the Supabase advisor findings, 7 on 2026-10-31 for the Phase 1 review fixes, 1 on 2026-11-03 for the Phase 4 review fixes)
-- 817 pgTAP assertions in 28 files
-- 485 unit tests
-- 66 Playwright e2e tests: 53 for Phase 1, 13 Phase 4 regression tests (`npm run e2e`, local only)
+- 56 migrations (3 added 2026-10-28 for the Supabase advisor findings, 7 on 2026-10-31 for the Phase 1 review fixes, 2 on 2026-11-03 for the Phase 4 and Phase 5 review fixes)
+- 836 pgTAP assertions in 29 files
+- 493 unit tests
+- 74 Playwright e2e tests: 53 for Phase 1, 13 Phase 4 and 8 Phase 5 regression tests (`npm run e2e`, local only)
 - 58 golden cases shared by the SQL and TypeScript engines
 - CI green
 - Every module behind a feature flag that is **off**
@@ -222,7 +222,7 @@ What the tests already prove (pgTAP), and what a reviewer should look at:
 ### 6.4 Technical
 - [ ] 5 old lint warnings in untouched components (`Dropdown`, `HeaderHome` images, `DeleteIcon`, `SearchBar`).
 - [ ] Performance check on staging with synthetic volume (5k employees / 200k production rows): dashboard and analytics RPCs < 300 ms p95 (plan §10).
-- [ ] End-to-end tests (Playwright) for the walkthroughs in section 4. Phase 1 is covered (`e2e/`, 53 tests, local stack) and Phase 4 has a regression spec (`e2e/tests/phase4-leads-tasks.spec.ts`, 13 tests, one per review finding); the other phases are still open.
+- [ ] End-to-end tests (Playwright) for the walkthroughs in section 4. Phase 1 is covered (`e2e/`, 53 tests, local stack) Phase 4 and 5 have regression specs (`e2e/tests/phase4-leads-tasks.spec.ts`, 13 tests; `e2e/tests/phase5-crm.spec.ts`, 8 tests; one per review finding); the other phases are still open.
 - [ ] `ubuntu-latest` moves to Ubuntu 26 in CI (GitHub notice); pin the runner if anything breaks.
 - [ ] `supabase/seed.sql` with synthetic personas for staging (one per role and level).
 
@@ -241,6 +241,12 @@ tests or by reading the code, so click them through once:
 - [ ] **Phase 1 e2e re-run** (`npm run e2e`, wipes the local DB) on top of the Phase 4 commits.
 - [ ] Phase 4 feature gaps (decide whether to build): lead CSV import (also in 6.2), configurable escalation chains,
   recurring tasks, analytics attributed to the owner at receipt instead of the current owner.
+
+### 6.6 Phase 5 review follow-ups (not yet browser-tested)
+The Phase 5 review (2026-11-03, `phase-5-crm/verification/`) fixed all 17 findings. Still to click through:
+- [ ] **Round 2, Part B** of `phase-5-crm/verification/r1-p5-manual-guide-round2.md` (concurrency, lifecycle chains, sync edge cases, XSS, accessibility, 360 px, volume).
+- [ ] Phase 5 at 360 px and in light mode (the review only checked the desktop in dark mode).
+- [ ] Privacy requests list (limit 300) and export log (limit 50): decide whether they need paging from the server.
 
 ---
 

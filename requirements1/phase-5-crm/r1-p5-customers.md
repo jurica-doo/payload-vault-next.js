@@ -20,7 +20,7 @@ Spec: §10.1 (customer profile), §9.1 Conversion, §12.2 (hierarchy-based acces
 - Writes go only through RPCs, and admins need MFA unless they are the adviser or the adviser's manager.
 - RPCs:
   - `rpc_create_customer(data, owner, confirm_duplicates)`: duplicate check like for leads (phone, email, similar name); other advisers' customers come back without details. Unknown fields are rejected.
-  - `rpc_update_customer(id, data)`: only the keys present are written.
+  - `rpc_update_customer(id, data)`: only the keys present are written. A follow-up can't be planned in the past (`date_in_past`, Phase 5 review P5-UX-05).
   - `rpc_assign_customer(id, owner, reason)`: reason required. Only to yourself or someone in your structure (admins with MFA: anyone). The new adviser is notified.
   - `rpc_archive_customer(id, archived, reason)`: soft delete and reactivate, both with a reason.
   - `rpc_convert_lead(lead, confirm_duplicates)`: creates the customer from the lead's identity and adviser, links both ways (`leads.customer_id` ↔ `customers.lead_id`, so the lead source stays reachable, §14.5), and closes an open lead as **won**. A lead can be converted only once and only once it has an adviser.
