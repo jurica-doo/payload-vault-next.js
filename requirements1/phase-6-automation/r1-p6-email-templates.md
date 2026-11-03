@@ -50,3 +50,4 @@ Spec: §10.2 (template editor, merge fields, preview, role-based approval), §12
 - **The accepted legal bases** per template are Profina's decision (§10.5). The default is strict (consent only).
 - **No rich-text editor** on purpose: plain text plus escaping removes a whole class of injection risks, and greetings rarely need formatting. A safe formatting subset can come later if required.
 - **Test send** to the requesting user only needs the email provider (OD-11) and is part of the engine slice.
+- **A subject is one line** (Phase 6 review P6-01): a line break is refused on save (`subject_line_break`) and flattened when rendering (SQL `render_text` and `renderTemplate`), so no authored text can add a mail header. Names are unique regardless of case and spaces (`template_name_taken`); lengths and legal bases have named keys.

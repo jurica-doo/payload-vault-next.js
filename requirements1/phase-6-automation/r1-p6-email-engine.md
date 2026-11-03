@@ -72,6 +72,8 @@ Spec: §10.2 (schedule, pause, send window, suppression, test mode, logs, kill s
 ## Edge cases & decisions
 - **No provider = no sending.** OD-11 (EU hosting, DPA) must be decided, then Gate E (templates, legal bases, suppression, approvals verified), and only then does an admin switch it on.
 - One-off campaigns plan everyone and log suppressed rows for customers without a basis. That is deliberate (§14.6: every attempted send is logged), and the log shows how many could actually be reached.
-- One mail per customer per campaign and occasion, so a customer on two birthday campaigns would get two mails. Keep one active birthday campaign (not enforced, noted for clean-up).
+- One mail per customer per campaign and occasion. Only one birthday campaign can be active at a time (`birthday_campaign_active` on approve and resume, serialised with a lock; Phase 6 review P6-02).
+- The send window takes strict `HH:MM` times (`invalid_time`). Blocking an address again updates its reason and note. The block list can be imported from CSV (`rpc_import_suppressions`, admin/compliance with 2FA, ≤ 10,000 rows, errors by row number only; Phase 6 review P6-13). `send-emails` reports `unreported` rows; `email-events` reads at most 10 KB.
+- Review findings and fixes: [verification/r1-p6-verification.md](verification/r1-p6-verification.md).
 - The daily limit counts live mails claimed today (Berlin). Test mails don't count.
 - Holidays use one-off campaigns with a date. A recurring holiday calendar can come later.

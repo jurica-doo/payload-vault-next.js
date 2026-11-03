@@ -210,7 +210,7 @@ What the tests already prove (pgTAP), and what a reviewer should look at:
 - [ ] Automatic reassignment queue for **customers** of deactivated advisers (tasks and leads already move).
 - [ ] "Missing in last sync" detection for contracts (after OD-14).
 - [ ] Per-kind lead times and more recurrence options for service items.
-- [ ] Only one active birthday campaign (enforce it, or deduplicate per customer per day).
+- [x] Only one active birthday campaign: enforced on approve and resume (Phase 6 review, P6-02).
 - [ ] Recurring holiday calendar for greetings (today: one dated campaign per holiday).
 - [ ] Optional full login ban on deactivation (today: data access ends, the auth account stays).
 
@@ -222,7 +222,7 @@ What the tests already prove (pgTAP), and what a reviewer should look at:
 ### 6.4 Technical
 - [ ] 5 old lint warnings in untouched components (`Dropdown`, `HeaderHome` images, `DeleteIcon`, `SearchBar`).
 - [ ] Performance check on staging with synthetic volume (5k employees / 200k production rows): dashboard and analytics RPCs < 300 ms p95 (plan §10).
-- [ ] End-to-end tests (Playwright) for the walkthroughs in section 4. Phase 1 is covered (`e2e/`, 53 tests, local stack) Phase 4 and 5 have regression specs (`e2e/tests/phase4-leads-tasks.spec.ts`, 13 tests; `e2e/tests/phase5-crm.spec.ts`, 8 tests; one per review finding); the other phases are still open.
+- [ ] End-to-end tests (Playwright) for the walkthroughs in section 4. Phase 1 is covered (`e2e/`, 53 tests, local stack) Phase 4 and 5 have regression specs (`e2e/tests/phase4-leads-tasks.spec.ts`, 13 tests; `e2e/tests/phase5-crm.spec.ts`, 8 tests; `e2e/tests/phase6-automation.spec.ts`, 8 tests; one per review finding); the other phases are still open.
 - [ ] `ubuntu-latest` moves to Ubuntu 26 in CI (GitHub notice); pin the runner if anything breaks.
 - [ ] `supabase/seed.sql` with synthetic personas for staging (one per role and level).
 
@@ -247,6 +247,15 @@ The Phase 5 review (2026-11-03, `phase-5-crm/verification/`) fixed all 17 findin
 - [ ] **Round 2, Part B** of `phase-5-crm/verification/r1-p5-manual-guide-round2.md` (concurrency, lifecycle chains, sync edge cases, XSS, accessibility, 360 px, volume).
 - [ ] Phase 5 at 360 px and in light mode (the review only checked the desktop in dark mode).
 - [ ] Privacy requests list (limit 300) and export log (limit 50): decide whether they need paging from the server.
+
+### 6.7 Phase 6 review follow-ups
+The Phase 6 review (2026-11-03, `phase-6-automation/verification/`) fixed all 13 findings and 4 round-2 findings, and
+added the block-list CSV import that Gate E needs. Still open:
+- [ ] **Round 2, Part B** of `phase-6-automation/verification/r1-p6-manual-guide-round2.md` (concurrency, import edge cases, lifecycle, sessions, accessibility, 360 px).
+- [ ] **Dry-run on staging** with the real cron schedule once the staging project exists (local dry-run passed).
+- [ ] **Gate E:** import Profina's existing opt-out / bounce list with the new import, then verify templates, legal bases and approvals before anyone switches sending on.
+- [ ] Production import: decide whether premiums need a plausibility ceiling (P6-NOTE-01).
+- [ ] Cockpit „Hinweise“ and „Quellen im Zeitverlauf“ were only checked through the existing tests in this review; click them through once with real volume.
 
 ---
 
