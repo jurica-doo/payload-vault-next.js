@@ -55,20 +55,29 @@ Deno.serve(async (req) => {
 
   let sent = 0;
   let failed = 0;
+  // A failed report leaves the row in "sending"; the claim's recovery picks it up later (P6-10).
+  let unreported = 0;
+  const report = async (args: Record<string, unknown>) => {
+    const { error: reportError } = await service.rpc("rpc_report_email_result", args);
+    if (reportError) {
+      unreported++;
+      console.error("report_failed", args.p_id, reportError.code);
+    }
+  };
   for (const mail of (data ?? []) as Claimed[]) {
     try {
       const { messageId } = await provider.send(
         { id: mail.id, idempotencyKey: mail.idempotency_key, to: mail.to, subject: mail.subject, text: mail.text, html: mail.html },
         FROM,
       );
-      await service.rpc("rpc_report_email_result", { p_id: mail.id, p_ok: true, p_provider_message_id: messageId });
+      await report({ p_id: mail.id, p_ok: true, p_provider_message_id: messageId });
       sent++;
     } catch (e) {
       // Only an error class goes to the log, never the message content.
       const code = e instanceof Error ? e.name : "error";
-      await service.rpc("rpc_report_email_result", { p_id: mail.id, p_ok: false, p_error: `${provider.name}:${code}` });
+      await report({ p_id: mail.id, p_ok: false, p_error: `${provider.name}:${code}` });
       failed++;
     }
   }
-  return json(200, { sent, failed });
+  return json(200, { sent, failed, unreported });
 });

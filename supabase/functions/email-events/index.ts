@@ -27,17 +27,48 @@ function safeEqual(a: string, b: string) {
 const json = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
+const MAX_BYTES = 10_000;
+
+/** The request body as text, or null once it grows past `max` bytes. */
+async function readCapped(req: Request, max: number): Promise<string | null> {
+  if (!req.body) return "";
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > max) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+  const all = new Uint8Array(size);
+  let at = 0;
+  for (const c of chunks) {
+    all.set(c, at);
+    at += c.byteLength;
+  }
+  return new TextDecoder().decode(all);
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") return json(405, { error: "method_not_allowed" });
   if (!SECRET || !safeEqual(req.headers.get("x-webhook-secret") ?? "", SECRET)) return json(401, { error: "unauthorized" });
-  if (Number(req.headers.get("content-length") ?? "0") > 10_000) return json(413, { error: "too_large" });
+  if (Number(req.headers.get("content-length") ?? "0") > MAX_BYTES) return json(413, { error: "too_large" });
 
+  // The header can be missing or wrong (chunked upload): stop reading at the cap (P6-09).
+  const raw = await readCapped(req, MAX_BYTES);
+  if (raw === null) return json(413, { error: "too_large" });
   let body: { message_id?: unknown; event?: unknown };
   try {
-    body = await req.json();
+    body = JSON.parse(raw);
   } catch {
     return json(400, { error: "invalid_json" });
   }
+  if (!body || typeof body !== "object") return json(400, { error: "invalid_payload" });
   if (typeof body.message_id !== "string" || body.message_id.length > 200 || typeof body.event !== "string" || !EVENTS.has(body.event)) {
     return json(400, { error: "invalid_payload" });
   }
