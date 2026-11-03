@@ -43,7 +43,8 @@ export function renderTemplate(subject: string, body: string, values: Partial<Re
   const fill = (s: string, map: (v: string) => string) => s.replace(PLACEHOLDER, (_m, f: string) => map(resolved[f] ?? ""));
   const html = fill(escapeHtml(body), escapeHtml);
   return {
-    subject: fill(subject, (v) => v.replace(/[\r\n]+/g, " ")),
+    // A subject is one line (P6-01): authored line breaks are flattened too, as in SQL render_text.
+    subject: fill(subject, (v) => v.replace(/[\r\n]+/g, " ")).replace(/[\r\n]+/g, " ").trim(),
     text: fill(body, (v) => v),
     html: `<p>${html.replace(/\r?\n\r?\n+/g, "</p><p>").replace(/\n/g, "<br>")}</p>`,
     missing: missing.sort(),

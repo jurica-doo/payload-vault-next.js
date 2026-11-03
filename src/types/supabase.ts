@@ -3764,6 +3764,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      rpc_import_suppressions: {
+        Args: { p_note?: string; p_reason?: string; p_rows: Json }
+        Returns: Json
+      }
       rpc_ingest_contracts: {
         Args: { p_rows: Json; p_source_system: string }
         Returns: Json
