@@ -4,12 +4,15 @@ import { Select } from "../../components/select/Select";
 import { useErrorToast } from "../../hooks/useErrorToast";
 import { errorText } from "../../utils/dbErrors";
 import { ActivityIcon, PlusIcon } from "../../components/icons";
+import { ActionMenu } from "../../components/actionMenu/ActionMenu";
 import { ButtonLink } from "../../components/button/ButtonLink";
+import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { PageActions } from "../../components/pageHeader/PageActions";
 import { Tabs } from "../../components/tabs/Tabs";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { Pagination } from "../../components/pagination/Pagination";
 import { usePagination } from "../../components/pagination/usePagination";
+import { ReasonConfirmForm } from "../../components/reasonConfirm/ReasonConfirmForm";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
@@ -22,8 +25,9 @@ import { useModal } from "../../context/modal/ModalContext";
 import { useBanner } from "../../context/banner/BannerContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useStructure } from "../../hooks/useStructure/useStructure";
-import { useTasks, type Task } from "../../hooks/useTasks/useTasks";
-import { berlinLocalToUtcIso, formatDate } from "../../utils/format";
+import { CLOSED_TASK_DAYS, useTasks, type Task } from "../../hooks/useTasks/useTasks";
+import { PRIORITY_LABEL, PRIORITY_OPTIONS } from "../../domain/leads";
+import { berlinLocalToUtcIso, berlinToday, formatDate } from "../../utils/format";
 
 export const TASK_TYPE_LABEL: Record<string, string> = {
   manual: "Aufgabe",
@@ -50,9 +54,9 @@ const LINK_FOR: Record<string, (id: string) => string> = {
 };
 
 const priority: StatusMap<"low" | "normal" | "high"> = {
-  low: { label: "niedrig", tone: "neutral" },
-  normal: { label: "normal", tone: "info" },
-  high: { label: "hoch", tone: "warning" },
+  low: { label: PRIORITY_LABEL.low, tone: "neutral" },
+  normal: { label: PRIORITY_LABEL.normal, tone: "info" },
+  high: { label: PRIORITY_LABEL.high, tone: "warning" },
 };
 
 const nowIso = () => new Date().toISOString();
@@ -70,8 +74,9 @@ export function sortTasks(tasks: Task[], now = nowIso()) {
 export const TasksPage = () => {
   const onFail = useErrorToast();
   const { permissions } = usePermissions();
-  const { data = [], isLoading, setStatus } = useTasks();
+  const { data = [], isLoading, error, refetch, setStatus, runGenerators } = useTasks();
   const { openModal, closeModal } = useModal();
+  const { showBanner } = useBanner();
   const [scope, setScope] = useState<"me" | "team">("me");
   const me = permissions.employeeId;
 
@@ -82,30 +87,64 @@ export const TasksPage = () => {
   const donePages = usePagination(done, { resetKey: scope });
   if (!me) return <EmptyState message="Aufgaben gibt es nur für aktive Mitarbeitende." />;
 
+  // System tasks close themselves when their cause is gone; only the owner's
+  // manager may dismiss one, with a reason (P4-UX-10).
+  const dismiss = (t: Task) => openModal({
+    title: "Aufgabe ausblenden",
+    children: (
+      <ReasonConfirmForm
+        message={`„${t.title}“ wird geschlossen und für diese Person nicht erneut erzeugt.`}
+        confirmText="Ausblenden"
+        onCancel={closeModal}
+        onConfirm={async (reason) => {
+          await setStatus.mutateAsync({ id: t.id, status: "cancelled", note: reason });
+          closeModal();
+          showBanner("Aufgabe ausgeblendet", t.title, "success");
+        }}
+      />
+    ),
+  });
+
   const row = (t: Task) => {
     const link = t.linked_type && t.linked_id ? LINK_FOR[t.linked_type]?.(t.linked_id) : undefined;
+    const system = t.source === "system";
+    const closed = t.status !== "open";
+    const text = (
+      <span>
+        <span className={`text-sm ${closed ? "line-through text-color-text-subtle" : "text-color-text-main"}`}>{t.title}</span>
+        <span className="block text-xs text-color-text-subtle">
+          {TASK_TYPE_LABEL[t.type] ?? t.type}
+          {t.due_at && ` · fällig ${formatDate(t.due_at.slice(0, 10))}`}
+          {system && !closed && " · schließt sich automatisch"}
+          {t.completion_note && ` · ${t.completion_note}`}
+        </span>
+      </span>
+    );
     return (
       <li key={t.id} className="flex flex-wrap items-start justify-between gap-2 border-b border-color-border-light py-2 last:border-0">
-        <label className="flex items-start gap-2">
-          <input
-            type="checkbox"
-            className="mt-1"
-            checked={t.status === "done"}
-            disabled={t.status === "cancelled"}
-            onChange={(e) => setStatus.mutate({ id: t.id, status: e.target.checked ? "done" : "open" }, { onError: onFail("Aufgabe nicht aktualisiert") })}
-          />
-          <span>
-            <span className={`text-sm ${t.status !== "open" ? "line-through text-color-text-subtle" : "text-color-text-main"}`}>{t.title}</span>
-            <span className="block text-xs text-color-text-subtle">
-              {TASK_TYPE_LABEL[t.type] ?? t.type}
-              {t.due_at && ` · fällig ${formatDate(t.due_at.slice(0, 10))}`}
-              {t.completion_note && ` · ${t.completion_note}`}
-            </span>
+        {system ? (
+          <span className="flex items-start gap-2">
+            <span aria-hidden className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${closed ? "bg-color-border-strong" : "bg-color-primary"}`} />
+            {text}
           </span>
-        </label>
+        ) : (
+          <label className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={t.status === "done"}
+              disabled={t.status === "cancelled"}
+              onChange={(e) => setStatus.mutate({ id: t.id, status: e.target.checked ? "done" : "open" }, { onError: onFail("Aufgabe nicht aktualisiert") })}
+            />
+            {text}
+          </label>
+        )}
         <span className="flex items-center gap-2">
           {t.priority !== "normal" && <StatusBadge status={t.priority} map={priority} />}
           {link && <Link href={link} className="text-xs font-semibold">Öffnen</Link>}
+          {system && !closed && t.owner_id !== me && (
+            <ActionMenu label={`Aktionen für ${t.title}`} items={[{ label: "Ausblenden…", onClick: () => dismiss(t) }]} />
+          )}
         </span>
       </li>
     );
@@ -126,12 +165,23 @@ export const TasksPage = () => {
           />
         ) : <span />}
         <PageActions>
+          {permissions.isAdmin && (
+            // Without pg_cron the generators only run on demand (P4-UI-01).
+            <Button text="Generatoren ausführen" variant="ghost" isLoading={runGenerators.isPending} isDisabled={!permissions.hasMfa}
+              onClick={() => runGenerators.mutate(undefined, {
+                onSuccess: (r) => showBanner("Generatoren ausgeführt",
+                  `${r.open_system_tasks ?? 0} offene Systemaufgaben, ${r.notifications ?? 0} Benachrichtigungen versendet.`, "success"),
+                onError: onFail("Generatoren nicht ausgeführt"),
+              })} />
+          )}
           <ButtonLink href="/vertrieb/aufgaben/aktivitaeten" text="Aktivitäten & Termine" icon={ActivityIcon} />
           <Button text="Aufgabe anlegen" icon={PlusIcon} onClick={() => openModal({ title: "Aufgabe anlegen", children: <TaskForm onDone={closeModal} /> })} />
         </PageActions>
       </div>
 
-      {isLoading ? <LoadingState /> : (
+      {isLoading ? <LoadingState /> : error ? (
+        <ErrorBlock variant="inline" message={errorText(error, "Die Aufgaben konnten nicht geladen werden.")} onRetry={() => refetch()} />
+      ) : (
         <>
           {overdue.length > 0 && (
             <section className="rounded-radius-lg border border-color-error-border/40 bg-color-bg-error-subtle p-3">
@@ -147,7 +197,7 @@ export const TasksPage = () => {
           </section>
           {done.length > 0 && (
             <details className="ui-card p-3">
-              <summary className="cursor-pointer text-sm font-semibold">Erledigt / geschlossen ({done.length})</summary>
+              <summary className="cursor-pointer text-sm font-semibold">Erledigt / geschlossen, letzte {CLOSED_TASK_DAYS} Tage ({done.length})</summary>
               <ul>{donePages.pageItems.map(row)}</ul>
               <Pagination {...donePages.pagination} />
             </details>
@@ -171,6 +221,7 @@ const TaskForm = ({ onDone }: { onDone: () => void }) => {
   const people = structure
     ? [...structure.byId.values()].filter((r) => r.status === "active").map((r) => ({ id: r.employee_id, first_name: r.first_name, last_name: r.last_name, employee_no: r.employee_no }))
     : [];
+  const titleTooShort = title.trim().length > 0 && title.trim().length < 3;
 
   return (
     <form className="flex flex-col gap-3 pt-2" onSubmit={async (e) => {
@@ -181,23 +232,19 @@ const TaskForm = ({ onDone }: { onDone: () => void }) => {
         showBanner("Aufgabe angelegt", title, "success");
         onDone();
       } catch (err) {
-        showBanner("Nicht gespeichert", errorText(err), "error");
+        showBanner("Aufgabe nicht angelegt", errorText(err), "error");
       }
     }}>
-      <InputField label="Titel" placeholder="z. B. Unterlagen anfordern" value={title} onChange={setTitle} isRequired />
+      <InputField label="Titel" placeholder="z. B. Unterlagen anfordern" value={title} onChange={setTitle} isRequired
+        error={titleTooShort ? "Bitte mindestens 3 Zeichen angeben." : undefined} />
       {permissions.isLeader && people.length > 1 && <EmployeePicker label="Zuständig" employees={people} value={owner} onChange={setOwner} />}
       <div className="grid gap-3 sm:grid-cols-2">
-        <DateInput label="Fällig am" value={due} onChange={setDue} />
-        <Select
-          label="Priorität"
-          value={prio}
-          onChange={setPrio}
-          options={[{ value: "low", label: "niedrig" }, { value: "normal", label: "normal" }, { value: "high", label: "hoch" }]}
-          fullWidth
-        />
+        <DateInput label="Fällig am" value={due} onChange={setDue} min={berlinToday()} hint="Fällig um 17:00 Uhr" />
+        <Select label="Priorität" value={prio} onChange={setPrio} options={PRIORITY_OPTIONS} fullWidth />
       </div>
-      <TextArea label="Beschreibung" value={description} onChange={setDescription} rows={3} />
-      <div><Button type="submit" text="Speichern" isLoading={create.isPending} isDisabled={title.trim().length < 3} /></div>
+      <TextArea label="Beschreibung" value={description} onChange={setDescription} rows={3}
+        hint={description.length > 3500 ? `${description.length}/4.000 Zeichen` : undefined} />
+      <div><Button type="submit" text="Speichern" isLoading={create.isPending} isDisabled={title.trim().length < 3 || description.length > 4000} /></div>
     </form>
   );
 };

@@ -2,7 +2,7 @@
 
 import { Select } from "../../components/select/Select";
 import { errorText } from "../../utils/dbErrors";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
 import { InputField } from "../../components/inputField/InputField";
@@ -13,9 +13,9 @@ import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useRules } from "../../hooks/useRules/useRules";
 import { useStructure } from "../../hooks/useStructure/useStructure";
 import { findLeadDuplicates, leadNo, useLeadConfig, useLeadMutations, type DuplicateMatch, type LeadInput } from "../../hooks/useLeads/useLeads";
-import { normalizeEmail, normalizePhone } from "../../domain/normalize";
-import { CHANNEL_LABEL, CONSENT_LABEL } from "../../domain/leads";
+import { CHANNEL_LABEL, CONSENT_LABEL, PRIORITY_OPTIONS } from "../../domain/leads";
 import { berlinLocalToUtcIso, berlinToday } from "../../utils/format";
+import { useContactFields } from "./useContactFields";
 
 /**
  * Lead intake (§9.1, §9.3, §9.5). Before saving, the form asks the database
@@ -42,32 +42,39 @@ export const LeadForm = ({ onDone }: { onDone: (id: string) => void }) => {
   const [toPool, setToPool] = useState(false);
   const [dupes, setDupes] = useState<DuplicateMatch[] | null>(null);
   const [confirmed, setConfirmed] = useState(false);
+  const dupeRef = useRef<HTMLDivElement | null>(null);
   const set = (k: keyof typeof f) => (v: string) => { setF((x) => ({ ...x, [k]: v })); setDupes(null); setConfirmed(false); };
 
-  const phone = f.phone.trim() ? normalizePhone(f.phone) : null;
-  const email = f.email.trim() ? normalizeEmail(f.email) : null;
-  const phoneError = f.phone.trim() && !phone ? "Ungültige Telefonnummer" : undefined;
-  const emailError = f.email.trim() && !email ? "Ungültige E-Mail-Adresse" : undefined;
+  const contact = useContactFields(f.phone, f.email);
   const sources = (config?.sources ?? []).filter((s) => s.active);
   const sourceId = f.source_id || sources[0]?.id || "";
-  const valid = (f.last_name.trim() || f.company.trim()) && !phoneError && !emailError && sourceId;
-  const noContact = !phone && !email;
+  const valid = Boolean((f.last_name.trim() || f.company.trim()) && !contact.invalid && sourceId);
+  const noContact = !contact.phone && !contact.email;
   const people = structure
     ? [...structure.byId.values()].filter((r) => r.status === "active") // RLS: self + own structure (everyone for admins)
         .map((r) => ({ id: r.employee_id, first_name: r.first_name, last_name: r.last_name, employee_no: r.employee_no }))
     : [];
 
+  // The warning renders below a long form; bring it into view (P4-UX-12).
+  useEffect(() => {
+    if (dupes && dupes.length > 0) {
+      dupeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      dupeRef.current?.querySelector<HTMLInputElement>("input[type=checkbox]")?.focus({ preventScroll: true });
+    }
+  }, [dupes]);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    contact.touchAll();
     if (!valid) return;
     try {
       if (dupes === null) {
-        const found = await findLeadDuplicates({ first_name: f.first_name, last_name: f.last_name, company: f.company, phone, email });
+        const found = await findLeadDuplicates({ first_name: f.first_name, last_name: f.last_name, company: f.company, phone: contact.phone, email: contact.email });
         setDupes(found);
         if (found.length > 0) return; // show the warning first
       }
       const data: LeadInput = {
-        first_name: f.first_name, last_name: f.last_name, company: f.company, phone, email,
+        first_name: f.first_name, last_name: f.last_name, company: f.company, phone: contact.phone, email: contact.email,
         preferred_channel: f.preferred_channel, source_id: sourceId, campaign: f.campaign, referral: f.referral,
         received_at: f.received === berlinToday() ? undefined : berlinLocalToUtcIso(f.received, "09:00"),
         product_interest: interest, region: f.region, priority: f.priority,
@@ -76,7 +83,7 @@ export const LeadForm = ({ onDone }: { onDone: (id: string) => void }) => {
       const id = await create.mutateAsync({ data, ownerId: toPool ? null : owner, toPool, confirmDuplicates: confirmed });
       onDone(id);
     } catch (err) {
-      showBanner("Nicht gespeichert", errorText(err), "error");
+      showBanner("Lead nicht angelegt", errorText(err), "error");
     }
   };
 
@@ -86,16 +93,15 @@ export const LeadForm = ({ onDone }: { onDone: (id: string) => void }) => {
         <InputField label="Vorname" placeholder="Max" value={f.first_name} onChange={set("first_name")} />
         <InputField label="Nachname" placeholder="Mustermann" value={f.last_name} onChange={set("last_name")} />
         <InputField label="Firma" placeholder="optional" value={f.company} onChange={set("company")} />
-        <InputField label="Telefon" placeholder="0170 1234567" value={f.phone} onChange={set("phone")} error={phoneError} />
-        <InputField label="E-Mail" placeholder="name@beispiel.de" type="email" value={f.email} onChange={set("email")} error={emailError} />
+        <InputField label="Telefon" placeholder="0170 1234567" value={f.phone} onChange={set("phone")} onBlur={contact.touch("phone")} error={contact.phoneError} />
+        <InputField label="E-Mail" placeholder="name@beispiel.de" type="email" value={f.email} onChange={set("email")} onBlur={contact.touch("email")} error={contact.emailError} />
         <Select label="Bevorzugter Kanal" value={f.preferred_channel} onChange={set("preferred_channel")}
           options={Object.entries(CHANNEL_LABEL).map(([value, label]) => ({ value, label }))} />
         <Select label="Quelle" value={sourceId} onChange={set("source_id")} options={sources.map((s) => ({ value: s.id, label: s.name }))} />
         <InputField label="Kampagne" placeholder="optional" value={f.campaign} onChange={set("campaign")} />
         <DateInput label="Eingegangen am" value={f.received} onChange={set("received")} max={berlinToday()} />
         <InputField label="Region" placeholder="z. B. München" value={f.region} onChange={set("region")} />
-        <Select label="Priorität" value={f.priority} onChange={set("priority")}
-          options={[{ value: "low", label: "niedrig" }, { value: "normal", label: "normal" }, { value: "high", label: "hoch" }]} />
+        <Select label="Priorität" value={f.priority} onChange={set("priority")} options={PRIORITY_OPTIONS} />
         <Select label="Rechtsgrundlage Kontakt" value={f.consent_basis} onChange={set("consent_basis")}
           options={[{ value: "", label: "noch nicht erfasst" }, ...Object.entries(CONSENT_LABEL).map(([value, label]) => ({ value, label }))]} />
       </div>
@@ -124,11 +130,13 @@ export const LeadForm = ({ onDone }: { onDone: (id: string) => void }) => {
       {noContact && <p className="text-xs text-color-secondary">Ohne Telefon und E-Mail kann der Lead nicht kontaktiert werden und Duplikate werden nur über den Namen erkannt.</p>}
 
       {dupes && dupes.length > 0 && (
-        <DuplicateWarning confirmed={confirmed} onConfirmedChange={setConfirmed} hiddenLabel="Lead einer anderen Person"
-          items={dupes.map((d, i) => ({
-            key: d.id ?? String(i), reason: d.reason, owner: d.owner,
-            ...(d.visible && d.id ? { href: `/vertrieb/leads/${d.id}`, label: `${leadNo(d.lead_no ?? 0)} ${d.name}` } : {}),
-          }))} />
+        <div ref={dupeRef}>
+          <DuplicateWarning confirmed={confirmed} onConfirmedChange={setConfirmed} hiddenLabel="Lead einer anderen Person"
+            items={dupes.map((d, i) => ({
+              key: d.id ?? String(i), reason: d.reason, owner: d.owner,
+              ...(d.visible && d.id ? { href: `/vertrieb/leads/${d.id}`, label: `${leadNo(d.lead_no ?? 0)} ${d.name}` } : {}),
+            }))} />
+        </div>
       )}
       <div>
         <Button type="submit" text={dupes && dupes.length > 0 ? "Trotzdem anlegen" : "Lead anlegen"} isLoading={create.isPending}

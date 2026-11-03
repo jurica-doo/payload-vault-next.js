@@ -49,4 +49,11 @@ describe("LeadAnalyticsPage", () => {
     expect(state.lastScope).toBe("all");
     expect(screen.getAllByText("Kosten/Lead").length).toBeGreaterThan(0);
   });
+
+  it("P4-UX-04 admins open on the organisation view", () => {
+    state.perms = { employeeId: "me", isLeader: true, isAdmin: true };
+    render(<LeadAnalyticsPage />);
+    expect(state.lastScope).toBe("all");
+    expect(screen.getByRole("tab", { name: "Gesamt" })).toHaveAttribute("aria-selected", "true");
+  });
 });

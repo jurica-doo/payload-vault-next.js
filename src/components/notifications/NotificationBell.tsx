@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { BellIcon, SettingsIcon } from "../icons";
 import { useNotifications } from "../../hooks/useTasks/useTasks";
 import { formatDateTime } from "../../utils/format";
+import { useBanner } from "../../context/banner/BannerContext";
 
 const MUTABLE = [
   { kind: "manual", label: "Zugewiesene Aufgaben" },
@@ -27,7 +28,8 @@ const MUTABLE = [
  */
 export const NotificationBell = () => {
   const onFail = useErrorToast();
-  const { data = [], markRead, mute } = useNotifications(true);
+  const { data = [], markRead, mute, muted: savedMuted } = useNotifications(true);
+  const { showBanner } = useBanner();
   const [open, setOpen] = useState(false);
   const [settings, setSettings] = useState(false);
   const [muted, setMuted] = useState<string[]>([]);
@@ -83,14 +85,25 @@ export const NotificationBell = () => {
                 aria-label="Benachrichtigungs-Einstellungen"
                 aria-pressed={settings}
                 className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-radius-sm text-color-text-subtle transition-all hover:bg-color-bg-hover hover:text-color-text-main ${settings ? "bg-color-bg-hover text-color-text-main" : ""}`}
-                onClick={() => setSettings((s) => !s)}
+                onClick={() => {
+                  // Start from what is saved, so saving again keeps existing mutes (P4-UX-07).
+                  if (!settings) setMuted(savedMuted ?? []);
+                  setSettings((s) => !s);
+                }}
               >
                 <SettingsIcon size={15} />
               </button>
             </div>
           </div>
           {settings ? (
-            <form className="flex flex-col gap-2 p-4 text-sm animate-fade-in" onSubmit={(e) => { e.preventDefault(); mute.mutate(muted, { onError: onFail("Einstellungen nicht gespeichert") }); setSettings(false); }}>
+            <form className="flex flex-col gap-2 p-4 text-sm animate-fade-in" onSubmit={(e) => {
+              e.preventDefault();
+              mute.mutate(muted, {
+                onSuccess: () => showBanner("Einstellungen gespeichert", muted.length ? `${muted.length} Art(en) stummgeschaltet.` : "Alle Benachrichtigungen sind aktiv.", "success"),
+                onError: onFail("Einstellungen nicht gespeichert"),
+              });
+              setSettings(false);
+            }}>
               <p className="text-xs text-color-text-subtle">Stummschalten (Freigaben und Prüffälle bleiben immer sichtbar):</p>
               {MUTABLE.map((m) => (
                 <label key={m.kind} className="flex cursor-pointer items-center gap-2.5 text-color-text-main">

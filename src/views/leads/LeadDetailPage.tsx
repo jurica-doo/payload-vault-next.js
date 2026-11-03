@@ -6,14 +6,14 @@ import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { cardClass } from "../../components/card/card.const";
 import Link from "next/link";
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { Button } from "../../components/button/Button";
-import { DateInput, TextArea } from "../../components/formFields/FormFields";
+import { DateInput, TextArea, TimeInput } from "../../components/formFields/FormFields";
 import { InputField } from "../../components/inputField/InputField";
 import { EmployeePicker } from "../../components/employeePicker/EmployeePicker";
 import { EmptyState } from "../../components/emptyState/EmptyState";
 import { ProvisionalRuleNotice } from "../../components/provisionalRuleNotice/ProvisionalRuleNotice";
-import { ReasonConfirmForm } from "../../components/reasonConfirm/ReasonConfirmForm";
+import { MIN_REASON_LENGTH, ReasonConfirmForm } from "../../components/reasonConfirm/ReasonConfirmForm";
 import { StageStepper } from "../../components/stageStepper/StageStepper";
 import { StatusBadge } from "../../components/statusBadge/StatusBadge";
 import { useBanner } from "../../context/banner/BannerContext";
@@ -26,14 +26,15 @@ import {
   findLeadDuplicates, leadName, leadNo, useLead, useLeadConfig, useLeadMutations, type DuplicateMatch, type Lead,
 } from "../../hooks/useLeads/useLeads";
 import {
-  CHANNEL_LABEL, CONSENT_LABEL, LOSS_REASON_LABEL, REQUIRED_FIELD_LABEL, missingFields, slaState, stageChangeNeedsReason,
+  CHANNEL_LABEL, CONSENT_LABEL, LOSS_REASON_LABEL, PRIORITY_LABEL, PRIORITY_OPTIONS, REQUIRED_FIELD_LABEL, missingFields, slaState,
+  stageChangeNeedsReason,
 } from "../../domain/leads";
-import { normalizeEmail, normalizePhone } from "../../domain/normalize";
-import { berlinLocalToUtcIso, formatDateTime } from "../../utils/format";
+import { berlinLocalToUtcIso, berlinToday, formatDateTime, formatPhone } from "../../utils/format";
 import { ActivityPanel } from "../activities/ActivityPanel";
 import { Select } from "../../components/select/Select";
 import { ConvertLead } from "./ConvertLead";
 import { SLA_BADGE } from "./LeadsPage";
+import { useContactFields } from "./useContactFields";
 
 const card = cardClass;
 
@@ -48,6 +49,14 @@ const LeadDetail = ({ leadId }: { leadId: string }) => {
   const { data: config } = useLeadConfig();
   const { data: structure } = useStructure();
   const { data: activities = [] } = useActivities({ linkedType: "lead", linkedId: leadId });
+  // Stages the lead really entered. Stages before its entry point (a lead created
+  // straight into "Zugewiesen" never was "Neu") count as passed, not skipped.
+  const visited = useMemo(() => {
+    const entered = new Set((data?.stageHistory ?? []).map((h) => h.to_stage));
+    const first = config?.stages.find((s) => s.code === data?.stageHistory[0]?.to_stage);
+    for (const s of config?.stages ?? []) if (first && s.kind === "open" && s.position < first.position) entered.add(s.code);
+    return entered;
+  }, [data, config]);
   if (isLoading) return <LoadingState rows={6} />;
   // A failed request is not the same as "no such lead" — say which it is.
   if (error) return <ErrorBlock variant="inline" message="Der Lead konnte nicht geladen werden." onRetry={() => refetch()} />;
@@ -78,7 +87,7 @@ const LeadDetail = ({ leadId }: { leadId: string }) => {
           meta={`${leadNo(lead.lead_no)}${lead.company && lead.first_name ? ` · ${lead.company}` : ""}`}
           action={<ConvertLead lead={lead} />}
         >
-          <StageStepper stages={mainPath} currentId={current?.kind === "open" ? lead.stage : lastOpen} outcome={outcome} />
+          <StageStepper stages={mainPath} currentId={current?.kind === "open" ? lead.stage : lastOpen} outcome={outcome} visited={visited} />
         </RecordHeader>
       }
       main={
@@ -141,20 +150,24 @@ const StageCard = ({ lead, stages, hasAppointment, hasHeldAppointment }: {
         <Select label="Verlustgrund" value={loss} onChange={setLoss}
           options={[{ value: "", label: "– wählen –" }, ...Object.entries(LOSS_REASON_LABEL).map(([value, label]) => ({ value, label }))]} />
       )}
-      {to && <TextArea label={needsReason ? "Begründung (Pflicht, mind. 10 Zeichen)" : "Notiz"} value={note} onChange={setNote} rows={2} />}
+      {to && (
+        <TextArea label={needsReason ? "Begründung (Pflicht)" : "Notiz"} value={note} onChange={setNote} rows={2}
+          hint={needsReason ? `${note.trim().length} Zeichen, mindestens ${MIN_REASON_LENGTH}` : undefined} />
+      )}
       {missing.length > 0 && (
         <p className="text-xs text-color-error-text">Es fehlt: {missing.map((f) => REQUIRED_FIELD_LABEL[f] ?? f).join(", ")}.</p>
       )}
       {to && (
         <div>
           <Button text="Phase setzen" isLoading={setStage.isPending}
-            isDisabled={missing.length > 0 || (needsReason && note.trim().length < 10)}
+            isDisabled={missing.length > 0 || (needsReason && note.trim().length < MIN_REASON_LENGTH)}
             onClick={async () => {
               try {
                 await setStage.mutateAsync({ id: lead.id, stage: target, note, lossReason: loss || null });
+                showBanner("Phase geändert", `Der Lead steht jetzt in „${to.name_de}“.`, "success");
                 setTarget(""); setNote(""); setLoss("");
               } catch (e) {
-                showBanner("Nicht gespeichert", errorText(e), "error");
+                showBanner("Phase nicht geändert", errorText(e), "error");
               }
             }} />
         </div>
@@ -179,16 +192,17 @@ const NextStepCard = ({ lead }: { lead: Lead }) => {
       </p>
       <InputField label="Was" placeholder="z. B. Angebot nachfassen" value={text} onChange={setText} />
       <div className="grid grid-cols-2 gap-3">
-        <DateInput label="Wann" value={date} onChange={setDate} />
-        <InputField label="Uhrzeit" placeholder="10:00" value={time} onChange={setTime} />
+        <DateInput label="Wann" value={date} onChange={setDate} min={berlinToday()} />
+        <TimeInput label="Uhrzeit" value={time} onChange={setTime} />
       </div>
       <div>
-        <Button text="Planen" isLoading={update.isPending} isDisabled={!date || !/^\d{1,2}:\d{2}$/.test(time)} onClick={async () => {
+        <Button text="Planen" isLoading={update.isPending} isDisabled={!date || !time} onClick={async () => {
           try {
-            await update.mutateAsync({ id: lead.id, data: { next_action: text.trim() || null, next_action_at: berlinLocalToUtcIso(date, time.padStart(5, "0")) } });
+            await update.mutateAsync({ id: lead.id, data: { next_action: text.trim() || null, next_action_at: berlinLocalToUtcIso(date, time) } });
+            showBanner("Nächster Schritt geplant", `${text.trim() || "Ohne Beschreibung"} · ${formatDateTime(berlinLocalToUtcIso(date, time))}`, "success");
             setDate("");
           } catch (e) {
-            showBanner("Nicht gespeichert", errorText(e), "error");
+            showBanner("Nicht geplant", errorText(e), "error");
           }
         }} />
       </div>
@@ -198,27 +212,27 @@ const NextStepCard = ({ lead }: { lead: Lead }) => {
 
 const DetailsCard = ({ lead, sourceName, provisionalSla, slaHours }: { lead: Lead; sourceName: string; provisionalSla: boolean; slaHours: number }) => {
   const { openModal, closeModal } = useModal();
+  const { data: rules } = useRules();
   const sla = slaState(lead);
+  const categoryName = new Map((rules?.conversion?.rows ?? []).map((c) => [c.categoryCode, c.nameDe]));
   const rows: [string, React.ReactNode][] = [
-    ["Telefon", lead.phone ? <a href={`tel:${lead.phone}`}>{lead.phone}</a> : "–"],
+    ["Telefon", lead.phone ? <a href={`tel:${lead.phone}`}>{formatPhone(lead.phone)}</a> : "–"],
     ["E-Mail", lead.email ? <a href={`mailto:${lead.email}`}>{lead.email}</a> : "–"],
     ["Kanal", CHANNEL_LABEL[lead.preferred_channel] ?? lead.preferred_channel],
     ["Quelle", `${sourceName}${lead.campaign ? ` · ${lead.campaign}` : ""}`],
     ["Eingang", formatDateTime(lead.received_at)],
     ["Erstkontakt", <span key="sla"><StatusBadge status={sla} map={SLA_BADGE} /> {lead.first_contact_at ? formatDateTime(lead.first_contact_at) : lead.sla_due_at ? `fällig bis ${formatDateTime(lead.sla_due_at)}` : ""}</span>],
-    ["Produktinteresse", lead.product_interest.join(", ") || "–"],
+    ["Produktinteresse", lead.product_interest.map((c) => categoryName.get(c) ?? c).join(", ") || "–"],
     ["Rechtsgrundlage", lead.consent_basis ? CONSENT_LABEL[lead.consent_basis] : <span className="text-color-secondary">nicht erfasst</span>],
-    ["Region", lead.region ?? "–"],
-    ["Priorität", lead.priority],
+    ["Region", lead.region || "–"],
+    ["Priorität", PRIORITY_LABEL[lead.priority] ?? lead.priority],
   ];
   return (
     <section className={card}>
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold">Details</h2>
-        <button type="button" className="cursor-pointer text-sm font-semibold text-color-text-accent"
-          onClick={() => openModal({ title: "Lead bearbeiten", size: "large", children: <EditLeadForm lead={lead} onDone={closeModal} /> })}>
-          Bearbeiten
-        </button>
+        <Button text="Bearbeiten" variant="ghost" size="small"
+          onClick={() => openModal({ title: "Lead bearbeiten", size: "large", children: <EditLeadForm lead={lead} onDone={closeModal} /> })} />
       </div>
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
         {rows.map(([k, v]) => (<Fragment key={k}><dt className="text-color-text-subtle">{k}</dt><dd>{v}</dd></Fragment>))}
@@ -240,19 +254,18 @@ const EditLeadForm = ({ lead, onDone }: { lead: Lead; onDone: () => void }) => {
   });
   const [interest, setInterest] = useState<string[]>(lead.product_interest);
   const set = (k: keyof typeof f) => (v: string) => setF((x) => ({ ...x, [k]: v }));
-  const phone = f.phone.trim() ? normalizePhone(f.phone) : null;
-  const email = f.email.trim() ? normalizeEmail(f.email) : null;
-  const phoneError = f.phone.trim() && !phone ? "Ungültige Telefonnummer" : undefined;
-  const emailError = f.email.trim() && !email ? "Ungültige E-Mail-Adresse" : undefined;
+  const contact = useContactFields(f.phone, f.email);
   return (
     <form className="flex flex-col gap-3 pt-2" onSubmit={async (e) => {
       e.preventDefault();
-      if (phoneError || emailError) return;
+      contact.touchAll();
+      if (contact.invalid) return;
       try {
         await update.mutateAsync({ id: lead.id, data: {
-          first_name: f.first_name, last_name: f.last_name, company: f.company, phone, email,
+          first_name: f.first_name, last_name: f.last_name, company: f.company, phone: contact.phone, email: contact.email,
           consent_basis: f.consent_basis || null, region: f.region, priority: f.priority, notes: f.notes, product_interest: interest,
         } });
+        showBanner("Lead gespeichert", "Die Änderungen sind übernommen.", "success");
         onDone();
       } catch (err) {
         showBanner("Nicht gespeichert", errorText(err), "error");
@@ -262,13 +275,12 @@ const EditLeadForm = ({ lead, onDone }: { lead: Lead; onDone: () => void }) => {
         <InputField label="Vorname" placeholder="Max" value={f.first_name} onChange={set("first_name")} />
         <InputField label="Nachname" placeholder="Mustermann" value={f.last_name} onChange={set("last_name")} />
         <InputField label="Firma" placeholder="optional" value={f.company} onChange={set("company")} />
-        <InputField label="Telefon" placeholder="0170 1234567" value={f.phone} onChange={set("phone")} error={phoneError} />
-        <InputField label="E-Mail" placeholder="name@beispiel.de" value={f.email} onChange={set("email")} error={emailError} />
+        <InputField label="Telefon" placeholder="0170 1234567" value={f.phone} onChange={set("phone")} onBlur={contact.touch("phone")} error={contact.phoneError} />
+        <InputField label="E-Mail" placeholder="name@beispiel.de" value={f.email} onChange={set("email")} onBlur={contact.touch("email")} error={contact.emailError} />
         <InputField label="Region" placeholder="z. B. München" value={f.region} onChange={set("region")} />
         <Select label="Rechtsgrundlage Kontakt" value={f.consent_basis} onChange={set("consent_basis")}
           options={[{ value: "", label: "noch nicht erfasst" }, ...Object.entries(CONSENT_LABEL).map(([value, label]) => ({ value, label }))]} />
-        <Select label="Priorität" value={f.priority} onChange={set("priority")}
-          options={[{ value: "low", label: "niedrig" }, { value: "normal", label: "normal" }, { value: "high", label: "hoch" }]} />
+        <Select label="Priorität" value={f.priority} onChange={set("priority")} options={PRIORITY_OPTIONS} />
       </div>
       <fieldset className="flex flex-wrap gap-3 text-sm">
         <legend className="mb-1 text-[14px] font-semibold text-color-text-secondary">Produktinteresse</legend>
@@ -280,8 +292,8 @@ const EditLeadForm = ({ lead, onDone }: { lead: Lead; onDone: () => void }) => {
           </label>
         ))}
       </fieldset>
-      <TextArea label="Notiz" value={f.notes} onChange={set("notes")} rows={3} />
-      <div><Button type="submit" text="Speichern" isLoading={update.isPending} /></div>
+      <TextArea label="Notiz" value={f.notes} onChange={set("notes")} rows={3} hint={`${f.notes.length}/4.000 Zeichen`} />
+      <div><Button type="submit" text="Speichern" isLoading={update.isPending} isDisabled={f.notes.length > 4000} /></div>
     </form>
   );
 };
@@ -309,13 +321,18 @@ const AssignmentCard = ({ lead, name, history }: {
         <>
           <EmployeePicker label={lead.owner_id ? "Neu zuweisen an" : "Zuweisen an"} employees={people} value={owner} onChange={setOwner}
             excludeIds={lead.owner_id ? [lead.owner_id] : []} />
-          {needsReason && <TextArea label="Begründung (Pflicht, mind. 10 Zeichen)" value={reason} onChange={setReason} rows={2} />}
+          {needsReason && (
+            <TextArea label="Begründung (Pflicht)" value={reason} onChange={setReason} rows={2}
+              hint={`${reason.trim().length} Zeichen, mindestens ${MIN_REASON_LENGTH}`} />
+          )}
           <div>
-            <Button text="Zuweisen" isLoading={assign.isPending} isDisabled={!owner || (needsReason && reason.trim().length < 10)}
+            <Button text="Zuweisen" isLoading={assign.isPending} isDisabled={!owner || (needsReason && reason.trim().length < MIN_REASON_LENGTH)}
               onClick={async () => {
                 try {
                   const r = await assign.mutateAsync({ id: lead.id, ownerId: owner, reason });
-                  showBanner("Zugewiesen", r.appointments_moved ? `${r.appointments_moved} anstehende(r) Termin(e) übertragen.` : "", "success");
+                  showBanner("Zugewiesen", r.appointments_moved
+                    ? `${name(owner)} ist zuständig. ${r.appointments_moved} anstehende(r) Termin(e) übertragen.`
+                    : `${name(owner)} ist jetzt zuständig.`, "success");
                   setOwner(null); setReason("");
                 } catch (e) {
                   showBanner("Nicht zugewiesen", errorText(e), "error");
@@ -341,11 +358,13 @@ const DuplicatesCard = ({ lead }: { lead: Lead }) => {
   const { openModal, closeModal } = useModal();
   const { showBanner } = useBanner();
   const [matches, setMatches] = useState<DuplicateMatch[] | null>(null);
+  const [checking, setChecking] = useState(false);
   return (
     <section className={card}>
       <div className="flex items-center justify-between">
         <h2 className="text-base font-semibold">Duplikate</h2>
-        <button type="button" className="cursor-pointer text-sm font-semibold text-color-text-accent" onClick={async () => {
+        <Button text="Prüfen" variant="ghost" size="small" isLoading={checking} onClick={async () => {
+          setChecking(true);
           try {
             setMatches(await findLeadDuplicates({
               first_name: lead.first_name ?? "", last_name: lead.last_name ?? "", company: lead.company ?? "",
@@ -353,8 +372,10 @@ const DuplicatesCard = ({ lead }: { lead: Lead }) => {
             }));
           } catch (e) {
             showBanner("Prüfung fehlgeschlagen", errorText(e), "error");
+          } finally {
+            setChecking(false);
           }
-        }}>Prüfen</button>
+        }} />
       </div>
       {matches === null ? (
         <p className="text-sm text-color-text-subtle">Sucht nach Leads mit gleicher Telefonnummer, E-Mail oder ähnlichem Namen.</p>
@@ -369,21 +390,23 @@ const DuplicatesCard = ({ lead }: { lead: Lead }) => {
                 <span className="text-color-text-subtle"> · {d.reason === "phone" ? "gleiche Telefonnummer" : d.reason === "email" ? "gleiche E-Mail" : "ähnlicher Name"}{d.owner ? ` · ${d.owner}` : ""}</span>
               </span>
               {d.visible && d.id && (
-                <button type="button" className="cursor-pointer text-xs font-semibold text-color-text-accent" onClick={() => openModal({
-                  title: "Leads zusammenführen",
-                  children: (
-                    <ReasonConfirmForm
-                      message={`${leadNo(d.lead_no ?? 0)} wird in diesen Lead übernommen: leere Felder werden ergänzt, Aktivitäten verschoben, der andere Lead wird archiviert.`}
-                      confirmText="Zusammenführen"
-                      onCancel={closeModal}
-                      onConfirm={async (reason) => {
-                        await merge.mutateAsync({ keepId: lead.id, mergeId: d.id as string, reason });
-                        setMatches(null);
-                        closeModal();
-                      }}
-                    />
-                  ),
-                })}>In diesen Lead übernehmen</button>
+                <Button text="Übernehmen" variant="secondary" size="small" ariaLabel={`${leadNo(d.lead_no ?? 0)} in diesen Lead übernehmen`}
+                  onClick={() => openModal({
+                    title: "Leads zusammenführen",
+                    children: (
+                      <ReasonConfirmForm
+                        message={`${leadNo(d.lead_no ?? 0)} wird in diesen Lead übernommen: leere Felder werden ergänzt, Aktivitäten verschoben, der andere Lead wird archiviert.`}
+                        confirmText="Zusammenführen"
+                        onCancel={closeModal}
+                        onConfirm={async (reason) => {
+                          await merge.mutateAsync({ keepId: lead.id, mergeId: d.id as string, reason });
+                          setMatches(null);
+                          closeModal();
+                          showBanner("Leads zusammengeführt", `${leadNo(d.lead_no ?? 0)} ist jetzt Teil dieses Leads.`, "success");
+                        }}
+                      />
+                    ),
+                  })} />
               )}
             </li>
           ))}

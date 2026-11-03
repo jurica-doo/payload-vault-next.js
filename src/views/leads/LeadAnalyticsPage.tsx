@@ -2,6 +2,7 @@
 
 import { errorText } from "../../utils/dbErrors";
 import { Tabs } from "../../components/tabs/Tabs";
+import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { cardClass } from "../../components/card/card.const";
 import { useState } from "react";
@@ -33,7 +34,10 @@ export const LeadAnalyticsPage = () => {
   const { permissions } = usePermissions();
   const [y, m] = berlinToday().split("-").map(Number);
   const [period, setPeriod] = useState<Period>({ kind: "month", year: y, month: m });
-  const [scope, setScope] = useState<Scope>(permissions.isLeader ? "team" : "me");
+  // Until the user picks one, the scope follows the role: admins see everything, leaders
+  // their team (P4-UX-04). Derived, so it is right once permissions have loaded.
+  const [picked, setScope] = useState<Scope | null>(null);
+  const scope: Scope = picked ?? (permissions.isAdmin ? "all" : permissions.isLeader ? "team" : "me");
   const range = periodToRange(period);
   const { data, isLoading, error } = useLeadFunnel(range?.start ?? null, range?.end ?? null, scope);
 
@@ -164,7 +168,10 @@ const Report = ({ d, scope }: { d: LeadFunnel; scope: Scope }) => {
 
 /** Source performance per receipt month (§9.4 "performance of each campaign/source over time"). Admins. */
 const SourceTrends = () => {
-  const { data = [] } = useSourceTrends(true, 12);
+  const { data = [], error, refetch } = useSourceTrends(true, 12);
+  if (error) {
+    return <ErrorBlock variant="inline" message={errorText(error, "Die Quellen im Zeitverlauf konnten nicht geladen werden.")} onRetry={() => refetch()} />;
+  }
   if (data.length === 0) return null;
   return (
     <section className={card}>

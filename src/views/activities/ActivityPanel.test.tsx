@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appointmentState } from "./ActivityPanel";
+import { allowedOutcomes, appointmentState } from "./ActivityPanel";
 import { monthWindow } from "./ActivitiesPage";
 import { berlinToday } from "../../utils/format";
 
@@ -14,6 +14,16 @@ describe("appointmentState", () => {
   });
   it("is null for other activity types", () => {
     expect(appointmentState({ type: "call", outcome: "reached", scheduled_at: null }, now)).toBeNull();
+  });
+});
+
+describe("allowedOutcomes", () => {
+  const now = "2026-10-26T12:00:00.000Z";
+  it("only cancel or reschedule before the slot", () => {
+    expect(allowedOutcomes({ scheduled_at: "2026-10-27T09:00:00Z" }, now)).toEqual(["cancelled", "rescheduled"]);
+  });
+  it("all four once the slot has passed", () => {
+    expect(allowedOutcomes({ scheduled_at: "2026-10-25T09:00:00Z" }, now)).toEqual(["held", "no_show", "cancelled", "rescheduled"]);
   });
 });
 

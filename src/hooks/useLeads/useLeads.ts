@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
 import { throwDbError } from "../../utils/dbErrors";
 import type { Tables } from "../../types/supabase";
+import { phoneSearchFragment } from "../../domain/normalize";
 
 export type Lead = Tables<"leads">;
 export type LeadStage = Tables<"lead_stages">;
@@ -47,15 +48,46 @@ export function useLeadConfig() {
   });
 }
 
-/** Leads visible to the caller (own, structure, pool for leaders; RLS). */
-export function useLeads() {
+/** Columns the lead list needs (a fraction of `*`). */
+const LIST_COLUMNS =
+  "id, lead_no, first_name, last_name, company, phone, stage, owner_id, created_by, source_id, received_at, sla_due_at, first_contact_at, closed_at, next_action, next_action_at";
+export type LeadListItem = Pick<Lead,
+  "id" | "lead_no" | "first_name" | "last_name" | "company" | "phone" | "stage" | "owner_id" | "created_by" | "source_id"
+  | "received_at" | "sla_due_at" | "first_contact_at" | "closed_at" | "next_action" | "next_action_at">;
+export const LEAD_LIST_LIMIT = 1000;
+
+/** PostgREST `or` filter for a free-text lead search (name/company, L-number, phone). */
+export function leadSearchFilter(query: string): string | null {
+  const q = query.trim().toLowerCase().replace(/[,()*%\\"]/g, " ").replace(/\s+/g, " ").trim();
+  if (!q) return null;
+  const parts = [`search_name.ilike.*${q}*`];
+  const no = /^l?-?0*(\d{1,9})$/.exec(q);
+  if (no) parts.push(`lead_no.eq.${no[1]}`);
+  const phone = phoneSearchFragment(query);
+  if (phone) parts.push(`phone.ilike.*${phone.replace("+", "\\+")}*`);
+  return parts.join(",");
+}
+
+/**
+ * Leads visible to the caller (own, structure, pool for leaders; RLS), newest
+ * first. Search and phase filter run in the database so they reach every
+ * lead; `total` says how many match when more than LEAD_LIST_LIMIT exist.
+ */
+export function useLeads(filter: { search?: string; stage?: string } = {}) {
+  const search = filter.search?.trim() ?? "";
+  const stage = filter.stage ?? "";
   return useQuery({
-    queryKey: ["leads"],
+    queryKey: ["leads", search, stage],
     queryFn: async () => {
-      const { data, error } = await supabase.from("leads").select("*").order("received_at", { ascending: false }).limit(1000);
+      let q = supabase.from("leads").select(LIST_COLUMNS, { count: "exact" });
+      const or = leadSearchFilter(search);
+      if (or) q = q.or(or);
+      if (stage) q = q.eq("stage", stage);
+      const { data, error, count } = await q.order("received_at", { ascending: false }).limit(LEAD_LIST_LIMIT);
       if (error) throwDbError(error);
-      return (data ?? []) as Lead[];
+      return { rows: (data ?? []) as LeadListItem[], total: count ?? data?.length ?? 0 };
     },
+    placeholderData: (previous) => previous,
     refetchInterval: 60_000,
   });
 }
@@ -92,6 +124,8 @@ export function useLeadMutations() {
     queryClient.invalidateQueries({ queryKey: ["leads"] });
     queryClient.invalidateQueries({ queryKey: ["lead"] });
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    // Assignments move appointments, merges move activities (P4-UX-17).
+    queryClient.invalidateQueries({ queryKey: ["activities"] });
   };
   const opts = { onSuccess: invalidate };
   return {
@@ -133,6 +167,7 @@ export function useLeadAdmin() {
       ...opts,
     }),
     setSourceCost: useMutation({
+      /** `amount` is a plain decimal ("100.5"); parse German input with parseGermanDecimal first. */
       mutationFn: (a: { sourceId: string; month: string; amount: string | null }) =>
         call("rpc_set_lead_source_cost", { p_source_id: a.sourceId, p_month: a.month, p_amount: a.amount, p_note: null }),
       onSuccess: () => queryClient.invalidateQueries({ queryKey: ["lead-source-costs"] }),

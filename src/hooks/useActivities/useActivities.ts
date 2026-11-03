@@ -28,13 +28,16 @@ const call = async (fn: Parameters<typeof supabase.rpc>[0], args: Record<string,
   return data;
 };
 
+/** Newest activities loaded per list; the panel says so when the limit is reached. */
+export const ACTIVITY_LIMIT = 300;
+
 /** Activities visible to the caller (own + structure, RLS), optionally for one person or record. */
 export function useActivities(filter: ActivityFilter = {}) {
   const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ["activities", filter.ownerId ?? null, filter.linkedType ?? null, filter.linkedId ?? null],
     queryFn: async () => {
-      let q = supabase.from("activities").select("*").order("occurred_at", { ascending: false }).limit(300);
+      let q = supabase.from("activities").select("*").order("occurred_at", { ascending: false }).limit(ACTIVITY_LIMIT);
       if (filter.ownerId) q = q.eq("owner_id", filter.ownerId);
       if (filter.linkedType && filter.linkedId) q = q.eq("linked_type", filter.linkedType).eq("linked_id", filter.linkedId);
       const { data, error } = await q;
@@ -50,9 +53,13 @@ export function useActivities(filter: ActivityFilter = {}) {
     mutationFn: (a: {
       type: ActivityType; occurredAt?: string | null; scheduledAt?: string | null;
       outcome?: string | null; notes?: string; ownerId?: string | null;
+      /** Defaults to the panel's record; a follow-up appointment keeps the original's link. */
+      linkedType?: string | null; linkedId?: string | null;
     }) =>
       call("rpc_log_activity", {
-        p_type: a.type, p_linked_type: filter.linkedType ?? null, p_linked_id: filter.linkedId ?? null,
+        p_type: a.type,
+        p_linked_type: a.linkedType !== undefined ? a.linkedType : filter.linkedType ?? null,
+        p_linked_id: a.linkedId !== undefined ? a.linkedId : filter.linkedId ?? null,
         p_occurred_at: a.occurredAt ?? null, p_scheduled_at: a.scheduledAt ?? null,
         p_outcome: a.outcome ?? null, p_notes: a.notes || null, p_owner_id: a.ownerId ?? null,
       }),
@@ -72,5 +79,20 @@ export function useActivitySummary(employeeId: string | null | undefined, from: 
     queryKey: ["activity-summary", employeeId, from, to],
     enabled: Boolean(employeeId),
     queryFn: async () => (await call("rpc_activity_summary", { p_employee_id: employeeId, p_from: from, p_to: to })) as unknown as ActivitySummary,
+  });
+}
+
+/** Name and L-number of the leads linked from a list of activities (P4-UX-03). */
+export function useLinkedLeadNames(ids: string[]) {
+  const key = [...new Set(ids)].sort();
+  return useQuery({
+    queryKey: ["lead-names", key],
+    enabled: key.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("leads").select("id, lead_no, first_name, last_name, company").in("id", key);
+      if (error) throwDbError(error);
+      return new Map((data ?? []).map((l) => [l.id, l]));
+    },
+    staleTime: 5 * 60_000,
   });
 }

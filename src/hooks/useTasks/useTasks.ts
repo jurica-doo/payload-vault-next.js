@@ -14,15 +14,28 @@ const call = async (fn: Parameters<typeof supabase.rpc>[0], args: Record<string,
   return data;
 };
 
-/** Tasks the caller may see (own + structure, RLS). */
+/** How far back closed tasks are listed, and how many at most. */
+export const CLOSED_TASK_DAYS = 90;
+const CLOSED_TASK_LIMIT = 200;
+
+/**
+ * Tasks the caller may see (own + structure, RLS): every open task, plus the
+ * closed ones of the last CLOSED_TASK_DAYS days. Two queries so a long
+ * history can never push open tasks out of a row limit (P4-PERF-01).
+ */
 export function useTasks() {
   const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ["tasks"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("tasks").select("*").order("status").order("due_at", { nullsFirst: false }).limit(500);
-      if (error) throwDbError(error);
-      return (data ?? []) as Task[];
+      const since = new Date(Date.now() - CLOSED_TASK_DAYS * 86_400_000).toISOString();
+      const [open, closed] = await Promise.all([
+        supabase.from("tasks").select("*").eq("status", "open").order("due_at", { nullsFirst: false }),
+        supabase.from("tasks").select("*").neq("status", "open").gte("completed_at", since)
+          .order("completed_at", { ascending: false }).limit(CLOSED_TASK_LIMIT),
+      ]);
+      for (const r of [open, closed]) if (r.error) throwDbError(r.error);
+      return [...(open.data ?? []), ...(closed.data ?? [])] as Task[];
     },
     refetchInterval: 60_000,
   });
@@ -42,7 +55,14 @@ export function useTasks() {
       call("rpc_reassign_task", { p_task_id: a.id, p_new_owner: a.ownerId, p_reason: a.reason }),
     onSuccess: invalidate,
   });
-  return { ...query, create, setStatus, reassign };
+  const runGenerators = useMutation({
+    mutationFn: () => call("rpc_run_task_generators", {}) as Promise<Record<string, number>>,
+    onSuccess: () => {
+      invalidate();
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+  return { ...query, create, setStatus, reassign, runGenerators };
 }
 
 export function useNotifications(enabled: boolean) {
@@ -61,6 +81,19 @@ export function useNotifications(enabled: boolean) {
     mutationFn: (ids: string[] | null) => call("rpc_mark_notifications_read", { p_ids: ids }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
   });
-  const mute = useMutation({ mutationFn: (kinds: string[]) => call("rpc_set_muted_notifications", { p_kinds: kinds }) });
-  return { ...query, markRead, mute };
+  // The saved mutes, so the settings form opens with them ticked (P4-UX-07).
+  const muted = useQuery({
+    queryKey: ["notification-preferences"],
+    enabled,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("notification_preferences").select("muted_kinds").maybeSingle();
+      if (error) throwDbError(error);
+      return (data?.muted_kinds ?? []) as string[];
+    },
+  });
+  const mute = useMutation({
+    mutationFn: (kinds: string[]) => call("rpc_set_muted_notifications", { p_kinds: kinds }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notification-preferences"] }),
+  });
+  return { ...query, markRead, mute, muted: muted.data };
 }

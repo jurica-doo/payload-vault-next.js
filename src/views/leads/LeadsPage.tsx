@@ -6,18 +6,21 @@ import { ChartBarIcon, PlusIcon } from "../../components/icons";
 import { ButtonLink } from "../../components/button/ButtonLink";
 import { PageActions } from "../../components/pageHeader/PageActions";
 import { Tabs } from "../../components/tabs/Tabs";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DataTable } from "../../components/dataTable/DataTable";
 import { EmptyState } from "../../components/emptyState/EmptyState";
+import { Notice } from "../../components/notice/Notice";
+import { SearchBar } from "../../components/searchBar/SearchBar";
 import { StatusBadge, type StatusMap } from "../../components/statusBadge/StatusBadge";
 import { useModal } from "../../context/modal/ModalContext";
+import { useBanner } from "../../context/banner/BannerContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useStructure } from "../../hooks/useStructure/useStructure";
-import { leadName, leadNo, useLeadConfig, useLeads, type Lead } from "../../hooks/useLeads/useLeads";
+import { leadName, leadNo, useLeadConfig, useLeads, type LeadListItem } from "../../hooks/useLeads/useLeads";
 import { slaState, type SlaState } from "../../domain/leads";
-import { formatDate, formatDateTime } from "../../utils/format";
+import { formatDate, formatDateTime, formatNumber } from "../../utils/format";
 import { LeadForm } from "./LeadForm";
 
 export const SLA_BADGE: StatusMap<SlaState> = {
@@ -30,18 +33,27 @@ export const SLA_BADGE: StatusMap<SlaState> = {
 
 type Scope = "me" | "team" | "pool" | "closed";
 
+/** URL value of each view (`?ansicht=`), so notifications can link to a filtered list. */
+const SCOPE_PARAM: Record<Scope, string> = { me: "meine", team: "team", pool: "pool", closed: "abgeschlossen" };
+const scopeFromParam = (value: string | null): Scope =>
+  (Object.entries(SCOPE_PARAM).find(([, v]) => v === value)?.[0] as Scope | undefined) ?? "me";
+
 /** Lead list (§9): own leads, the structure's leads and the pool for leaders. */
 export const LeadsPage = () => {
   const { permissions } = usePermissions();
-  const { data = [], isLoading, error } = useLeads();
+  const params = useSearchParams();
+  const [scope, setScope] = useState<Scope>(() => scopeFromParam(params.get("ansicht")));
+  const [onlyOverdue, setOnlyOverdue] = useState(() => params.get("sla") === "overdue");
+  const [stage, setStage] = useState("");
+  const [query, setQuery] = useState("");
+  const { data, isLoading, error } = useLeads({ search: query, stage });
   const { data: config } = useLeadConfig();
   const { data: structure } = useStructure();
   const { openModal, closeModal } = useModal();
+  const { showBanner } = useBanner();
   const router = useRouter();
-  const [scope, setScope] = useState<Scope>("me");
-  const [stage, setStage] = useState("");
-  const [query, setQuery] = useState("");
   const me = permissions.employeeId;
+  const canSeeOthers = permissions.isLeader || permissions.isAdmin;
 
   const stageOf = useMemo(() => new Map((config?.stages ?? []).map((s) => [s.code, s])), [config]);
   const sourceOf = useMemo(() => new Map((config?.sources ?? []).map((s) => [s.id, s.name])), [config]);
@@ -53,48 +65,47 @@ export const LeadsPage = () => {
 
   if (!me) return <EmptyState message="Leads gibt es nur für aktive Mitarbeitende." />;
 
-  const isClosed = (l: Lead) => ["won", "lost"].includes(stageOf.get(l.stage)?.kind ?? "");
-  const q = query.trim().toLowerCase();
-  const rows = data.filter((l) => {
-    if (scope === "closed" ? !isClosed(l) : isClosed(l)) return false;
-    if (scope === "me" && l.owner_id !== me) return false;
-    if (scope === "team" && (l.owner_id === me || l.owner_id === null)) return false;
-    if (scope === "pool" && l.owner_id !== null) return false;
-    if (stage && l.stage !== stage) return false;
-    return !q || l.search_name?.includes(q) || leadNo(l.lead_no).toLowerCase().includes(q) || (l.phone ?? "").includes(q.replace(/\s/g, ""));
-  });
-  const counts = {
-    me: data.filter((l) => l.owner_id === me && !isClosed(l)).length,
-    team: data.filter((l) => l.owner_id && l.owner_id !== me && !isClosed(l)).length,
-    pool: data.filter((l) => !l.owner_id && !isClosed(l)).length,
-  };
+  const all = data?.rows ?? [];
+  const isClosed = (l: LeadListItem) => ["won", "lost"].includes(stageOf.get(l.stage)?.kind ?? "");
+  // Counters follow the active search, phase and SLA filters (P4-UX-02).
+  const filtered = onlyOverdue ? all.filter((l) => slaState(l) === "overdue") : all;
+  const inScope = (l: LeadListItem, s: Scope) =>
+    s === "closed" ? isClosed(l)
+      : !isClosed(l) && (s === "me" ? l.owner_id === me : s === "team" ? l.owner_id !== null && l.owner_id !== me : l.owner_id === null);
+  const rows = filtered.filter((l) => inScope(l, scope));
+  const count = (s: Scope) => formatNumber(filtered.filter((l) => inScope(l, s)).length);
   const scopes: { id: Scope; label: string }[] = [
-    { id: "me", label: `Meine (${counts.me})` },
-    ...(permissions.isLeader || permissions.isAdmin ? [
-      { id: "team" as const, label: `Team (${counts.team})` },
-      { id: "pool" as const, label: `Nicht zugewiesen (${counts.pool})` },
+    { id: "me", label: `Meine (${count("me")})` },
+    ...(canSeeOthers ? [
+      // For an admin who leads nobody the second tab is everyone else, not a team.
+      { id: "team" as const, label: `${permissions.isLeader ? "Team" : "Alle anderen"} (${count("team")})` },
+      { id: "pool" as const, label: `Nicht zugewiesen (${count("pool")})` },
     ] : []),
-    { id: "closed", label: "Abgeschlossen" },
+    { id: "closed", label: `Abgeschlossen (${count("closed")})` },
   ];
+  const truncated = data !== undefined && data.total > all.length;
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Tabs ariaLabel="Lead-Ansicht" value={scope} onChange={setScope} items={scopes.map((s) => ({ value: s.id, label: s.label }))} />
         <PageActions>
-          {(permissions.isLeader || permissions.isAdmin) && (
-            <ButtonLink href="/vertrieb/leads/analyse" text="Auswertung" icon={ChartBarIcon} />
-          )}
+          {canSeeOthers && <ButtonLink href="/vertrieb/leads/analyse" text="Auswertung" icon={ChartBarIcon} />}
           <Button text="Lead anlegen" icon={PlusIcon} onClick={() => openModal({
             title: "Lead anlegen", size: "large",
-            children: <LeadForm onDone={(id) => { closeModal(); router.push(`/vertrieb/leads/${id}`); }} />,
+            children: <LeadForm onDone={(id) => {
+              closeModal();
+              showBanner("Lead angelegt", "Der Lead ist gespeichert und die Erstkontakt-Frist läuft.", "success");
+              router.push(`/vertrieb/leads/${id}`);
+            }} />,
           })} />
         </PageActions>
       </div>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <input type="search" aria-label="Suche" placeholder="Name, Firma, L-Nummer, Telefon" value={query} onChange={(e) => setQuery(e.target.value)}
-          className="ui-input min-w-0 flex-1 sm:min-w-60" />
-        <div className="sm:w-56">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="w-full sm:min-w-60 sm:flex-1">
+          <SearchBar value={query} onChange={setQuery} debounceMs={300} placeholder="Name, Firma, L-Nummer, Telefon" />
+        </div>
+        <div className="w-full sm:w-56">
           <Select
             ariaLabel="Phase"
             value={stage}
@@ -103,14 +114,23 @@ export const LeadsPage = () => {
             fullWidth
           />
         </div>
+        <label className="flex shrink-0 cursor-pointer items-center gap-2 text-sm">
+          <input type="checkbox" checked={onlyOverdue} onChange={(e) => setOnlyOverdue(e.target.checked)} />
+          Nur überfällige
+        </label>
       </div>
+      {truncated && (
+        <Notice tone="info" compact>
+          Es werden die neuesten {formatNumber(all.length)} von {formatNumber(data.total)} Leads angezeigt. Bitte nutzen Sie die Suche oder den Phasenfilter.
+        </Notice>
+      )}
       <DataTable
         rows={rows}
         isLoading={isLoading}
         error={error ? errorText(error) : null}
         getRowId={(l) => l.id}
         onRowClick={(l) => router.push(`/vertrieb/leads/${l.id}`)}
-        emptyMessage="Keine Leads in dieser Ansicht"
+        emptyMessage={query || stage || onlyOverdue ? "Keine Leads passen zu Suche und Filter" : "Keine Leads in dieser Ansicht"}
         columns={[
           { id: "name", header: "Lead", sortValue: (l) => leadName(l), cell: (l) => (
             <span><span className="font-semibold">{leadName(l)}</span><span className="block text-xs text-color-text-subtle">{leadNo(l.lead_no)}{l.company && l.first_name ? ` · ${l.company}` : ""}</span></span>
