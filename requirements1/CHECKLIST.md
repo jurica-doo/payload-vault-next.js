@@ -192,6 +192,24 @@ What the tests already prove (pgTAP), and what a reviewer should look at:
 
 ---
 
+### 5.1 Pre-publish review (2026-11-18)
+Done:
+- [x] Dependencies: Next 16.2.6 → **16.4.6** (critical advisory: proxy bypass, which would skip the CSP), zod 4.6.6, transitive fixes (dompurify via jspdf, sharp, postcss, dev tooling). `npm audit`: 0 vulnerabilities.
+- [x] No secrets in tracked files or history; `.env*`, e2e auth state and test reports are ignored.
+- [x] Headers: nonce CSP with `'strict-dynamic'`, HSTS, `frame-ancestors 'none'`, nosniff, Referrer-Policy, Permissions-Policy (unchanged, verified).
+- [x] Service worker never caches Supabase responses (no customer data stays on a device).
+- [x] `send-emails` / `email-events` declared in `config.toml` with `verify_jwt = false`. With the gateway default, the provider webhook (no Supabase JWT) was refused before the function's own secret check. Both still reject every request without their shared secret.
+- [x] Performance: login background 2,7 MB → 0,6 MB; jszip loaded only when a ZIP is built (jsPDF and pdf.js already were).
+- [x] Indexes cover the hot paths (owner/recipient + date/status on production, ledger, leads, tasks, activities, notifications).
+
+Still open before go-live:
+- [ ] **Password policy:** minimum 8 characters, no other rules (`config.toml`, and the same in the production dashboard). Decide on ≥ 12 characters or character classes, and switch on leaked-password protection (Pro plan). Update the German hints on `/update-passwort` to match.
+- [ ] Load test with synthetic volume on staging (6.4).
+- [ ] Gate D external review (this section) and the open items in the local `check.md` (CSP console check signed in, offline mode, 429 on the 11th receipt upload).
+- [ ] `style-src 'unsafe-inline'` stays (React style props, Recharts, cookie banner): accepted, record it in the review.
+- [ ] `public/profina_Marke.jpg` (340 KB) is not referenced anywhere: delete it or use it.
+- [ ] The login background slogan reads „BURNDED“ (typo in Profina's image): ask for a corrected asset.
+
 ## 6. Clean-up backlog [Dev]
 
 ### 6.1 UX pass (agreed: "UX later")
