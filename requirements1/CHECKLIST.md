@@ -43,7 +43,7 @@ Legend: **[You]** = needs the account owner or a Profina decision · **[Dev]** =
 
 ### 1.3 Edge Functions
 | Function | Purpose | Secrets | When |
-|---|---|---|---|
+|---|---|---|---|---|
 | `invite-employee` | Admin invites employees | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `APP_ORIGIN` (already set) | Before onboarding anyone |
 | `send-emails` | Delivers queued customer mail | `EMAIL_CRON_SECRET`, `EMAIL_PROVIDER` (`dryrun` on staging), `EMAIL_FROM`, plus the URL and service key | Gate E |
 | `email-events` | Provider webhooks (bounces) | `EMAIL_WEBHOOK_SECRET` | Gate E |
@@ -66,29 +66,31 @@ Legend: **[You]** = needs the account owner or a Profina decision · **[Dev]** =
 
 ## 2. Decisions Profina has to make [You → Both]
 
+**Update 2026-11-18:** Profina's contract documents (Tippgebervertrag + Anlage 1 „Provisionssätze“ + Anlage 2 „Karriereplan“, Stand 01.11.2026) answer most of these. Verdicts, rule tables, the engine phases E1–E4 still to build and the follow-up questions (Q1–Q12) are in [OD_ANSWERS_2026-11.md](OD_ANSWERS_2026-11.md). The rules version „Stand 01.11.2026“ (AE-first conversion, Kfz/Rechtsschutz, no LV cap, cap from FB, VD+/GM) is already in.
+
 Every one of these is implemented with a **provisional** rule, marked in the code and, where users see it, in the UI with an "OD-xx" notice. After an answer, the clean-up branch changes the setting or the rule, removes the notice, and updates the matching golden cases.
 
-| ID | Question | Built provisionally as | What changes after the answer |
+| ID | Question | Built provisionally as | What changes after the answer | Status (contract 01.11.2026) |
 |---|---|---|---|
-| OD-01 | Career period boundaries and timezone | `[start, end)`, Europe/Berlin | Golden cases GC-PERIOD |
-| OD-02 | Transition period; carry-over of surplus points | Separate transition period; no carry-over | Period generator + simulator |
-| OD-03 | Does KV count in the total? KV check before or after the cap? | KV counts; checked after the cap, proportionally | `compute_qualification` + TS mirror |
-| OD-04 | What is "one structure"; from which level does the 50 % cap apply | Each direct report's subtree; cap when the target is OL or above | Same |
-| OD-05 | Full differential rate matrix and attribution | Rate-compression walk (reproduces all §5.3 examples) | `rate_pairs` table / `commission_split` |
-| OD-06 | LV term over 35 years | Formula uses min(term, 35); real term stored | Conversion rule |
-| OD-07 | Precision and display of points/AE | 4 decimals stored, 2 shown, AE as an integer | Formatting only |
-| OD-08 | When is a contract "eligible" (submitted / issued / paid)? | Manual status `eligible` set by an authorised user | Production workflow / import |
-| OD-09 | Subsidy pro-rating, pausing, reclaim; approver | Manual approved amount; admin/finance approve | Subsidy RPCs |
-| OD-10 | Reserve release and clawback | Withheld only; release/clawback manual | New ledger entry kinds |
-| OD-11 | **Email provider** (EU hosting, DPA) | None; sending disabled | Provider adapter + webhook signature (**Gate E**) |
-| OD-12 | Which rule version applies (production or approval date) | Production date | Rule lookup |
-| OD-13 | Who may see customers | Adviser + managers; admin and compliance read all; finance none | RLS helper `can_see_customer` |
-| OD-14 | **Contract portal**: which system, API/export/webhook? | Manual links; service-role intake ready | Small adapter Edge Function |
-| OD-15 | Promotions automatic or approved? | Approved by an admin from the "ready" queue | Promotion workflow |
-| OD-16 | **Retention periods** per data class | Nothing deleted automatically; report only | `app_settings.retention` |
-| OD-17 | May leaders see their team's commission amounts? | Off | `app_settings` switch |
-| OD-18 | Remuneration for Strom/Gas/Kfz | Out of scope; 0 P / 0 AE | Conversion rules |
-| OD-19 | Lead first-contact SLA (hours, working day, region) | 8 business hours, Mon–Fri 09–17, nationwide holidays, from receipt | `/admin/leads` (no code) |
+| OD-01 | Career period boundaries and timezone | `[start, end)`, Europe/Berlin | Golden cases GC-PERIOD | ✅ differs: rolling 12 full months (E1) |
+| OD-02 | Transition period; carry-over of surplus points | Separate transition period; no carry-over | Period generator + simulator | ✅ no transition; new confirmation year (E1) |
+| OD-03 | Does KV count in the total? KV check before or after the cap? | KV counts; checked after the cap, proportionally | `compute_qualification` + TS mirror | ✅ differs: KV cap = ½ of KV need from strongest structure (E2) |
+| OD-04 | What is "one structure"; from which level does the 50 % cap apply | Each direct report's subtree; cap when the target is OL or above | Same | ✅ cap at all levels ✔ done; strongest-only + own minimum (E2) |
+| OD-05 | Full differential rate matrix and attribution | Rate-compression walk (reproduces all §5.3 examples) | `rate_pairs` table / `commission_split` | ◐ per-line rate difference; only FA/FB rates (E3, Q1) |
+| OD-06 | LV term over 35 years | Formula uses min(term, 35); real term stored | Conversion rule | ✅ no cap — done |
+| OD-07 | Precision and display of points/AE | 4 decimals stored, 2 shown, AE as an integer | Formatting only | ✅ AE 2 dp, AE-first — done |
+| OD-08 | When is a contract "eligible" (submitted / issued / paid)? | Manual status `eligible` set by an authorised user | Production workflow / import | ✅ „abgerechnet“ by product company — done |
+| OD-09 | Subsidy pro-rating, pausing, reclaim; approver | Manual approved amount; admin/finance approve | Subsidy RPCs | ✅ fixed-term, no reclaim, sales expectation (E4) |
+| OD-10 | Reserve release and clawback | Withheld only; release/clawback manual | New ledger entry kinds | ✅ release/clawback rules, 5-year liability (E3) |
+| OD-11 | **Email provider** (EU hosting, DPA) | None; sending disabled | Provider adapter + webhook signature (**Gate E**) | ⏳ |
+| OD-12 | Which rule version applies (production or approval date) | Production date | Rule lookup | ✅ differs: level at processing, new level from next month (E3, Q4) |
+| OD-13 | Who may see customers | Adviser + managers; admin and compliance read all; finance none | RLS helper `can_see_customer` | ⏳ |
+| OD-14 | **Contract portal**: which system, API/export/webhook? | Manual links; service-role intake ready | Small adapter Edge Function | ⏳ |
+| OD-15 | Promotions automatic or approved? | Approved by an admin from the "ready" queue | Promotion workflow | ◐ VD+/GM appointed — done; rest Q11 |
+| OD-16 | **Retention periods** per data class | Nothing deleted automatically; report only | `app_settings.retention` | ⏳ |
+| OD-17 | May leaders see their team's commission amounts? | Off | `app_settings` switch | ⏳ |
+| OD-18 | Remuneration for Strom/Gas/Kfz | Out of scope; 0 P / 0 AE | Conversion rules | ◐ Kfz + Rechtsschutz AE — done; Strom/Gas Q10 |
+| OD-19 | Lead first-contact SLA (hours, working day, region) | 8 business hours, Mon–Fri 09–17, nationwide holidays, from receipt | `/admin/leads` (no code) | ⏳ |
 
 Design choices that weren't asked in the spec, but should be confirmed:
 - [ ] Lead SLA counts from **receipt**, not from assignment (a lead waiting in the pool can be overdue when it's assigned).
@@ -105,7 +107,7 @@ Design choices that weren't asked in the spec, but should be confirmed:
 
 | Gate | Condition | Status | What's left |
 |---|---|---|---|
-| A | Profina signs off the rules (OD-01…08, 12, 15) | ⏳ | Section 2 |
+| A | Profina signs off the rules (OD-01…08, 12, 15) | ◐ | Answers received 2026-11 ([OD_ANSWERS_2026-11.md](OD_ANSWERS_2026-11.md)); engine phases E1–E4 and questions Q1–Q11 open |
 | B | Calculation tests green in both engines (points, AE, periods, KV, cap, reserve, differential) | ✅ | Re-run after each OD change |
 | C | ≥ 10 real anonymised cases reconciled with Profina's manual calculation | ⏳ | Staging + real cases; compare statements line by line |
 | D | RLS and audit test suite green + **external access review** before live customer data | ⏳ tests ✅ | Profina's privacy contact reviews section 5 |

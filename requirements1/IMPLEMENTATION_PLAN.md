@@ -422,27 +422,29 @@ Each slice lists: **Scope → DB → UI → Edge cases → Tests → Done when**
 ---
 
 ## 9. Open decisions register (each blocks or flags code)
-| ID | Topic (§16) | Provisional implementation | Blocks |
-|---|---|---|---|
-| OD-01 | Career period boundaries & timezone | `[start, end)` dates, Europe/Berlin | p1/career-engine |
-| OD-02 | Transition period; carry-over of unused/surplus points | Separate `transition` period; no carry-over | p1/career-engine |
-| OD-03 | KV counted in total? KV check before/after cap? | KV counts in total; check after cap, proportional | p1/career-engine |
-| OD-04 | What is "one structure"; cap from which level | Each direct report's subtree; cap when target ≥ OL | p1/career-engine |
-| OD-05 | Full differential rate matrix & attribution | Rate-compression walk (see section 6, p2/rate-matrix) | p2 (Gate A) |
-| OD-06 | LV term > 35 years | Formula uses min(term, 35); actual term stored | p1/production |
-| OD-07 | Point/AE precision & display | 4 dp stored, 2 dp shown, AE integer shown | all |
-| OD-08 | Eligibility milestone (submitted/issued/paid) | Manual status `eligible` set by authorised user | p1/production, p2 |
-| OD-09 | Subsidy prorating/pausing/reclaim, approver | Manual approved amount; admin/finance approve | p2/subsidy |
-| OD-10 | Reserve release/clawback | Withheld only; release/clawback manual, audited | p2/ledger |
-| OD-11 | Email provider (EU hosting, DPA) | none — engine disabled | p6 |
-| OD-12 | Which rule version applies (production vs approval date) | Production date | p1, p2 |
-| OD-13 | Customer visibility scope | Own + descendants; admins and compliance read all (compliance read-only); finance none | p5 |
-| OD-14 | Contract portal identity & integration path | Manual `contract_links`; service-role intake `rpc_ingest_contracts` ready for an adapter | p5/contract-links |
-| OD-15 | Promotion: automatic or approved | Approved by admin from the "ready" queue | p1/career-engine |
-| OD-16 | Retention periods per data class | None deleted automatically; `app_settings.retention` empty, candidates report only | p5/privacy-ops |
-| OD-17 | May leaders see descendants' commission amounts | Off by default (`app_settings`) | p2/finance-ui |
-| OD-18 | Remuneration for Strom/Gas/Kfz | Out of scope; 0 P / 0 AE | — |
-| OD-19 | Lead SLA: first-contact hours, working day, holiday region (§9.3) | 8 business hours, Mon–Fri 09:00–17:00 Berlin, nationwide holidays; counted from receipt; manager notified on breach. Admin can change it at /admin/leads | p4/leads |
+Answers from Profina's contract documents (Stand 01.11.2026): [OD_ANSWERS_2026-11.md](OD_ANSWERS_2026-11.md).
+
+| ID | Topic (§16) | Provisional implementation | Blocks | Status (contract 01.11.2026) |
+|---|---|---|---|---|
+| OD-01 | Career period boundaries & timezone | `[start, end)` dates, Europe/Berlin | p1/career-engine | ✅ differs: rolling 12 full months (E1) |
+| OD-02 | Transition period; carry-over of unused/surplus points | Separate `transition` period; no carry-over | p1/career-engine | ✅ no transition; new confirmation year (E1) |
+| OD-03 | KV counted in total? KV check before/after cap? | KV counts in total; check after cap, proportional | p1/career-engine | ✅ differs: KV cap = ½ of KV need from strongest structure (E2) |
+| OD-04 | What is "one structure"; cap from which level | Each direct report's subtree; cap when target ≥ OL | p1/career-engine | ✅ cap at all levels ✔ done; strongest-only + own minimum (E2) |
+| OD-05 | Full differential rate matrix & attribution | Rate-compression walk (see section 6, p2/rate-matrix) | p2 (Gate A) | ◐ per-line rate difference; only FA/FB rates (E3, Q1) |
+| OD-06 | LV term > 35 years | Formula uses min(term, 35); actual term stored | p1/production | ✅ no cap — done |
+| OD-07 | Point/AE precision & display | 4 dp stored, 2 dp shown, AE integer shown | all | ✅ AE 2 dp, AE-first — done |
+| OD-08 | Eligibility milestone (submitted/issued/paid) | Manual status `eligible` set by authorised user | p1/production, p2 | ✅ „abgerechnet“ by product company — done |
+| OD-09 | Subsidy prorating/pausing/reclaim, approver | Manual approved amount; admin/finance approve | p2/subsidy | ✅ fixed-term, no reclaim, sales expectation (E4) |
+| OD-10 | Reserve release/clawback | Withheld only; release/clawback manual, audited | p2/ledger | ✅ release/clawback rules, 5-year liability (E3) |
+| OD-11 | Email provider (EU hosting, DPA) | none — engine disabled | p6 | ⏳ |
+| OD-12 | Which rule version applies (production vs approval date) | Production date | p1, p2 | ✅ differs: level at processing, new level from next month (E3, Q4) |
+| OD-13 | Customer visibility scope | Own + descendants; admins and compliance read all (compliance read-only); finance none | p5 | ⏳ |
+| OD-14 | Contract portal identity & integration path | Manual `contract_links`; service-role intake `rpc_ingest_contracts` ready for an adapter | p5/contract-links | ⏳ |
+| OD-15 | Promotion: automatic or approved | Approved by admin from the "ready" queue | p1/career-engine | ◐ VD+/GM appointed — done; rest Q11 |
+| OD-16 | Retention periods per data class | None deleted automatically; `app_settings.retention` empty, candidates report only | p5/privacy-ops | ⏳ |
+| OD-17 | May leaders see descendants' commission amounts | Off by default (`app_settings`) | p2/finance-ui | ⏳ |
+| OD-18 | Remuneration for Strom/Gas/Kfz | Out of scope; 0 P / 0 AE | — | ◐ Kfz + Rechtsschutz AE — done; Strom/Gas Q10 |
+| OD-19 | Lead SLA: first-contact hours, working day, holiday region (§9.3) | 8 business hours, Mon–Fri 09:00–17:00 Berlin, nationwide holidays; counted from receipt; manager notified on breach. Admin can change it at /admin/leads | p4/leads | ⏳ |
 
 ---
 
