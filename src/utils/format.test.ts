@@ -60,9 +60,10 @@ describe("formatPoints / formatAe", () => {
     expect(formatPoints("10.5", 4)).toBe("10,5000");
   });
 
-  it("shows AE as grouped integers", () => {
-    expect(formatAe("2800.0000")).toBe("2.800");
-    expect(formatAe("252000")).toBe("252.000");
+  it("shows AE with 2 decimals and grouping (OD-07)", () => {
+    expect(formatAe("2800.0000")).toBe("2.800,00");
+    expect(formatAe("252000")).toBe("252.000,00");
+    expect(formatAe("293.99")).toBe("293,99");
   });
 });
 

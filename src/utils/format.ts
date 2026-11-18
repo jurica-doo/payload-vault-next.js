@@ -55,7 +55,7 @@ export function formatMoney(value: NumericInput): string {
   });
 }
 
-/** Points are stored with 4 dp and shown with 2 by default (OD-07). */
+/** Points are stored with 4 dp and shown with 2 by default. */
 export function formatPoints(value: NumericInput, fractionDigits = 2): string {
   return formatDecimal(value, {
     minimumFractionDigits: fractionDigits,
@@ -63,9 +63,9 @@ export function formatPoints(value: NumericInput, fractionDigits = 2): string {
   });
 }
 
-/** AE are shown as whole numbers with grouping: 2800 → "2.800". */
+/** AE with 2 dp, as the Karriereplan rounds them (A2 §4, OD-07): 293.99 → "293,99". */
 export function formatAe(value: NumericInput): string {
-  return formatDecimal(value, { maximumFractionDigits: 0 });
+  return formatDecimal(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 /** 0.4 → "40 %". Ratio, not percentage, as input. */

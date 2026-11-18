@@ -33,14 +33,14 @@ describe("value components", () => {
     expect(screen.getByText("KV-P")).toBeInTheDocument();
   });
 
-  it("shows AE as a grouped integer and a dash for missing values", () => {
+  it("shows AE with 2 decimals and a dash for missing values", () => {
     render(
       <>
         <AeValue value="252000" />
         <AeValue value={null} />
       </>,
     );
-    expect(screen.getByText("252.000")).toBeInTheDocument();
+    expect(screen.getByText("252.000,00")).toBeInTheDocument();
     expect(screen.getByText("–")).toBeInTheDocument();
   });
 });

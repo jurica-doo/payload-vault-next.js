@@ -9,8 +9,11 @@ import type { RulesSnapshot } from "./rules";
  * tested against the same golden cases (GC-POINTS-xxx); keep the validation
  * order and error keys identical.
  *
- * Rounding (OD-07): points half-up to 4 decimals once; AE = rounded points ×
- * AE factor, half-up to 4 decimals.
+ * Rounding depends on the conversion version's divisor unit:
+ *  - "points" (until 2026-10-31): points = basis ÷ divisor, half-up to 4
+ *    decimals; AE = rounded points × AE factor, half-up to 4 decimals.
+ *  - "ae" (Karriereplan Stand 01.11.2026, OD-07): AE = basis ÷ Absatzteiler,
+ *    half-up to 2 decimals; points = AE ÷ AE factor, half-up to 4 decimals.
  */
 
 export type PointsError =
@@ -44,11 +47,14 @@ export type PointsResult =
       termCapped: boolean;
       formula: string;
       ruleVersionId: string;
+      /** false: the line counts for the career but books no commission per point. */
+      paysCommission: boolean;
     }
   | { ok: false; error: PointsError };
 
 const fail = (error: PointsError): PointsResult => ({ ok: false, error });
 const round4 = (d: Decimal) => d.toDecimalPlaces(4, Decimal.ROUND_HALF_UP);
+const round2 = (d: Decimal) => d.toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
 
 export function calculatePoints(rules: RulesSnapshot, input: PointsInput): PointsResult {
   const conversion = rules.conversion;
@@ -64,7 +70,7 @@ export function calculatePoints(rules: RulesSnapshot, input: PointsInput): Point
   if (rule.requiredPremiumPeriod && input.period !== rule.requiredPremiumPeriod) return fail("premium_period_mismatch");
   if (rule.requiredNetGross && input.netOrGross !== rule.requiredNetGross) return fail("net_premium_required");
 
-  let exact: Decimal;
+  let basis: Decimal | null;
   let termUsed: Decimal | null = null;
   let termCapped = false;
   let formula: string;
@@ -78,31 +84,48 @@ export function calculatePoints(rules: RulesSnapshot, input: PointsInput): Point
         termUsed = new Decimal(rule.maxTermYears);
         termCapped = true;
       }
-      exact = premium.times(12).times(termUsed).div(rule.divisor!);
+      basis = premium.times(12).times(termUsed);
       formula = `${premium} × 12 × ${termUsed} ÷ ${rule.divisor}`;
       break;
     }
     case "kv_monthly":
     case "sach_annual_net":
-      exact = premium.div(rule.divisor!);
+      basis = premium;
       formula = `${premium} ÷ ${rule.divisor}`;
       break;
     case "none":
-      exact = new Decimal(0);
+      basis = null;
       formula = "keine Punkte für diese Sparte";
       break;
   }
 
-  const points = round4(exact);
+  const aeFirst = conversion.divisorUnit === "ae";
+  let exact: Decimal;
+  let points: Decimal;
+  let ae: Decimal;
+  if (basis === null) {
+    exact = points = ae = new Decimal(0);
+  } else if (aeFirst) {
+    ae = round2(basis.div(rule.divisor!));
+    exact = ae.div(conversion.aePerPoint);
+    points = round4(exact);
+    formula = `${formula} = ${ae} AE; ${ae} AE ÷ ${conversion.aePerPoint}`;
+  } else {
+    exact = basis.div(rule.divisor!);
+    points = round4(exact);
+    ae = round4(points.times(conversion.aePerPoint));
+  }
+
   return {
     ok: true,
     points,
-    ae: round4(points.times(conversion.aePerPoint)),
+    ae,
     kvPoints: rule.isKv ? points : new Decimal(0),
     exactPoints: exact,
     termUsed,
     termCapped,
     formula,
     ruleVersionId: conversion.versionId,
+    paysCommission: rule.paysCommission,
   };
 }
