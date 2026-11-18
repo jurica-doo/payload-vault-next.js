@@ -74,7 +74,7 @@ SELECT throws_ok($$UPDATE public.career_levels SET point_rate = 1$$, '42501', NU
 SELECT throws_ok($$SELECT public.rpc_create_rule_draft('levels', 'Neue Sätze', '2027-01-01')$$, '42501', 'forbidden', 'non-admin cannot draft');
 SELECT tests.authenticate_as(:'admin', 'aal2');
 SELECT public.rpc_create_rule_draft('levels', 'Sätze 2027', '2027-01-01') AS draft \gset
-SELECT is((SELECT count(*) FROM public.career_levels WHERE rule_version_id = :'draft')::int, 7, 'draft copies the current levels');
+SELECT is((SELECT count(*) FROM public.career_levels WHERE rule_version_id = :'draft')::int, 9, 'draft copies the current levels (7 + VD+ and GM)');
 SELECT throws_ok($$SELECT public.rpc_create_rule_draft('levels', 'Zweiter Entwurf', '2027-02-01')$$, 'P0001', 'draft_exists', 'only one draft per kind');
 
 SELECT tests.authenticate_as(:'fb');
@@ -109,7 +109,7 @@ SELECT tests.authenticate_as(:'admin', 'aal2');
 SELECT lives_ok(format($$SELECT public.rpc_publish_rule_version(%L, 'Neue Sätze 2027 laut Beschluss')$$, :'draft'), 'valid draft publishes');
 -- Internal helpers are not callable by API roles: check them as the owner.
 SELECT tests.clear_authentication();
-SELECT is(app_private.rule_version_at('levels', '2026-12-31'), :'v_levels'::uuid, 'old version still applies before the new date');
+SELECT is(app_private.rule_version_at('levels', '2026-12-31'), app_private.rule_version_at('levels', '2026-11-01'), 'old version still applies before the new date');
 SELECT is(app_private.rule_version_at('levels', '2027-01-01'), :'draft'::uuid, 'new version applies from its date');
 SELECT tests.authenticate_as(:'admin', 'aal2');
 

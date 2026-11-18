@@ -250,6 +250,7 @@ export type Database = {
       }
       career_levels: {
         Row: {
+          appointed_only: boolean
           code: string
           id: string
           kv_min_ratio: number
@@ -262,6 +263,7 @@ export type Database = {
           threshold_points: number
         }
         Insert: {
+          appointed_only?: boolean
           code: string
           id?: string
           kv_min_ratio?: number
@@ -274,6 +276,7 @@ export type Database = {
           threshold_points: number
         }
         Update: {
+          appointed_only?: boolean
           code?: string
           id?: string
           kv_min_ratio?: number
@@ -823,6 +826,7 @@ export type Database = {
           formula_kind: string
           id: string
           max_term_years: number | null
+          pays_commission: boolean
           required_net_gross: string | null
           required_premium_period: string | null
           rule_version_id: string
@@ -833,6 +837,7 @@ export type Database = {
           formula_kind: string
           id?: string
           max_term_years?: number | null
+          pays_commission?: boolean
           required_net_gross?: string | null
           required_premium_period?: string | null
           rule_version_id: string
@@ -843,6 +848,7 @@ export type Database = {
           formula_kind?: string
           id?: string
           max_term_years?: number | null
+          pays_commission?: boolean
           required_net_gross?: string | null
           required_premium_period?: string | null
           rule_version_id?: string
@@ -2940,6 +2946,7 @@ export type Database = {
           ae_per_point: number | null
           created_at: string
           created_by: string | null
+          divisor_unit: string
           effective_from: string
           id: string
           kind: string
@@ -2954,6 +2961,7 @@ export type Database = {
           ae_per_point?: number | null
           created_at?: string
           created_by?: string | null
+          divisor_unit?: string
           effective_from: string
           id?: string
           kind: string
@@ -2968,6 +2976,7 @@ export type Database = {
           ae_per_point?: number | null
           created_at?: string
           created_by?: string | null
+          divisor_unit?: string
           effective_from?: string
           id?: string
           kind?: string
