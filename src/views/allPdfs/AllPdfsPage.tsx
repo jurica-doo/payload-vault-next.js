@@ -3,7 +3,6 @@
 import { Pagination } from "../../components/pagination/Pagination";
 import { usePagination } from "../../components/pagination/usePagination";
 import { DocumentToolbar } from "../../components/documentToolbar/DocumentToolbar";
-import JSZip from "jszip";
 import { usePathname } from "next/navigation";
 import { useTitle } from "../../context/title/TitleContext";
 import {
@@ -197,6 +196,8 @@ export const AllPdfsPage = () => {
     const selected = filteredPdfs.filter((pdf) => bulk.selectedIds.has(pdf.id));
     if (selected.length === 0) return;
 
+    // Loaded on demand: only needed when a ZIP is actually built.
+    const { default: JSZip } = await import("jszip");
     const zip = new JSZip();
     try {
       await Promise.all(
@@ -276,6 +277,8 @@ export const AllPdfsPage = () => {
   };
 
   const handleDownloadAll = async () => {
+    // Loaded on demand: only needed when a ZIP is actually built.
+    const { default: JSZip } = await import("jszip");
     const zip = new JSZip();
 
     if (filteredPdfs.length === 0) {

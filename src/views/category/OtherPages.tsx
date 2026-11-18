@@ -23,7 +23,6 @@ import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { PageSkeletonLoader } from "../../components/skeletonLoader/PageSkeletonLoader";
 import { DocumentSkeletonLoader } from "../../components/skeletonLoader/DocumentSkeletonLoader";
 import { EmptyState } from "../../components/emptyState/EmptyState";
-import JSZip from "jszip";
 import { useBanner } from "../../context/banner/BannerContext";
 import {
   generateIncomeCsv,
@@ -137,6 +136,8 @@ export const OtherPages = ({ title }: CategoryProps) => {
       return;
     }
 
+    // Loaded on demand: only needed when a ZIP is actually built.
+    const { default: JSZip } = await import("jszip");
     const zip = new JSZip();
 
     const slugify = (value: string) =>
