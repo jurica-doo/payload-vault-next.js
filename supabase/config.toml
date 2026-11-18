@@ -399,3 +399,19 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/invite-employee/deno.json"
 entrypoint = "./functions/invite-employee/index.ts"
+
+# Machine-to-machine: called by the scheduler (x-cron-secret) and by the mail
+# provider's webhook (x-webhook-secret), neither of which sends a Supabase
+# JWT. Both functions refuse every request without their shared secret
+# (constant-time comparison) before doing anything else.
+[functions.send-emails]
+enabled = true
+verify_jwt = false
+import_map = "./functions/send-emails/deno.json"
+entrypoint = "./functions/send-emails/index.ts"
+
+[functions.email-events]
+enabled = true
+verify_jwt = false
+import_map = "./functions/email-events/deno.json"
+entrypoint = "./functions/email-events/index.ts"
