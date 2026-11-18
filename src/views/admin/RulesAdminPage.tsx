@@ -20,6 +20,7 @@ import {
   type RuleVersion,
 } from "../../hooks/useRules/useRules";
 import { formatDate, formatMoney, formatPercent, formatPoints } from "../../utils/format";
+import { levelShort } from "../../domain/rules";
 
 type Kind = "levels" | "conversion";
 
@@ -117,7 +118,7 @@ const RuleSection = ({ kind, title, data, canWrite }: { kind: Kind; title: strin
       {active && (kind === "levels" ? (
         <LevelTable rows={data.levels.filter((l) => l.rule_version_id === active.id)} />
       ) : (
-        <ConversionTable rows={data.conversion.filter((c) => c.rule_version_id === active.id)} aePerPoint={active.ae_per_point} />
+        <ConversionTable rows={data.conversion.filter((c) => c.rule_version_id === active.id)} aePerPoint={active.ae_per_point} aeFirst={active.divisor_unit === "ae"} />
       ))}
 
       {draft ? (
@@ -195,10 +196,10 @@ const LevelTable = ({ rows }: { rows: LevelRow[] }) => (
       <tbody>
         {rows.map((r) => (
           <tr key={r.id} className="border-b border-color-border-light last:border-0">
-            <td className={td}><span className="font-semibold">{r.code}</span> <span className="text-xs text-color-text-subtle">{r.name_de}</span></td>
+            <td className={td}><span className="font-semibold">{levelShort(r.code)}</span> <span className="text-xs text-color-text-subtle">{r.name_de}</span></td>
             <td className={td}>{formatMoney(r.point_rate)}</td>
             <td className={td}>{formatMoney(r.max_subsidy)}</td>
-            <td className={td}>{formatPoints(r.threshold_points, 0)} P</td>
+            <td className={td}>{r.appointed_only ? "Ernennung" : `${formatPoints(r.threshold_points, 0)} P`}</td>
             <td className={td}>{formatPercent(r.kv_min_ratio)}</td>
             <td className={td}>{r.structure_cap_ratio === null ? "–" : formatPercent(r.structure_cap_ratio)}</td>
           </tr>
@@ -208,33 +209,44 @@ const LevelTable = ({ rows }: { rows: LevelRow[] }) => (
   </ScrollX>
 );
 
+/** Bemessungsgrundlage per formula; the divisor turns it into points or AE. */
 const FORMULA_TEXT: Record<string, string> = {
-  lv_monthly_term: "Monatsbeitrag × 12 × Laufzeit ÷ Divisor",
-  kv_monthly: "Monatsbeitrag ÷ Divisor",
-  sach_annual_net: "Jahresnettobeitrag ÷ Divisor",
+  lv_monthly_term: "Beitragssumme (Monatsbeitrag × 12 × Laufzeit)",
+  kv_monthly: "Monatsbeitrag",
+  sach_annual_net: "Jahresnettobeitrag",
   none: "keine Punkte",
 };
 
-const ConversionTable = ({ rows, aePerPoint }: { rows: ConversionRow[]; aePerPoint: number | null }) => (
+const divisorLabel = (aeFirst: boolean) => (aeFirst ? "Absatzteiler" : "Divisor");
+
+const ConversionTable = ({ rows, aePerPoint, aeFirst }: { rows: ConversionRow[]; aePerPoint: number | null; aeFirst: boolean }) => (
   <div className="flex flex-col gap-2">
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="border-b border-color-border-light">
-          <th className={th}>Sparte</th><th className={th}>Formel</th><th className={th}>Divisor</th><th className={th}>Max. Laufzeit</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => (
-          <tr key={r.id} className="border-b border-color-border-light last:border-0">
-            <td className={td}>{r.category_code}</td>
-            <td className={td}>{FORMULA_TEXT[r.formula_kind]}</td>
-            <td className={td}>{r.divisor === null ? "–" : formatPoints(r.divisor, 0)}</td>
-            <td className={td}>{r.max_term_years ? `${r.max_term_years} Jahre` : "–"}</td>
+    <ScrollX label="Punkteumrechnung">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-color-border-light">
+            <th className={th}>Sparte</th><th className={th}>Grundlage</th><th className={th}>{divisorLabel(aeFirst)}</th>
+            <th className={th}>Max. Laufzeit</th><th className={th}>Provision je Punkt</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
-    <p className="text-xs text-color-text-subtle">1 Punkt = {formatPoints(aePerPoint, 0)} AE</p>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.id} className="border-b border-color-border-light last:border-0">
+              <td className={td}>{r.category_code}</td>
+              <td className={td}>{FORMULA_TEXT[r.formula_kind]}</td>
+              <td className={td}>{r.divisor === null ? "–" : formatPoints(r.divisor, 2)}</td>
+              <td className={td}>{r.max_term_years ? `${r.max_term_years} Jahre` : "–"}</td>
+              <td className={td}>{r.formula_kind === "none" ? "–" : r.pays_commission ? "ja" : "nein"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </ScrollX>
+    <p className="text-xs text-color-text-subtle">
+      {aeFirst
+        ? `AE = Grundlage ÷ Absatzteiler, kaufmännisch auf 2 Nachkommastellen; 1 Punkt = ${formatPoints(aePerPoint, 0)} AE.`
+        : `Punkte = Grundlage ÷ Divisor; 1 Punkt = ${formatPoints(aePerPoint, 0)} AE.`}
+    </p>
   </div>
 );
 
@@ -283,7 +295,7 @@ const LevelDraftEditor = ({
         const a = activeRows.find((x) => x.code === r.code);
         return (
           <fieldset key={r.id} className="grid grid-cols-2 gap-2 border-b border-color-border-light pb-3 sm:grid-cols-6 sm:items-end">
-            <legend className="col-span-full text-sm font-semibold">{r.code} – {r.name_de}</legend>
+            <legend className="col-span-full text-sm font-semibold">{levelShort(r.code)} – {r.name_de}</legend>
             <div className={mark(changed(r.point_rate, a?.point_rate))}><DecimalInput label="Satz/P" suffix="€" value={value(r, "point_rate")} onChange={set(r.code, "point_rate")} isReadOnly={!canWrite} /></div>
             <div className={mark(changed(r.max_subsidy, a?.max_subsidy))}><DecimalInput label="Max. Zuschuss" suffix="€" value={value(r, "max_subsidy")} onChange={set(r.code, "max_subsidy")} isReadOnly={!canWrite} /></div>
             <div className={mark(changed(r.threshold_points, a?.threshold_points))}><DecimalInput label="Schwelle P" value={value(r, "threshold_points")} onChange={set(r.code, "threshold_points")} isReadOnly={!canWrite} /></div>
@@ -343,7 +355,7 @@ const ConversionDraftEditor = ({
           <fieldset key={r.id} className="grid grid-cols-2 gap-2 border-b border-color-border-light pb-3 sm:grid-cols-4 sm:items-end">
             <legend className="col-span-full text-sm font-semibold">{r.category_code} – {FORMULA_TEXT[r.formula_kind]}</legend>
             <div className={mark(changed(r.divisor, a?.divisor))}>
-              <DecimalInput label="Divisor" value={edits[r.category_code]?.divisor ?? toInput(r.divisor)} onChange={(v) => setEdits((e) => ({ ...e, [r.category_code]: { ...e[r.category_code], divisor: v } }))} isReadOnly={!canWrite} />
+              <DecimalInput label={divisorLabel(draft.divisor_unit === "ae")} value={edits[r.category_code]?.divisor ?? toInput(r.divisor)} onChange={(v) => setEdits((e) => ({ ...e, [r.category_code]: { ...e[r.category_code], divisor: v } }))} isReadOnly={!canWrite} />
             </div>
             {r.formula_kind === "lv_monthly_term" && (
               <div className={mark(changed(r.max_term_years, a?.max_term_years))}>
@@ -354,7 +366,7 @@ const ConversionDraftEditor = ({
           </fieldset>
         );
       })}
-      <p className="text-xs text-color-text-subtle">Sparten ohne Punkte (Kfz, Strom, Gas) sind bis zur Entscheidung OD-18 nicht änderbar.</p>
+      <p className="text-xs text-color-text-subtle">Sparten ohne Punkte (Strom, Gas) sind bis zur Entscheidung OD-18 nicht änderbar.</p>
     </div>
   );
 };

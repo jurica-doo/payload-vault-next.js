@@ -7,13 +7,8 @@ import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
 import { MIN_REASON_LENGTH } from "../../components/reasonConfirm/ReasonConfirmForm";
-import { LEVEL_CODES } from "../../domain/rules";
+import { LEVEL_CODES, LEVEL_NAMES, levelShort } from "../../domain/rules";
 import { Form } from "../../components/form/Form";
-
-const LEVEL_NAMES: Record<string, string> = {
-  FA: "Finanzassistent", FB: "Fachberater", TL: "Teamleiter", OL: "Organisationsleiter",
-  DL: "Direktionsleiter", RL: "Regionalleiter", VD: "Vertriebsdirektor",
-};
 
 /**
  * Initial level for a new employee, or an explicit admin correction.
@@ -61,7 +56,7 @@ export const EmployeeLevelForm = ({
         label="Stufe"
         value={level}
         onChange={setLevel}
-        options={LEVEL_CODES.map((c) => ({ value: c, label: `${c} – ${LEVEL_NAMES[c]}` }))}
+        options={LEVEL_CODES.map((c) => ({ value: c, label: `${levelShort(c)} – ${LEVEL_NAMES[c]}` }))}
         fullWidth
       />
       <DateInput label="Gültig ab" value={from} min={startDate} onChange={setFrom} />

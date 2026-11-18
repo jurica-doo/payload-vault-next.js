@@ -28,7 +28,7 @@ import { ProductionDetails } from "./ProductionDetails";
 export const productionStatus: StatusMap<"draft" | "submitted" | "eligible" | "cancelled"> = {
   draft: { label: "Entwurf", tone: "neutral" },
   submitted: { label: "Eingereicht", tone: "info" },
-  eligible: { label: "Anrechenbar", tone: "success" },
+  eligible: { label: "Abgerechnet", tone: "success" },
   cancelled: { label: "Storniert", tone: "error" },
 };
 
@@ -130,7 +130,7 @@ export const ProductionPage = () => {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-color-text-subtle">
-          Punkte zählen, sobald ein Eintrag als anrechenbar bestätigt ist.
+          Punkte zählen, sobald die Produktgesellschaft einen Eintrag abgerechnet hat und er als „Abgerechnet“ bestätigt ist.
         </p>
         {showProducer && pickable.length > 1 && (
           <div className="w-full sm:w-80">
@@ -211,7 +211,7 @@ export const ProductionPage = () => {
                     <button type="button" className={action} onClick={() => run(() => submit.mutateAsync(r.id!), "Eingereicht.")}>Einreichen</button>
                   )}
                   {r.status === "submitted" && isApprover && (
-                    <button type="button" className={action} onClick={() => run(() => markEligible.mutateAsync(r.id!), "Als anrechenbar bestätigt.")}>Anrechenbar</button>
+                    <button type="button" className={action} onClick={() => run(() => markEligible.mutateAsync(r.id!), "Abrechnung bestätigt.")}>Abrechnung bestätigen</button>
                   )}
                   <ActionMenu
                     label="Weitere Aktionen"

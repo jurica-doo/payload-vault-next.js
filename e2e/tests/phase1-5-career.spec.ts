@@ -90,8 +90,8 @@ test("§14.4: Fritz ergänzt KV 84 € → nach Bestätigung qualifiziert", asyn
   await loginAs(financePage, "finance@test.com", { aal2: true });
   await financePage.goto("/vertrieb/produktion");
   const row = financePage.getByRole("row").filter({ hasText: "Fleißig, Fritz" }).filter({ hasText: "84,00" });
-  await row.getByRole("button", { name: "Anrechenbar" }).click();
-  await expect(row).toContainText("Anrechenbar");
+  await row.getByRole("button", { name: "Abrechnung bestätigen" }).click();
+  await expect(row).toContainText("Abgerechnet");
 
   await fritzPage.goto("/vertrieb/karriere");
   await expect(fritzPage.getByText(/103,00\s*\/\s*100,00/).first()).toBeVisible();

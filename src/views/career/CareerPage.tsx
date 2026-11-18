@@ -14,13 +14,9 @@ import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useStructure } from "../../hooks/useStructure/useStructure";
 import { useCareerProgress, type CareerProgress } from "../../hooks/useCareer/useCareer";
 import { PERIOD_LABELS } from "../../domain/careerPeriods";
+import { levelName, levelShort } from "../../domain/rules";
 import { formatDate } from "../../utils/format";
 import { CareerSimulator } from "./CareerSimulator";
-
-const LEVEL_NAMES: Record<string, string> = {
-  FA: "Finanzassistent", FB: "Fachberater", TL: "Teamleiter", OL: "Organisationsleiter",
-  DL: "Direktionsleiter", RL: "Regionalleiter", VD: "Vertriebsdirektor",
-};
 
 // Period end is exclusive in the database; people think in "last day".
 const lastDay = (exclusiveEnd: string) => {
@@ -77,7 +73,7 @@ const ProgressView = ({ progress }: { progress: CareerProgress }) => {
     return <EmptyState message="Kein Fortschritt berechenbar" hint={BLOCKED[progress.reason]} />;
   }
   if (progress.status === "top_level") {
-    return <EmptyState message={`Höchste Stufe erreicht (${LEVEL_NAMES[progress.level] ?? progress.level}).`} />;
+    return <EmptyState message={`Höchste Stufe erreicht (${levelName(progress.level)}).`} />;
   }
 
   const p = progress;
@@ -88,8 +84,8 @@ const ProgressView = ({ progress }: { progress: CareerProgress }) => {
       <section className="flex flex-col gap-4 ui-card p-4 sm:p-5">
         <header className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold">
-            {p.level} → {p.target}{" "}
-            <span className="text-sm font-normal text-color-text-subtle">{LEVEL_NAMES[p.target]}</span>
+            {levelShort(p.level)} → {levelShort(p.target)}{" "}
+            <span className="text-sm font-normal text-color-text-subtle">{levelName(p.target)}</span>
           </h2>
           {p.is_ready ? (
             <StatusBadge status="ready" map={{ ready: { label: "Qualifiziert – Freigabe ausstehend", tone: "success" } }} />
@@ -113,7 +109,7 @@ const ProgressView = ({ progress }: { progress: CareerProgress }) => {
         <ProgressMeter label="davon KV-Punkte" achieved={p.eligible_kv} required={p.kv_required} unit="KV-P" />
 
         <p className="text-xs text-color-text-subtle">
-          Es zählen nur als anrechenbar bestätigte Verträge mit Produktionsdatum im Zeitraum. Strukturproduktion wird der Struktur zugerechnet,
+          Es zählen nur abgerechnete Verträge mit Produktionsdatum im Zeitraum. Strukturproduktion wird der Struktur zugerechnet,
           zu der die Person am Produktionsdatum gehörte.
         </p>
       </section>

@@ -9,6 +9,7 @@ import { useModal } from "../../context/modal/ModalContext";
 import { useBanner } from "../../context/banner/BannerContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { usePromotionQueue, type QueueEntry } from "../../hooks/useCareer/useCareer";
+import { levelShort } from "../../domain/rules";
 
 /**
  * Promotion queue (OD-15: promotions are approved, not automatic). The
@@ -58,7 +59,7 @@ export const PromotionsAdminPage = () => {
       emptyMessage="Derzeit ist niemand qualifiziert."
       columns={[
         { id: "name", header: "Name", cell: (q) => `${q.name} (${q.employee_no})`, sortValue: (q) => q.name },
-        { id: "step", header: "Stufe", cell: (q) => `${q.level} → ${q.target}` },
+        { id: "step", header: "Stufe", cell: (q) => `${levelShort(q.level)} → ${levelShort(q.target)}` },
         { id: "points", header: "Punkte", align: "right", cell: (q) => <><PointsValue value={q.eligible} /> / {Number(q.required)}</> },
         { id: "kv", header: "KV", align: "right", cell: (q) => <><PointsValue value={q.eligible_kv} isKv /> / {Number(q.kv_required)}</> },
         {

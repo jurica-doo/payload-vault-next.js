@@ -9,7 +9,7 @@ import { InputField } from "../../components/inputField/InputField";
 import { CurrencyInput, DateInput, DecimalInput, TextArea } from "../../components/formFields/FormFields";
 import { EmployeePicker, type PickableEmployee } from "../../components/employeePicker/EmployeePicker";
 import { CalculationBreakdown } from "../../components/calculationBreakdown/CalculationBreakdown";
-import { ProvisionalRuleNotice } from "../../components/provisionalRuleNotice/ProvisionalRuleNotice";
+import { Notice } from "../../components/notice/Notice";
 import { AeValue, MoneyValue, PointsValue } from "../../components/values/Values";
 import { useRules } from "../../hooks/useRules/useRules";
 import { calculatePoints } from "../../domain/points";
@@ -169,7 +169,14 @@ export const ProductionForm = ({
               {preview.kvPoints.gt(0) && <PointsValue value={preview.kvPoints} isKv />}
             </p>
             {preview.termCapped && (
-              <ProvisionalRuleNotice decisionId="OD-06" text="Laufzeit über 35 Jahre wird in der Formel mit 35 Jahren gerechnet." />
+              <Notice compact>
+                Für Produktion vor dem 01.11.2026 wird die Laufzeit in der Formel auf 35 Jahre begrenzt.
+              </Notice>
+            )}
+            {!preview.paysCommission && (
+              <Notice compact>
+                Diese Sparte zählt für die Karriere. Eine Abschlussprovision je Punkt wird dafür nicht gebucht.
+              </Notice>
             )}
             <details>
               <summary className="cursor-pointer text-xs text-color-text-subtle">Berechnung anzeigen</summary>

@@ -30,6 +30,7 @@ import { useActivitySummary } from "../../hooks/useActivities/useActivities";
 import { monthWindow } from "../activities/ActivitiesPage";
 import { useTeamSignals } from "../../hooks/useLeads/useLeads";
 import { signalText } from "../../domain/signals";
+import { levelShort } from "../../domain/rules";
 
 const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
 const monthShort = (iso: string) => MONTHS[Number(iso.slice(5, 7)) - 1];
@@ -134,7 +135,7 @@ const MySection = ({ d }: { d: MyDashboard }) => {
           <h3 className="text-base font-semibold">Karriere</h3>
           {c.status === "in_progress" || c.status === "ready" ? (
             <>
-              <ProgressMeter label={`${c.level} → ${c.target}`} achieved={c.eligible} required={c.required} expected={c.expected_now ?? undefined} />
+              <ProgressMeter label={`${levelShort(c.level)} → ${levelShort(c.target)}`} achieved={c.eligible} required={c.required} expected={c.expected_now ?? undefined} />
               <ProgressMeter label="KV-Punkte" achieved={c.eligible_kv} required={c.kv_required} unit="KV-P" />
               {careerFc && (
                 <p className="text-xs">
@@ -204,7 +205,7 @@ const TeamSection = ({ d }: { d: TeamDashboard }) => (
       caption="Direkte Führungslinien"
       emptyMessage="Keine direkten Mitarbeitenden"
       columns={[
-        { id: "name", header: "Name", cell: (r) => `${r.name}${r.level ? ` (${r.level})` : ""}`, sortValue: (r) => r.name },
+        { id: "name", header: "Name", cell: (r) => `${r.name}${r.level ? ` (${levelShort(r.level)})` : ""}`, sortValue: (r) => r.name },
         { id: "own", header: "Eigen", align: "right", cell: (r) => <PointsValue value={r.own.points} />, sortValue: (r) => Number(r.own.points) },
         { id: "structure", header: "Struktur", align: "right", hideOnMobile: true, cell: (r) => <PointsValue value={r.structure.points} />, sortValue: (r) => Number(r.structure.points) },
         { id: "goal", header: "Ziel", cell: (r) => (r.goal ? <StatusBadge status={r.goal.status} map={goalStatus} /> : <span className="text-xs text-color-text-subtle">fehlt</span>) },

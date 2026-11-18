@@ -22,20 +22,21 @@ test.describe("Paula: jede Punkteregel aus §3 / §14.1", () => {
 
   test("Liste: Punkte und Status je Datensatz", async ({ page }) => {
     await expect(rowWith(page, /(?<![\d.])700,00/)).toContainText("25,00"); // KV 700 € → 25 P
-    await expect(rowWith(page, /(?<![\d.])1\.000,00/)).toContainText("5,00"); // Sach 1.000 € netto → 5 P
+    await expect(rowWith(page, /(?<![\d.])1\.000,00/)).toContainText("5,00"); // Sach 1.000 € netto → 139,86 AE → 4,995 P
     await expect(rowWith(page, "333,33")).toContainText("11,90"); // KV 333,33 € → 11,9046 P
-    await expect(rowWith(page, "KFZ")).toContainText("Anrechenbar"); // Kfz → 0 P
+    await expect(rowWith(page, "KFZ")).toContainText("Abgerechnet");
+    await expect(rowWith(page, "KFZ")).toContainText("0,45"); // Kfz 450 € netto → 12,60 AE → 0,45 P
     await expect(rowWith(page, /(?<![\d.])280,00/)).toContainText("Storniert");
     await expect(rowWith(page, "STROM")).toContainText("Eingereicht");
     await expect(rowWith(page, "GAS")).toContainText("Entwurf");
     // Producers can't confirm their own production.
-    await expect(rowWith(page, "STROM").getByRole("button", { name: "Anrechenbar" })).toHaveCount(0);
+    await expect(rowWith(page, "STROM").getByRole("button", { name: "Abrechnung bestätigen" })).toHaveCount(0);
   });
 
   test("Details: Woher kommt diese Zahl? (KV 333,33 €)", async ({ page }) => {
     await rowWith(page, "333,33").first().click();
     const dialog = page.getByRole("dialog");
-    await expect(dialog).toContainText("333.33 ÷ 28"); // Formel
+    await expect(dialog).toContainText("333.33 ÷ 1 = 333.33 AE; 333.33 AE ÷ 28"); // Formel (Absatzteiler KV 1,00)
     await expect(dialog).toContainText("11.9046428571"); // Ergebnis exakt
     await expect(dialog).toContainText("Punkte (gerundet)");
     await expect(dialog).toContainText("11,90");
@@ -46,7 +47,7 @@ test.describe("Paula: jede Punkteregel aus §3 / §14.1", () => {
     const ledger = sql(`select string_agg(round(points, 2)::text, ' ' order by seq) from public.point_calculations where production_id = '${id}'`);
     expect(ledger).toBe("12.60 -12.60 10.50");
     // Three LV 100 € rows are eligible with 10,50 P; open them until the corrected one.
-    const candidates = rowWith(page, "LV", /(?<![\d.])100,00/, "Anrechenbar");
+    const candidates = rowWith(page, "LV", /(?<![\d.])100,00/, "Abgerechnet");
     const dialog = page.getByRole("dialog");
     for (let i = 0; i < (await candidates.count()); i++) {
       await candidates.nth(i).click();
@@ -61,27 +62,28 @@ test.describe("Paula: jede Punkteregel aus §3 / §14.1", () => {
     await expect(dialog).toContainText("Beitrag laut Police korrigiert");
   });
 
-  test("Erfassen: Live-Vorschau LV 100 € × 35 J. = 10,50 P, 40 J. mit OD-06-Hinweis", async ({ page }) => {
+  test("Erfassen: Live-Vorschau LV 100 € × 35 J. = 10,50 P, 40 J. ohne Begrenzung = 12,00 P", async ({ page }) => {
     await page.getByRole("button", { name: "Produktion erfassen" }).click();
     const dialog = page.getByRole("dialog", { name: "Produktion erfassen" });
     await dialog.getByLabel("Sparte").selectOption("LV");
     await dialog.getByLabel("Beitrag").fill("100,00");
     await dialog.getByLabel("Laufzeit").fill("35");
     await expect(dialog).toContainText("10,50");
+    await expect(dialog).toContainText("293,99"); // AE, 2 Nachkommastellen
     await dialog.getByLabel("Laufzeit").fill("40");
-    await expect(dialog.getByText("Laufzeit über 35 Jahre wird in der Formel mit 35 Jahren gerechnet.")).toBeVisible();
-    await expect(dialog).toContainText("10,50");
+    await expect(dialog).toContainText("12,00");
+    await expect(dialog.getByText(/auf 35 Jahre begrenzt/)).toHaveCount(0);
     await dialog.getByRole("button", { name: "Abbrechen" }).click();
   });
 });
 
-test("Finanzen bestätigt eingereichte Produktion (Strom → 0 P, anrechenbar)", async ({ page }) => {
+test("Finanzen bestätigt eingereichte Produktion (Strom → 0 P, abgerechnet)", async ({ page }) => {
   await loginAs(page, "finance@test.com", { aal2: true });
   await page.goto("/vertrieb/produktion");
   const strom = rowWith(page, "Punkte, Paula", "STROM");
   await expect(strom).toContainText("Eingereicht");
-  await strom.getByRole("button", { name: "Anrechenbar" }).click();
-  await expect(strom).toContainText("Anrechenbar");
+  await strom.getByRole("button", { name: "Abrechnung bestätigen" }).click();
+  await expect(strom).toContainText("Abgerechnet");
 });
 
 test("Sichtbarkeit: Fritz sieht nur seine eigene Produktion (API)", async () => {
@@ -127,7 +129,7 @@ test("CSV-Import: nur gültige Zeilen, jeder Fehler benannt, kein Doppelimport",
 // Findings P1 and P2 from the Phase 1 review (r1-p1-verification.md), fixed since.
 test.describe("Import-Prüfung deckt sich mit der Übernahme", () => {
   const row = (businessDate: string, over: Record<string, string>) => ({
-    source_id: "", employee_no: "E2E-PUNKTE", category: "KFZ", premium: "500.00", period: "annual",
+    source_id: "", employee_no: "E2E-PUNKTE", category: "STROM", premium: "500.00", period: "annual",
     net_or_gross: "", term_years: "", production_date: businessDate, reference: "", ...over,
   });
 
@@ -137,7 +139,8 @@ test.describe("Import-Prüfung deckt sich mit der Übernahme", () => {
     const state = readState();
     const admin = apiSession("admin@test.com", true);
     // "quartalsweise" isn't a premium period the table accepts
-    // (monthly/annual/one_off); the check used to pass it for Kfz.
+    // (monthly/annual/one_off); the check used to pass it for lines
+    // without a required period (Strom).
     const batch = await rpc<string>(admin, "rpc_stage_production_import", {
       p_source_system: "E2E-P1",
       p_file_name: "p1.csv",

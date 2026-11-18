@@ -5,7 +5,8 @@ import { readState } from "../lib/state.mts";
 import { loginAs } from "./helpers";
 import { apiSession } from "./sessions";
 
-// Spec §2: level, rate per point, max subsidy, threshold.
+// Karriereplan (Anlage 2), Stand 01.11.2026: level, rate per point, max
+// subsidy, threshold. VD+ and GM are appointed (no threshold).
 const LEVELS = [
   ["FA", "28,00 €", "–", "0 P"],
   ["FB", "56,00 €", "500,00 €", "100 P"],
@@ -14,7 +15,11 @@ const LEVELS = [
   ["DL", "112,00 €", "2.500,00 €", "1.500 P"],
   ["RL", "132,00 €", "3.500,00 €", "4.000 P"],
   ["VD", "144,00 €", "6.000,00 €", "9.000 P"],
+  ["VD+", "144,00 €", "–", "Ernennung"],
+  ["GM", "144,00 €", "–", "Ernennung"],
 ] as const;
+
+const startsWithCode = (code: string) => new RegExp(`^${code.replace("+", "\\+")}\\s`);
 
 /** First day of next month (Berlin), a valid future draft date. */
 function nextMonth(): string {
@@ -22,27 +27,32 @@ function nextMonth(): string {
   return m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, "0")}-01`;
 }
 
-test("gültige Regeln entsprechen der Spezifikation (§2, §3)", async ({ page }) => {
+test("gültige Regeln entsprechen dem Karriereplan, Stand 01.11.2026", async ({ page }) => {
   await loginAs(page, "admin@test.com");
   await page.goto("/admin/regeln");
   const levels = page.getByRole("table").first();
   for (const [code, rate, subsidy, threshold] of LEVELS) {
-    const row = levels.getByRole("row").filter({ hasText: new RegExp(`^${code}\\b`) });
+    const row = levels.getByRole("row").filter({ hasText: startsWithCode(code) });
     await expect(row).toContainText(rate);
     await expect(row).toContainText(subsidy);
     await expect(row).toContainText(threshold);
   }
-  // Structure cap only from OL on (OD-04).
-  await expect(levels.getByRole("row").filter({ hasText: /^TL\b/ })).toContainText("–");
-  await expect(levels.getByRole("row").filter({ hasText: /^OL\b/ })).toContainText("50");
+  // 50 % clause on every qualification target (OD-04).
+  await expect(levels.getByRole("row").filter({ hasText: startsWithCode("FB") })).toContainText("50");
+  await expect(levels.getByRole("row").filter({ hasText: startsWithCode("TL") })).toContainText("50");
   const conversion = page.getByRole("table").nth(1);
   const category = (code: string) =>
     conversion.getByRole("row").filter({ has: page.getByRole("cell", { name: code, exact: true }) });
-  await expect(category("LV")).toContainText("4.000");
-  await expect(category("LV")).toContainText("35 Jahre");
-  await expect(category("KV")).toContainText("28");
-  await expect(category("SACH")).toContainText("200");
-  for (const none of ["KFZ", "STROM", "GAS"]) await expect(category(none)).toContainText("–");
+  // Absatzteiler (Anlage 2 §4); no LV term cap any more (OD-06).
+  await expect(conversion).toContainText("Absatzteiler");
+  await expect(category("LV")).toContainText("142,86");
+  await expect(category("LV")).not.toContainText("35 Jahre");
+  await expect(category("KV")).toContainText("1,00");
+  await expect(category("SACH")).toContainText("7,15");
+  await expect(category("RS")).toContainText("7,15");
+  await expect(category("KFZ")).toContainText("35,71");
+  await expect(category("KFZ")).toContainText("nein"); // no commission per point
+  for (const none of ["STROM", "GAS"]) await expect(category(none)).toContainText("–");
 });
 
 test("Entwurf: Änderung markiert, fallende Sätze abgelehnt, verworfen", async ({ page }) => {

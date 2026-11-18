@@ -19,6 +19,7 @@ import { logExport, useLedgerEntries, useStatement, type LedgerEntry } from "../
 import { downloadCsv } from "../../utils/csvExport";
 import { formatDate, formatMoney } from "../../utils/format";
 import { ledgerCsv } from "./statementCsv";
+import { levelShort } from "../../domain/rules";
 
 export const periodStatus: StatusMap<"open" | "reviewed" | "approved" | "paid"> = {
   open: { label: "Offen", tone: "info" },
@@ -57,7 +58,7 @@ export const CommissionPage = () => {
         <CalculationBreakdown
           inputs={[
             { label: "Produktion", value: `${formatDate(e.production_date)} · ${e.category_code} · ${e.producer_name}` },
-            { label: "Stufen am Produktionsdatum", value: `${e.producer_level} → ${e.recipient_level}` },
+            { label: "Stufen am Produktionsdatum", value: `${levelShort(e.producer_level)} → ${levelShort(e.recipient_level)}` },
             { label: "Punkte", value: <PointsValue value={e.points} /> },
             { label: e.commission_type === "personal" ? "Satz je Punkt" : "Differenzsatz je Punkt", value: formatMoney(e.rate_per_point) },
           ]}

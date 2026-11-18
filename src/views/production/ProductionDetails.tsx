@@ -72,7 +72,7 @@ export const ProductionDetails = ({ record }: { record: ProductionRow }) => {
         />
       ) : (
         <p className="text-sm text-color-text-subtle">
-          Punkte werden berechnet, sobald der Datensatz als anrechenbar markiert ist.
+          Punkte werden berechnet, sobald der Datensatz als „Abgerechnet“ bestätigt ist.
         </p>
       )}
 

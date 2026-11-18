@@ -22,7 +22,7 @@ describe("ProductionForm", () => {
     fireEvent.change(screen.getByLabelText(/Laufzeit/), { target: { value: "35" } });
     // Shown in the preview line and again in the expandable breakdown.
     expect(screen.getAllByText("10,50").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("294")).toBeInTheDocument();
+    expect(screen.getByText("294,00")).toBeInTheDocument();
   });
 
   it("shows the net/gross choice only for Sach and explains a gross premium", () => {
@@ -34,11 +34,12 @@ describe("ProductionForm", () => {
     expect(screen.getByText(/Jahresnettobeitrag benötigt/)).toBeInTheDocument();
   });
 
-  it("flags a capped LV term with the open decision", () => {
+  it("explains the 35-year cap for production under the old rules", () => {
     renderForm();
     fireEvent.change(screen.getByLabelText(/Beitrag/), { target: { value: "100" } });
     fireEvent.change(screen.getByLabelText(/Laufzeit/), { target: { value: "40" } });
-    expect(screen.getByRole("note")).toHaveTextContent("OD-06");
+    expect(screen.getByRole("note")).toHaveTextContent("vor dem 01.11.2026");
+    expect(screen.getByRole("note")).not.toHaveTextContent("OD-06");
   });
 
   it("refuses to submit a non-number and sends a normalised decimal otherwise", async () => {
