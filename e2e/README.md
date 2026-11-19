@@ -34,10 +34,16 @@ fixing it — confirm with a full `npm run e2e` afterwards.
 - Sessions are injected (`loginAs`): an API sign-in per account, placed in localStorage before the page
   loads, with 2FA already confirmed when `{ aal2: true }`. Only two tests use the real login form and
   2FA page.
-- The five spec files run in parallel (5 workers); tests inside a file run in order. **A file must not
+- The spec files run in parallel (5 workers); tests inside a file run in order. **A file must not
   change data that another file asserts on** — e.g. only the career file promotes people, only the
-  production file confirms Paula's records. Keep it that way when adding tests, or put dependent tests
-  in the same file.
+  production file confirms Paula's records, Phase 2 only touches statement months two months back and
+  the subsidies of Ben and Anna, Phase 3 only the goals and coaching data of Fritz and Paula. Keep it that
+  way when adding tests, or put dependent tests in the same file.
+- `loginAs` seeds the session into an **empty** storage only. To act as a second account inside one test,
+  open a new page (`browser.newPage()`, see `open()` in `phase2-commission.spec.ts`) instead of calling
+  `loginAs` again on the same page.
+- Kit `Select` fields (e.g. Sparte) are custom listboxes, not native selects: use `pick(page, label, option)`
+  from `helpers.ts`, never `selectOption`.
 - `e2e/global-setup.ts` requests every page once so the dev server compiles them before the tests.
 - Budget: reset + fill ≈ 30–40 s, tests ≈ 30 s.
 

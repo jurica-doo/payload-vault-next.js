@@ -4,7 +4,7 @@ import { importCsv } from "../fixtures/phase1.mts";
 import { rpc, select, signIn } from "../lib/api.mts";
 import { sql } from "../lib/db.mts";
 import { readState } from "../lib/state.mts";
-import { loginAs } from "./helpers";
+import { loginAs, pick } from "./helpers";
 import { apiSession } from "./sessions";
 
 const rowWith = (page: Page, ...texts: (string | RegExp)[]) => {
@@ -65,7 +65,7 @@ test.describe("Paula: jede Punkteregel aus §3 / §14.1", () => {
   test("Erfassen: Live-Vorschau LV 100 € × 35 J. = 10,50 P, 40 J. ohne Begrenzung = 12,00 P", async ({ page }) => {
     await page.getByRole("button", { name: "Produktion erfassen" }).click();
     const dialog = page.getByRole("dialog", { name: "Produktion erfassen" });
-    await dialog.getByLabel("Sparte").selectOption("LV");
+    await pick(page, "Sparte", "Lebensversicherung"); // kit Select, not a native <select>
     await dialog.getByLabel("Beitrag").fill("100,00");
     await dialog.getByLabel("Laufzeit").fill("35");
     await expect(dialog).toContainText("10,50");

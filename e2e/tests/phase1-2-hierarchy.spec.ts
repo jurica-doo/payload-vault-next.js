@@ -87,7 +87,7 @@ test.describe("Hierarchie verwalten", () => {
     await page.getByLabel("Gültig ab").fill(berlinToday());
     await page.getByLabel("Begründung").fill("Test: Kreis in der Struktur");
     await page.getByRole("button", { name: "Zuordnung speichern" }).click();
-    await expect(page.getByText(/Kreis in der Struktur/)).toBeVisible();
+    await expect(page.getByRole("alert").filter({ hasText: "Kreis in der Struktur" })).toBeVisible(); // not the reason textarea
   });
 
   test("vor dem Eintrittsdatum wird abgelehnt", async ({ page }) => {

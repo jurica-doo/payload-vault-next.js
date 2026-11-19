@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { EXPECTED_CAREER } from "../fixtures/phase1.mts";
 import { ApiError, rpc, signIn } from "../lib/api.mts";
 import { readState } from "../lib/state.mts";
-import { de, loginAs } from "./helpers";
+import { de, loginAs, pick } from "./helpers";
 
 const THRESHOLDS: Record<string, string> = { FB: "100", TL: "300", OL: "750", DL: "1500" };
 
@@ -80,7 +80,7 @@ test("§14.4: Fritz ergänzt KV 84 € → nach Bestätigung qualifiziert", asyn
   await fritzPage.goto("/vertrieb/produktion");
   await fritzPage.getByRole("button", { name: "Produktion erfassen" }).click();
   const dialog = fritzPage.getByRole("dialog", { name: "Produktion erfassen" });
-  await dialog.getByLabel("Sparte").selectOption("KV");
+  await pick(fritzPage, "Sparte", "Krankenversicherung"); // kit Select, not a native <select>
   await dialog.getByLabel("Beitrag").fill("84,00");
   await expect(dialog).toContainText("3,00");
   await dialog.getByRole("button", { name: "Speichern & einreichen" }).click();
