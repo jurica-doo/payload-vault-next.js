@@ -4,12 +4,12 @@ Everything from the specification is built, tested in the database harness and m
 Nothing has been applied to production, and nothing has been clicked through **signed in**, because there is no staging project yet.
 This list covers everything between "built" and "live", in the order it is best done.
 
-Status at the time of writing (2026-11-03):
-- 57 migrations (3 added 2026-10-28 for the Supabase advisor findings, 7 on 2026-10-31 for the Phase 1 review fixes, 3 on 2026-11-03 for the Phase 4/5 review fixes and the duplicate-check lock)
-- 836 pgTAP assertions in 29 files
-- 501 unit tests
-- 76 Playwright e2e tests: 53 for Phase 1, 15 Phase 4 and 8 Phase 5 regression tests (`npm run e2e`, local only)
-- 58 golden cases shared by the SQL and TypeScript engines
+Status at the time of writing (2026-11-19):
+- 60 migrations (3 added 2026-10-28 for the Supabase advisor findings, 7 on 2026-10-31 for the Phase 1 review fixes, 4 on 2026-11-03 for the Phase 4/5/6 review fixes and the duplicate-check lock, 1 on 2026-11-18 for the rules Stand 01.11.2026, 1 on 2026-11-19 for the Phase 2/3 review fixes)
+- 919 pgTAP assertions in 32 files
+- 534 unit tests
+- 108 Playwright e2e tests: 53 for Phase 1, 12 Phase 2, 12 Phase 3, 15 Phase 4, 8 Phase 5 and 8 Phase 6 (`npm run e2e`, local only; green on a fresh run 2026-11-19)
+- 68 golden cases shared by the SQL and TypeScript engines
 - CI green
 - Every module behind a feature flag that is **off**
 - Email sending switched **off**
@@ -242,9 +242,21 @@ Still open before go-live:
 ### 6.4 Technical
 - [ ] 5 old lint warnings in untouched components (`Dropdown`, `HeaderHome` images, `DeleteIcon`, `SearchBar`).
 - [ ] Performance check on staging with synthetic volume (5k employees / 200k production rows): dashboard and analytics RPCs < 300 ms p95 (plan §10).
-- [ ] End-to-end tests (Playwright) for the walkthroughs in section 4. Phase 1 is covered (`e2e/`, 53 tests, local stack) Phase 4 and 5 have regression specs (`e2e/tests/phase4-leads-tasks.spec.ts`, 13 tests; `e2e/tests/phase5-crm.spec.ts`, 8 tests; `e2e/tests/phase6-automation.spec.ts`, 8 tests; one per review finding); the other phases are still open.
+- [ ] End-to-end tests (Playwright) for the walkthroughs in section 4. Phase 1 is covered (`e2e/`, 53 tests, local stack); Phases 2 and 3 have workflow + regression specs (`phase2-commission.spec.ts`, `phase3-cockpit.spec.ts`, 12 tests each); Phases 4–6 have regression specs (`phase4-leads-tasks.spec.ts` 15, `phase5-crm.spec.ts` 8, `phase6-automation.spec.ts` 8; one per review finding). Still open: a full walkthrough spec for Phases 4–6 and mobile layouts.
 - [ ] `ubuntu-latest` moves to Ubuntu 26 in CI (GitHub notice); pin the runner if anything breaks.
 - [ ] `supabase/seed.sql` with synthetic personas for staging (one per role and level).
+
+### 6.5a Phase 2 and 3 review follow-ups (2026-11-19)
+The Phase 2/3 review (`phase-2-commission/verification/`, `phase-3-cockpit/verification/`) fixed all 13 findings
+(migration `20261101150000`, pgTAP 310, e2e `phase2-commission.spec.ts` / `phase3-cockpit.spec.ts`). Still open:
+- [ ] **Walk through both manual guides** once signed in (they double as the Phase 2/3 click-by-click acceptance for Profina).
+- [ ] **E3 commission engine** (`OD_ANSWERS_2026-11.md` §4): rate table per line and kind — today Sach pays 13,99 % of the annual premium for FA/FB instead of Anlage 1's 10 %; LV/KV match. Level at "Verarbeitung", own contracts excluded, reserve release/clawback, 5-year liability. Until then every differential row keeps the OD-05 notice and **Gate C** (reconcile ≥ 10 real statements) stays closed.
+- [ ] Payment export to payroll / reconciliation (§16) — decide format with Profina's accounting.
+- [ ] OD-17 decision; if on, a leader team-statement page (RPCs already accept an employee id).
+- [ ] Phase 3 §8.3 activity/conversion prompts from the Phase 4 data; §7.5 open opportunities and planned appointments as forecast inputs; prompt thresholds → `app_settings` (6.3).
+- [ ] §8.4 monthly review checklist / quarterly development review; retention of coaching data (OD-16) with an audited deletion procedure (notes are append-only).
+- [ ] Decide: finance/compliance may read every goal incl. the free-text development goal (P3-NOTE-01); admins without an employee record can't review goals; employees have no "Mein Profil" page; finance/admin without an employee record have no cockpit.
+- [ ] Decide S6: should finance **reads** (overview, every statement) also need 2FA? Exports do since this review.
 
 ### 6.5 Phase 4 review follow-ups (not yet browser-tested)
 The Phase 4 review (2026-11-03, `phase-4-leads-tasks/verification/`) fixed 35 of 36 findings and covered them with
