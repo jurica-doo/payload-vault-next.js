@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DataTable } from "../../components/dataTable/DataTable";
 import { EmptyState } from "../../components/emptyState/EmptyState";
+import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { EmployeePicker } from "../../components/employeePicker/EmployeePicker";
 import { CurrencyInput, TextArea } from "../../components/formFields/FormFields";
 import { InputField } from "../../components/inputField/InputField";
@@ -11,15 +12,15 @@ import { MfaRequiredNotice } from "../../components/mfa/MfaRequiredNotice";
 import { ReasonConfirmForm, MIN_REASON_LENGTH } from "../../components/reasonConfirm/ReasonConfirmForm";
 import { RoleGate } from "../../components/roleGate/RoleGate";
 import { StatusBadge } from "../../components/statusBadge/StatusBadge";
-import { MoneyValue } from "../../components/values/Values";
+import { MoneyValue, PointsValue } from "../../components/values/Values";
 import { useModal } from "../../context/modal/ModalContext";
 import { useBanner } from "../../context/banner/BannerContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useEmployees } from "../../hooks/useEmployees/useEmployees";
-import { logExport, useFinance } from "../../hooks/useCommission/useCommission";
+import { logExport, useFinance, useLedgerEntries, type OverviewRow } from "../../hooks/useCommission/useCommission";
 import { downloadCsv } from "../../utils/csvExport";
 import { errorText } from "../../utils/dbErrors";
-import { formatDateTime, parseGermanDecimal } from "../../utils/format";
+import { formatDate, formatDateTime, formatMoney, parseGermanDecimal } from "../../utils/format";
 import { currentMonth, periodStatus } from "./CommissionPage";
 import { overviewCsv } from "./statementCsv";
 
@@ -37,6 +38,36 @@ const EXCEPTION_TEXT: Record<string, string> = {
   producer_without_level: "Produzent ohne Karrierestufe",
   ancestor_without_level: "Führungskraft in der Kette ohne Stufe",
   no_rules_for_date: "Keine Regeln für das Produktionsdatum",
+  level_without_rate: "Stufe ohne Provisionssatz am Produktionsdatum",
+};
+
+/** Finance drill-down (§5.4): one recipient's bookings of the month. */
+const RecipientEntries = ({ month, row }: { month: string; row: OverviewRow }) => {
+  const { data = [], isLoading, error } = useLedgerEntries(month, row.recipient_id);
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-sm text-color-text-secondary">
+        {row.recipient_name} · Brutto {formatMoney(row.gross)} · Reserve {formatMoney(row.reserve)} · Nach Reserve {formatMoney(row.net)}
+      </p>
+      <DataTable
+        rows={data}
+        getRowId={(e) => e.id!}
+        caption="Buchungen"
+        isLoading={isLoading}
+        error={error ? errorText(error) : null}
+        emptyMessage="Keine Buchungen in diesem Monat"
+        paginate={false}
+        columns={[
+          { id: "date", header: "Produktion", cell: (e) => formatDate(e.production_date) },
+          { id: "producer", header: "Von", cell: (e) => e.producer_name },
+          { id: "type", header: "Art", cell: (e) => `${e.commission_type === "personal" ? "Eigen" : "Differenz"}${e.entry_kind === "reversal" ? " (Rückbuchung)" : ""}` },
+          { id: "points", header: "Punkte", align: "right", cell: (e) => <PointsValue value={e.points} /> },
+          { id: "gross", header: "Brutto", align: "right", cell: (e) => <MoneyValue value={e.gross_amount} /> },
+          { id: "net", header: "Nach Reserve", align: "right", cell: (e) => <MoneyValue value={e.net_after_reserve} /> },
+        ]}
+      />
+    </div>
+  );
 };
 
 /**
@@ -51,7 +82,7 @@ export const FinancePage = () => {
   const { openModal, closeModal } = useModal();
   const { showBanner } = useBanner();
   const [month, setMonth] = useState(currentMonth());
-  const { overview, period, exceptions, setStatus, setSubsidy, retry, dismiss } = useFinance(month, allowed);
+  const { overview, period, exceptions, setStatus, setSubsidy, retry, dismiss, revokeSubsidy } = useFinance(month, allowed);
   const { data: employees = [] } = useEmployees();
 
   const [subEmployee, setSubEmployee] = useState<string | null | undefined>(undefined);
@@ -68,7 +99,9 @@ export const FinancePage = () => {
         <ReasonConfirmForm
           message={
             status === "approved"
-              ? "Nach der Freigabe ist der Monat unveränderlich; spätere Korrekturen werden im nächsten offenen Monat gebucht."
+              ? `Nach der Freigabe ist der Monat unveränderlich; spätere Korrekturen werden im nächsten offenen Monat gebucht.${
+                  (exceptions.data?.length ?? 0) > 0 ? ` Achtung: ${exceptions.data!.length} offene Prüffälle werden erst nach ihrer Klärung gebucht – in einem späteren Monat.` : ""
+                }`
               : `Status des Monats wird auf „${periodStatus[status as keyof typeof periodStatus].label}“ gesetzt.`
           }
           confirmText={label}
@@ -110,6 +143,28 @@ export const FinancePage = () => {
   };
 
   const status = period.data ?? "open";
+  const openEntries = (row: OverviewRow) =>
+    openModal({ title: `Buchungen ${month.slice(5, 7)}/${month.slice(0, 4)}`, size: "large", children: <RecipientEntries month={month} row={row} /> });
+  const revoke = (row: OverviewRow) =>
+    openModal({
+      title: "Zuschuss zurücknehmen",
+      children: (
+        <ReasonConfirmForm
+          message={`Der genehmigte Zuschuss von ${formatMoney(row.subsidy ?? 0)} für ${row.recipient_name} wird für diesen Monat zurückgenommen.`}
+          confirmText="Zurücknehmen"
+          variant="decline"
+          onCancel={closeModal}
+          onConfirm={async (reason) => {
+            await revokeSubsidy.mutateAsync({ employeeId: row.recipient_id, reason });
+            closeModal();
+          }}
+        />
+      ),
+    });
+  const employeeName = (id: string | undefined) => {
+    const e = id ? employees.find((x) => x.id === id) : undefined;
+    return e ? `${e.first_name} ${e.last_name}` : "–";
+  };
 
   return (
     <RoleGate when={allowed} fallback={<EmptyState message="Nur für Finanzen und Verwaltung." />}>
@@ -127,12 +182,16 @@ export const FinancePage = () => {
             />
           </label>
           <div className="flex flex-wrap items-center gap-2">
-            <StatusBadge status={status} map={periodStatus} />
-            {NEXT_STEPS[status]?.map((s) => (
+            {period.error ? (
+              <span role="alert" className="text-sm text-color-error-text">Monatsstatus nicht geladen: {errorText(period.error)}</span>
+            ) : (
+              <StatusBadge status={status} map={periodStatus} />
+            )}
+            {!period.error && NEXT_STEPS[status]?.map((s) => (
               <Button key={s.status} text={s.label} size="small" variant={s.status === "open" ? "secondary" : "primary"}
                 isDisabled={!canWrite} onClick={() => changeStatus(s.status, s.label)} />
             ))}
-            <Button text="CSV" size="small" variant="secondary" onClick={exportOverview} isDisabled={!overview.data?.length} />
+            <Button text="CSV" size="small" variant="secondary" onClick={exportOverview} isDisabled={!canWrite || !overview.data?.length} />
           </div>
         </section>
 
@@ -143,6 +202,7 @@ export const FinancePage = () => {
           isLoading={overview.isLoading}
           error={overview.error ? errorText(overview.error) : null}
           emptyMessage="Keine Buchungen oder Zuschüsse in diesem Monat"
+          onRowClick={openEntries}
           columns={[
             { id: "name", header: "Name", cell: (r) => `${r.recipient_name} (${r.employee_no})`, sortValue: (r) => r.recipient_name },
             { id: "entries", header: "Buchungen", align: "right", hideOnMobile: true, cell: (r) => r.entries },
@@ -150,6 +210,15 @@ export const FinancePage = () => {
             { id: "reserve", header: "Reserve", align: "right", hideOnMobile: true, cell: (r) => <MoneyValue value={r.reserve} /> },
             { id: "net", header: "Nach Reserve", align: "right", cell: (r) => <MoneyValue value={r.net} /> },
             { id: "subsidy", header: "Zuschuss", align: "right", cell: (r) => (r.subsidy === null ? "–" : <MoneyValue value={r.subsidy} />) },
+            {
+              id: "actions", header: "", align: "right",
+              cell: (r) => r.subsidy === null ? null : (
+                // The row itself opens the bookings; the button must not bubble into that.
+                <span onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                  <Button text="Zuschuss zurücknehmen" size="small" variant="ghost" isDisabled={!canWrite} onClick={() => revoke(r)} />
+                </span>
+              ),
+            },
           ]}
         />
 
@@ -170,15 +239,22 @@ export const FinancePage = () => {
 
         <section className="ui-card p-4 sm:p-5">
           <h2 className="mb-3 text-base font-semibold">Prüfwarteschlange ({exceptions.data?.length ?? 0})</h2>
-          {(exceptions.data ?? []).length === 0 ? (
+          {exceptions.error ? (
+            <ErrorBlock variant="inline" message={errorText(exceptions.error)} onRetry={() => exceptions.refetch()} />
+          ) : (exceptions.data ?? []).length === 0 ? (
             <p className="text-sm text-color-text-subtle">Keine offenen Fälle.</p>
           ) : (
             <ul className="flex flex-col gap-2 text-sm">
-              {exceptions.data!.map((x) => (
+              {exceptions.data!.map((x) => {
+                const details = (x.details ?? {}) as { production_date?: string; producer_id?: string; missing?: string[] };
+                return (
                 <li key={x.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-color-border-light pb-2 last:border-0">
                   <span>
                     <span className="font-semibold">{EXCEPTION_TEXT[x.reason_code] ?? x.reason_code}</span>
-                    <span className="block text-xs text-color-text-subtle">seit {formatDateTime(x.created_at)} · Produktionsdatum {(x.details as { production_date?: string })?.production_date ?? "–"}</span>
+                    <span className="block text-xs text-color-text-subtle">
+                      {employeeName(details.producer_id)} · Produktionsdatum {details.production_date ? formatDate(details.production_date) : "–"} · seit {formatDateTime(x.created_at)}
+                      {x.reason_code === "ancestor_without_level" && details.missing?.length ? ` · ohne Stufe: ${details.missing.map(employeeName).join(", ")}` : ""}
+                    </span>
                   </span>
                   <span className="flex gap-2">
                     <Button text="Erneut buchen" size="small" variant="secondary" isDisabled={!canWrite}
@@ -198,7 +274,8 @@ export const FinancePage = () => {
                       })} />
                   </span>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </section>

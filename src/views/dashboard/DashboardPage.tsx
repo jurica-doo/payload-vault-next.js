@@ -31,9 +31,16 @@ import { monthWindow } from "../activities/ActivitiesPage";
 import { useTeamSignals } from "../../hooks/useLeads/useLeads";
 import { signalText } from "../../domain/signals";
 import { levelShort } from "../../domain/rules";
+import { BLOCKED, lastDay } from "../career/CareerPage";
 
 const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
 const monthShort = (iso: string) => MONTHS[Number(iso.slice(5, 7)) - 1];
+/** compute_qualification statuses other than "ready", in German. */
+const CAREER_STATUS: Record<string, string> = {
+  in_progress: "in Arbeit",
+  top_level: "höchste Stufe",
+  blocked: "nicht berechenbar",
+};
 
 /** Role-aware start page of the sales section (§7.3). */
 export const DashboardPage = () => {
@@ -150,13 +157,13 @@ const MySection = ({ d }: { d: MyDashboard }) => {
                 </p>
               )}
               <p className="text-xs text-color-text-subtle">
-                Zeitraum bis {c.period_end ? formatDate(c.period_end) : "–"} (exklusiv). <Link href="/vertrieb/karriere">Details</Link>
+                Zeitraum bis {c.period_end ? lastDay(c.period_end) : "–"}. <Link href="/vertrieb/karriere">Details</Link>
               </p>
             </>
           ) : c.status === "top_level" ? (
             <p className="text-sm">Höchste Stufe erreicht.</p>
           ) : (
-            <p className="text-sm text-color-text-subtle">Noch nicht berechenbar ({c.reason ?? c.status}).</p>
+            <p className="text-sm text-color-text-subtle">{(c.reason && BLOCKED[c.reason]) ?? "Der Karrierefortschritt ist für heute nicht berechenbar."}</p>
           )}
         </div>
         <div className="ui-card p-4 sm:p-5">
@@ -196,7 +203,7 @@ const TeamSection = ({ d }: { d: TeamDashboard }) => (
     <div className="flex flex-wrap items-baseline justify-between gap-2">
       <h2 className="text-lg font-semibold">Meine Struktur</h2>
       <span className="text-sm text-color-text-subtle">
-        {d.team_size} Personen · <PointsValue value={d.structure_total.points} /> im Monat
+        {d.team_size} aktive Personen · <PointsValue value={d.structure_total.points} /> im Monat (ohne eigene Produktion)
       </span>
     </div>
     <DataTable
@@ -207,7 +214,7 @@ const TeamSection = ({ d }: { d: TeamDashboard }) => (
       columns={[
         { id: "name", header: "Name", cell: (r) => `${r.name}${r.level ? ` (${levelShort(r.level)})` : ""}`, sortValue: (r) => r.name },
         { id: "own", header: "Eigen", align: "right", cell: (r) => <PointsValue value={r.own.points} />, sortValue: (r) => Number(r.own.points) },
-        { id: "structure", header: "Struktur", align: "right", hideOnMobile: true, cell: (r) => <PointsValue value={r.structure.points} />, sortValue: (r) => Number(r.structure.points) },
+        { id: "structure", header: "Struktur (ohne eigene)", align: "right", hideOnMobile: true, cell: (r) => <PointsValue value={r.structure.points} />, sortValue: (r) => Number(r.structure.points) },
         { id: "goal", header: "Ziel", cell: (r) => (r.goal ? <StatusBadge status={r.goal.status} map={goalStatus} /> : <span className="text-xs text-color-text-subtle">fehlt</span>) },
         {
           id: "career",
@@ -217,7 +224,7 @@ const TeamSection = ({ d }: { d: TeamDashboard }) => (
             r.career_status === "ready" ? (
               <StatusBadge status="ready" map={{ ready: { label: "qualifiziert", tone: "success" } }} />
             ) : (
-              <span className="text-xs text-color-text-subtle">{r.career_status === "in_progress" ? "in Arbeit" : r.career_status ?? "–"}</span>
+              <span className="text-xs text-color-text-subtle">{(r.career_status && CAREER_STATUS[r.career_status]) ?? "–"}</span>
             ),
         },
       ]}
@@ -268,7 +275,12 @@ const MyActions = ({ employeeId }: { employeeId: string }) => {
         {open.map((a) => (
           <li key={a.id}>
             <label className="flex items-center gap-2">
-              <input type="checkbox" onChange={() => setActionStatus.mutate({ id: a.id, status: "done" }, { onError: onFail("Maßnahme nicht aktualisiert") })} />
+              <input
+                type="checkbox"
+                checked={setActionStatus.isPending === true && setActionStatus.variables?.id === a.id}
+                disabled={setActionStatus.isPending}
+                onChange={() => setActionStatus.mutate({ id: a.id, status: "done" }, { onError: onFail("Maßnahme nicht aktualisiert") })}
+              />
               {a.title}
               {a.due_on && <span className="text-xs text-color-text-subtle">bis {formatDate(a.due_on)}</span>}
             </label>

@@ -16,6 +16,7 @@ const line = (cells: unknown[]) =>
   cells.map((c) => (typeof c === "string" && NUMBER.test(c) ? c : escapeCsvValue(c))).join(";");
 
 const TYPE_LABEL: Record<string, string> = { personal: "Eigenproduktion", differential: "Differenz" };
+const RELATION_LABEL: Record<string, string> = { self: "Eigen", direct: "Direkt", indirect: "Indirekt" };
 
 export function ledgerCsv(entries: LedgerEntry[]): string {
   return [
@@ -23,7 +24,7 @@ export function ledgerCsv(entries: LedgerEntry[]): string {
     ...entries.map((e) =>
       line([
         e.production_date, e.producer_name, e.category_code, TYPE_LABEL[e.commission_type ?? ""] ?? e.commission_type,
-        e.relationship, e.entry_kind === "reversal" ? "Rückbuchung" : "Buchung",
+        RELATION_LABEL[e.relationship ?? ""] ?? e.relationship, e.entry_kind === "reversal" ? "Rückbuchung" : "Buchung",
         num(e.points), num(e.rate_per_point), num(e.gross_amount), num(e.reserve_amount), num(e.net_after_reserve),
       ]),
     ),

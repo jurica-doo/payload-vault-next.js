@@ -19,13 +19,15 @@ import { formatDate } from "../../utils/format";
 import { CareerSimulator } from "./CareerSimulator";
 
 // Period end is exclusive in the database; people think in "last day".
-const lastDay = (exclusiveEnd: string) => {
+/** Period ends are exclusive in the database; people think in "last day". */
+export const lastDay = (exclusiveEnd: string) => {
   const d = new Date(`${exclusiveEnd}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() - 1);
   return formatDate(d.toISOString().slice(0, 10));
 };
 
-const BLOCKED: Record<string, string> = {
+/** German reasons for compute_qualification "blocked" results (shared with the cockpit). */
+export const BLOCKED: Record<string, string> = {
   no_level: "Für diese Person ist noch keine Karrierestufe hinterlegt. Bitte die Verwaltung kontaktieren.",
   no_period: "Für heute gibt es keinen Karrierezeitraum (Startdatum liegt in der Zukunft).",
   no_rules_for_date: "Für heute sind keine Karriereregeln hinterlegt.",

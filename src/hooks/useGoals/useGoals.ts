@@ -19,7 +19,16 @@ export function useGoals() {
   const query = useQuery({
     queryKey: key,
     queryFn: async () => {
-      const { data, error } = await supabase.from("v_goals").select("*").order("month", { ascending: false }).limit(200);
+      // The page plans the current month and the next two and reviews
+      // submitted goals; past months are not needed here. Finance/compliance
+      // see every employee, so the cap must be well above the headcount × 3.
+      const from = `${new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin" }).format(new Date()).slice(0, 7)}-01`;
+      const { data, error } = await supabase
+        .from("v_goals")
+        .select("*")
+        .gte("month", from)
+        .order("month", { ascending: false })
+        .limit(5000);
       if (error) throwDbError(error);
       return (data ?? []) as Goal[];
     },

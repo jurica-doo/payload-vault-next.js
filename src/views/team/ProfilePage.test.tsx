@@ -10,6 +10,7 @@ const profile = {
   goals: [{ month: "2026-10-01", status: "approved", target: 20, actual: 15 }],
   career: { status: "in_progress", target: "FB", points_missing: "0", kv_missing: "3" },
   prompts: [{ code: "kv_gap", value: "3" }],
+  can_coach: true,
   next_review_on: "2026-11-01",
 };
 const coachingData = {
@@ -33,6 +34,7 @@ const ID = "00000000-0000-0000-0000-0000000000fa";
 describe("ProfilePage", () => {
   beforeEach(() => {
     state.perms = { employeeId: "tl", isLeader: true };
+    profile.can_coach = true;
   });
 
   it("rejects malformed ids without calling the API", () => {
@@ -54,8 +56,16 @@ describe("ProfilePage", () => {
 
   it("hides the coaching forms from non-managers", () => {
     state.perms = { employeeId: "fa", isLeader: false };
+    profile.can_coach = false; // the database says so for the person themselves
     render(<ProfilePage employeeId={ID} />);
     expect(screen.queryByRole("button", { name: "Gespräch speichern" })).not.toBeInTheDocument();
+  });
+
+  it("P3-COACH-02: a leader outside the structure (e.g. an admin) gets no coaching forms either", () => {
+    profile.can_coach = false;
+    render(<ProfilePage employeeId={ID} />);
+    expect(screen.queryByRole("button", { name: "Gespräch speichern" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Notiz speichern" })).not.toBeInTheDocument();
   });
 });
 

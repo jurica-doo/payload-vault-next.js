@@ -74,9 +74,9 @@ export const ReasonConfirmForm = ({
           if (error) setError(undefined);
         }}
         maxLength={MAX_REASON_LENGTH}
-        isRequired
+        isRequired={minLength > 0}
         error={error}
-        hint={`${reason.trim().length}/${MAX_REASON_LENGTH} Zeichen, mindestens ${minLength}`}
+        hint={`${reason.trim().length}/${MAX_REASON_LENGTH} Zeichen${minLength > 0 ? `, mindestens ${minLength}` : ""}`}
       />
       <ModalActions>
         <Button variant="secondary" text="Abbrechen" onClick={onCancel} isDisabled={isLoading} />

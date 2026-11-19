@@ -26,9 +26,10 @@ const rpc = async <T,>(fn: Parameters<typeof supabase.rpc>[0], args: Record<stri
 };
 
 /** One person's statement for a month (own when employeeId is null). */
-export function useStatement(month: string, employeeId: string | null) {
+export function useStatement(month: string, employeeId: string | null, enabled = true) {
   return useQuery({
     queryKey: ["statement", month, employeeId ?? "me"],
+    enabled,
     queryFn: () => rpc<Statement>("rpc_statement", { p_month: month, ...(employeeId ? { p_employee_id: employeeId } : {}) }),
   });
 }
@@ -105,8 +106,13 @@ export function useFinance(month: string, enabled: boolean) {
     mutationFn: (a: { id: string; reason: string }) => rpc("rpc_dismiss_exception", { p_id: a.id, p_reason: a.reason }),
     onSuccess: invalidate,
   });
+  const revokeSubsidy = useMutation({
+    mutationFn: (a: { employeeId: string; reason: string }) =>
+      rpc("rpc_revoke_subsidy", { p_employee_id: a.employeeId, p_month: month, p_reason: a.reason }),
+    onSuccess: invalidate,
+  });
 
-  return { overview, period, exceptions, setStatus, setSubsidy, retry, dismiss };
+  return { overview, period, exceptions, setStatus, setSubsidy, retry, dismiss, revokeSubsidy };
 }
 
 export const logExport = (kind: "statement" | "statement_overview", month: string, rows: number) =>

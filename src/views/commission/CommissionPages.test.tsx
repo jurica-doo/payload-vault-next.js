@@ -57,6 +57,13 @@ describe("CommissionPage", () => {
     expect(norm(personal.textContent)).toContain("504,00 €");
   });
 
+  it("labels the reserve with the booked ratio instead of a fixed 10 % (rule is versioned)", () => {
+    statement.total = { gross: 1000, reserve: 120, net: 880, entries: 2 };
+    render(<CommissionPage />);
+    expect(screen.getByText("Reserve (12 %)")).toBeInTheDocument();
+    statement.total = { gross: 840, reserve: 84, net: 756, entries: 2 };
+  });
+
   it("never calls the amount take-home pay", () => {
     render(<CommissionPage />);
     expect(screen.queryByText(/netto|auszahlung/i)).not.toBeInTheDocument();
@@ -94,12 +101,13 @@ describe("FinancePage", () => {
     expect(within(toolbar).queryAllByRole("button").map((b) => b.textContent)).toEqual(["CSV"]);
   });
 
-  it("disables every write without MFA", () => {
+  it("disables every write and the all-recipient export without MFA (P2-EXPORT-01)", () => {
     state.perms.hasMfa = false;
     render(<FinancePage />);
     expect(screen.getByRole("note")).toHaveTextContent("Zwei-Faktor");
     expect(screen.getByRole("button", { name: "Freigeben" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Zuschuss speichern" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "CSV" })).toBeDisabled();
   });
 
   it("is closed to non-finance users", () => {

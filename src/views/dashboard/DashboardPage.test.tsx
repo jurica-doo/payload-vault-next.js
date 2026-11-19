@@ -18,7 +18,10 @@ const me = {
 };
 const team = {
   month: "2026-10-01", team_size: 3, structure_total: { points: "30", kv_points: "0", ae: "840" },
-  direct_reports: [{ employee_id: "fb", name: "Fritz FB", status: "active", level: "FB", own: { points: "20" }, structure: { points: "10" }, team_size: 1, goal: null, career_status: "ready" }],
+  direct_reports: [
+    { employee_id: "fb", name: "Fritz FB", status: "active", level: "FB", own: { points: "20" }, structure: { points: "10" }, team_size: 1, goal: null, career_status: "ready" },
+    { employee_id: "nl", name: "Nora Ohnestufe", status: "active", level: null, own: { points: "0" }, structure: { points: "0" }, team_size: 0, goal: null, career_status: "blocked" },
+  ],
 };
 const admin = {
   without_level: [{ id: "x", name: "Lena Lose" }], without_assignment: [], expired_invites: 0, production_to_confirm: 4,
@@ -95,6 +98,9 @@ describe("DashboardPage", () => {
     render(<DashboardPage />);
     expect(screen.getByText("Meine Struktur")).toBeInTheDocument();
     expect(screen.getByText("qualifiziert")).toBeInTheDocument();
+    // P3-TEAM-01: statuses other than ready/in progress read German, never raw keys
+    expect(screen.getByText("nicht berechenbar")).toBeInTheDocument();
+    expect(screen.queryByText("blocked")).not.toBeInTheDocument();
   });
 
   it("shows only non-zero data-quality items for admins", () => {

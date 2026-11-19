@@ -52,7 +52,10 @@ export const GoalsPage = () => {
   const months = nextMonths();
   const [month, setMonth] = useState(months[0]);
   const own = data.find((g) => g.employee_id === permissions.employeeId && g.month === month);
-  const toReview = data.filter((g) => g.status === "submitted" && g.employee_id !== permissions.employeeId);
+  // can_review comes from the database (today's managers, admins with an
+  // employee record, never the employee): finance/compliance see every goal
+  // but decide none.
+  const toReview = data.filter((g) => g.status === "submitted" && g.can_review === true);
 
   if (!permissions.employeeId) return <EmptyState message="Ziele gibt es nur für aktive Mitarbeitende." />;
 
@@ -127,6 +130,17 @@ const GoalEditor = ({ month, goal }: { month: string; goal: Goal | undefined }) 
           Rückmeldung: {goal.last_review_comment}
         </p>
       )}
+      {goal?.status === "approved" && (
+        <p role="note" className="rounded-radius-md border border-color-info/40 bg-color-bg-info-subtle px-3 py-2 text-sm">
+          Dieses Ziel ist freigegeben{goal.last_review_comment ? ` – Kommentar der Führungskraft: „${goal.last_review_comment}“` : ""}.
+          {" "}Änderungen setzen es auf „Entwurf“ zurück und müssen erneut eingereicht werden.
+        </p>
+      )}
+      {goal && (goal.current_version ?? 0) > 0 && (
+        <p className="text-xs text-color-text-subtle">
+          Version {goal.current_version}{goal.employee_comment ? ` · Ihr Kommentar: „${goal.employee_comment}“` : ""}
+        </p>
+      )}
       <p className="text-xs text-color-text-subtle">Monatsziele sind Planwerte und keine Karriereschwellen.</p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {GOAL_FIELDS.map((f) => (
@@ -160,8 +174,13 @@ const ReviewList = ({ goals }: { goals: Goal[] }) => {
   const { showBanner } = useBanner();
 
   const decide = async (g: Goal, decision: "approved" | "returned", comment = "") => {
-    await review.mutateAsync({ goalId: g.id!, decision, comment });
-    showBanner(decision === "approved" ? "Freigegeben" : "Zurückgegeben", `${g.employee_name} · ${monthLabel(g.month!)}`, "success");
+    try {
+      await review.mutateAsync({ goalId: g.id!, decision, comment });
+      showBanner(decision === "approved" ? "Freigegeben" : "Zurückgegeben", `${g.employee_name} · ${monthLabel(g.month!)}`, "success");
+    } catch (e) {
+      showBanner("Entscheidung nicht gespeichert", errorText(e), "error");
+      throw e; // keeps the return dialog open with its own error line
+    }
   };
 
   return (
@@ -178,9 +197,32 @@ const ReviewList = ({ goals }: { goals: Goal[] }) => {
                   {GOAL_FIELDS.filter((f) => t[f.key] !== undefined).map((f) => `${f.label}: ${toInput(t[f.key])}`).join(" · ") || "–"}
                 </p>
                 {t.development_goal && <p className="text-xs">Entwicklung: {t.development_goal}</p>}
+                {g.employee_comment && <p className="text-xs">Kommentar: „{g.employee_comment}“</p>}
+                <p className="text-xs text-color-text-subtle">Version {g.current_version}{(g.current_version ?? 0) > 1 ? " (nach Rückgabe erneut eingereicht)" : ""}</p>
               </div>
               <span className="flex gap-2">
-                <Button size="small" text="Freigeben" onClick={() => decide(g, "approved")} />
+                <Button
+                  size="small"
+                  text="Freigeben"
+                  onClick={() =>
+                    openModal({
+                      title: "Ziel freigeben",
+                      children: (
+                        <ReasonConfirmForm
+                          message={`${g.employee_name} · ${monthLabel(g.month!)}: Sie können der Freigabe einen Kommentar mitgeben.`}
+                          reasonLabel="Kommentar (optional)"
+                          minLength={0}
+                          confirmText="Freigeben"
+                          onCancel={closeModal}
+                          onConfirm={async (c) => {
+                            await decide(g, "approved", c);
+                            closeModal();
+                          }}
+                        />
+                      ),
+                    })
+                  }
+                />
                 <Button
                   size="small"
                   variant="secondary"

@@ -7,6 +7,8 @@ import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
 import { InputField } from "../../components/inputField/InputField";
+import { Select } from "../../components/select/Select";
+import { levelShort } from "../../domain/rules";
 import { EmptyState } from "../../components/emptyState/EmptyState";
 import { KpiTile } from "../../components/kpiTile/KpiTile";
 import { TrendChart } from "../../components/charts/TrendChart";
@@ -46,10 +48,11 @@ const Profile = ({ employeeId }: { employeeId: string }) => {
   const { permissions } = usePermissions();
   const { data: p, isLoading, error } = useProfile(employeeId);
   const coaching = useCoaching(employeeId);
-  const isManager = permissions.employeeId !== employeeId && permissions.isLeader;
-
   if (isLoading) return <LoadingState label="Profil wird geladen…" />;
   if (error || !p) return <EmptyState message="Profil nicht verfügbar." hint={error ? errorText(error) : undefined} />;
+  // Coaching is for today's managers only (the database decides; an admin
+  // outside the structure sees the profile without the forms).
+  const isManager = p.can_coach === true && permissions.employeeId !== employeeId;
 
   const last3 = p.trend.slice(-3).reduce((s, t) => s + Number(t.points), 0);
   return (
@@ -57,7 +60,7 @@ const Profile = ({ employeeId }: { employeeId: string }) => {
       <header className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-xl font-semibold">{p.employee.name}</h2>
         <span className="text-sm text-color-text-subtle">
-          {p.employee.level ?? "keine Stufe"} · seit {formatDate(p.employee.start_date)}
+          {p.employee.level ? levelShort(p.employee.level) : "keine Stufe"} · seit {formatDate(p.employee.start_date)}
           {p.next_review_on && <> · nächstes Gespräch {formatDate(p.next_review_on)}</>}
         </span>
       </header>
@@ -72,8 +75,9 @@ const Profile = ({ employeeId }: { employeeId: string }) => {
 
       <div className="grid gap-3 sm:grid-cols-3">
         <KpiTile label="Punkte letzte 3 Monate" value={<PointsValue value={last3} />} />
-        <KpiTile label="Karriere" value={p.career.status === "ready" ? "qualifiziert" : p.career.target ? `→ ${p.career.target}` : "–"}
-          hint={p.career.points_missing ? `fehlen ${formatPoints(p.career.points_missing)} P / ${formatPoints(p.career.kv_missing)} KV-P` : undefined} />
+        <KpiTile label="Karriere" value={p.career.status === "ready" ? "qualifiziert" : p.career.target ? `→ ${levelShort(p.career.target)}` : "–"}
+          hint={p.career.points_missing !== undefined && (Number(p.career.points_missing) > 0 || Number(p.career.kv_missing) > 0)
+            ? `fehlen ${formatPoints(p.career.points_missing)} P / ${formatPoints(p.career.kv_missing)} KV-P` : undefined} />
         <KpiTile label="Produktmix (12 Monate)" value={p.product_mix.map((m) => m.category).join(" · ") || "–"} />
       </div>
 
@@ -108,8 +112,10 @@ const CoachingSection = ({ coaching, isManager }: { coaching: CoachingHook; isMa
   const { permissions } = usePermissions();
   const [summary, setSummary] = useState("");
   const [heldOn, setHeldOn] = useState(berlinToday());
+  const [participants, setParticipants] = useState("");
   const [nextReview, setNextReview] = useState("");
   const [actionTitle, setActionTitle] = useState("");
+  const [actionOwner, setActionOwner] = useState<"employee" | "leader">("employee");
   const [actionDue, setActionDue] = useState("");
   const [note, setNote] = useState("");
   const [privateNote, setPrivateNote] = useState(true);
@@ -118,10 +124,10 @@ const CoachingSection = ({ coaching, isManager }: { coaching: CoachingHook; isMa
   const saveSession = async () => {
     try {
       await coaching.addSession.mutateAsync({
-        heldOn, summary, participants: "", nextReviewOn: nextReview || null,
-        actions: actionTitle.trim() ? [{ title: actionTitle.trim(), owner: "employee", due_on: actionDue || null }] : [],
+        heldOn, summary, participants: participants.trim(), nextReviewOn: nextReview || null,
+        actions: actionTitle.trim() ? [{ title: actionTitle.trim(), owner: actionOwner, due_on: actionDue || null }] : [],
       });
-      setSummary(""); setActionTitle(""); setActionDue(""); setNextReview("");
+      setSummary(""); setParticipants(""); setActionTitle(""); setActionOwner("employee"); setActionDue(""); setNextReview("");
       showBanner("Gespräch gespeichert", "", "success");
     } catch (e) {
       showBanner("Nicht gespeichert", errorText(e), "error");
@@ -159,7 +165,15 @@ const CoachingSection = ({ coaching, isManager }: { coaching: CoachingHook; isMa
         <h4 className="mb-1 text-sm font-semibold">Gespräche</h4>
         {(data?.sessions ?? []).length === 0 ? <p className="text-sm text-color-text-subtle">Noch keine Gespräche.</p> : (
           <ul className="flex flex-col gap-2 text-sm">
-            {data!.sessions.map((s) => <li key={s.id}><span className="font-semibold">{formatDate(s.held_on)}</span> – {s.summary}</li>)}
+            {data!.sessions.map((s) => (
+              <li key={s.id}>
+                <span className="font-semibold">{formatDate(s.held_on)}</span> – {s.summary}
+                <span className="block text-xs text-color-text-subtle">
+                  {s.participants ? `Teilnehmende: ${s.participants}` : "Teilnehmende: nicht erfasst"}
+                  {s.next_review_on ? ` · nächstes Gespräch ${formatDate(s.next_review_on)}` : ""}
+                </span>
+              </li>
+            ))}
           </ul>
         )}
       </div>
@@ -186,9 +200,16 @@ const CoachingSection = ({ coaching, isManager }: { coaching: CoachingHook; isMa
               <DateInput label="Datum" value={heldOn} max={berlinToday()} onChange={setHeldOn} />
               <DateInput label="Nächstes Gespräch" value={nextReview} min={heldOn} onChange={setNextReview} />
             </div>
+            <InputField label="Teilnehmende" placeholder="z. B. Tina Teamleiterin, Fritz Fleißig" value={participants} onChange={setParticipants} />
             <TextArea label="Zusammenfassung (für die Person sichtbar)" value={summary} onChange={setSummary} rows={3} maxLength={4000} />
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               <InputField label="Vereinbarte Maßnahme (optional)" placeholder="z. B. Zwei KV-Termine pro Woche" value={actionTitle} onChange={setActionTitle} />
+              <Select
+                label="Verantwortlich"
+                value={actionOwner}
+                onChange={(v) => setActionOwner(v === "leader" ? "leader" : "employee")}
+                options={[{ value: "employee", label: "Die Person" }, { value: "leader", label: "Ich (Führungskraft)" }]}
+              />
               <DateInput label="Fällig bis" value={actionDue} onChange={setActionDue} />
             </div>
             <div><Button text="Gespräch speichern" onClick={saveSession} isDisabled={summary.trim().length < 3} isLoading={coaching.addSession.isPending} /></div>

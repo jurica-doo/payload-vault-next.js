@@ -17,7 +17,7 @@ import { useBanner } from "../../context/banner/BannerContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { logExport, useLedgerEntries, useStatement, type LedgerEntry } from "../../hooks/useCommission/useCommission";
 import { downloadCsv } from "../../utils/csvExport";
-import { formatDate, formatMoney } from "../../utils/format";
+import { formatDate, formatMoney, formatPercent, safeRatio } from "../../utils/format";
 import { ledgerCsv } from "./statementCsv";
 import { levelShort } from "../../domain/rules";
 
@@ -47,10 +47,15 @@ export const CommissionPage = () => {
   const { openModal } = useModal();
   const { showBanner } = useBanner();
   const [month, setMonth] = useState(currentMonth());
-  const { data: statement, isLoading, error } = useStatement(month, null);
-  const { data: entries = [], isLoading: entriesLoading } = useLedgerEntries(month, permissions.employeeId);
+  const { data: statement, isLoading, error } = useStatement(month, null, !!permissions.employeeId);
+  const { data: entries = [], isLoading: entriesLoading, error: entriesError } = useLedgerEntries(month, permissions.employeeId);
+  // The reserve ratio is a versioned rule (rule_versions.reserve_ratio), so
+  // the label follows the booked amounts instead of a hard-coded "10 %".
+  const reserveRatio = statement ? safeRatio(statement.total.reserve, statement.total.gross) : null;
+  const reserveLabel = reserveRatio ? `Reserve (${formatPercent(reserveRatio)})` : "Reserve";
 
-  const openEntry = (e: LedgerEntry) =>
+  const openEntry = (e: LedgerEntry) => {
+    const entryRatio = safeRatio(e.reserve_amount, e.gross_amount);
     openModal({
       title: "Provisionsbuchung",
       size: "large",
@@ -62,7 +67,7 @@ export const CommissionPage = () => {
             { label: "Punkte", value: <PointsValue value={e.points} /> },
             { label: e.commission_type === "personal" ? "Satz je Punkt" : "Differenzsatz je Punkt", value: formatMoney(e.rate_per_point) },
           ]}
-          formula="Punkte × Satz = Brutto; Reserve = 10 % von Brutto"
+          formula={`Punkte × Satz = Brutto; Reserve = ${entryRatio ? formatPercent(entryRatio) : "Reserve-Satz"} von Brutto`}
           steps={[
             { label: "Brutto", value: <MoneyValue value={e.gross_amount} kind="brutto" /> },
             { label: "Reserve", value: <MoneyValue value={e.reserve_amount} kind="reserve" /> },
@@ -73,6 +78,7 @@ export const CommissionPage = () => {
         />
       ),
     });
+  };
 
   const exportCsv = async () => {
     try {
@@ -114,7 +120,7 @@ export const CommissionPage = () => {
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <KpiTile label="Provision brutto" value={formatMoney(statement.total.gross)} />
-            <KpiTile label="Reserve (10 %)" value={formatMoney(statement.total.reserve)} hint="Einbehalten für Stornos" />
+            <KpiTile label={reserveLabel} value={formatMoney(statement.total.reserve)} hint="Einbehalten für Stornos" />
             <KpiTile label="Nach Reserve" value={formatMoney(statement.total.net)} hint="Vor sonstigen Abzügen" />
             <KpiTile
               label="Zuschuss (genehmigt)"
@@ -157,6 +163,7 @@ export const CommissionPage = () => {
             getRowId={(e) => e.id!}
             caption="Buchungen"
             isLoading={entriesLoading}
+            error={entriesError ? errorText(entriesError) : null}
             emptyMessage="Keine Buchungen in diesem Monat"
             onRowClick={openEntry}
             columns={[

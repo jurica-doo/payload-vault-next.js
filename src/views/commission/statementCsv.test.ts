@@ -9,7 +9,7 @@ describe("statement CSV", () => {
         relationship: "direct", entry_kind: "reversal", points: -10, rate_per_point: 28, gross_amount: -280, reserve_amount: -28, net_after_reserve: -252 } as unknown as LedgerEntry,
     ]);
     const [, row] = csv.split("\r\n");
-    expect(row).toBe("2026-03-01;Anna FA;KV;Differenz;direct;Rückbuchung;-10;28;-280;-28;-252");
+    expect(row).toBe("2026-03-01;Anna FA;KV;Differenz;Direkt;Rückbuchung;-10;28;-280;-28;-252"); // relationship in German
   });
 
   it("guards text cells against formula injection", () => {

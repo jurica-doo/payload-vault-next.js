@@ -22,6 +22,8 @@ export type PerformanceProfile = {
   goals: { month: string; status: string; target: number | null; actual: number }[];
   career: { status: string; target?: string; eligible?: string; required?: string; kv_missing?: string; points_missing?: string };
   prompts: Prompt[];
+  /** True for today's managers of the person (the only ones who may coach). */
+  can_coach: boolean;
   next_review_on: string | null;
 };
 
