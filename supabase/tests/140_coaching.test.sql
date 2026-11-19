@@ -37,7 +37,7 @@ SELECT is((SELECT owner_id FROM public.coaching_actions WHERE title LIKE 'Gespr�
 SELECT throws_ok(format($$SELECT public.rpc_add_coaching_session(%L, %L, 'Zukunft')$$, :'e_fa', app_private.business_today() + 1),
   'P0001', 'date_in_future', 'sessions cannot be in the future');
 SELECT throws_ok(format($$SELECT public.rpc_add_coaching_session(%L, '2026-10-01', 'Ungültige Aktion', NULL, NULL, '[{"title": "x y z", "owner": "boss"}]')$$, :'e_fa'),
-  '22023', 'invalid_payload', 'unknown action owner rejected');
+  '22023', 'invalid_input', 'unknown action owner rejected');
 
 -- ---------- notes ----------
 SELECT public.rpc_add_coaching_note(:'e_fa', 'private_manager', 'Wirkt unsicher bei Einwänden; Rollenspiel anbieten') AS n_priv \gset

@@ -44,7 +44,7 @@ SELECT lives_ok(format($$SELECT public.rpc_set_subsidy(%L, '2026-09-01', 0, 'Kei
 SELECT throws_ok(format($$SELECT public.rpc_set_subsidy(%L, '2025-12-01', 100, 'Vor Eintritt', 'Zuschuss Dezember')$$, :'e_fb'),
   'P0001', 'before_start_date', 'not before the start month');
 SELECT throws_ok(format($$SELECT public.rpc_set_subsidy(%L, '2026-09-01', -5, 'Negativ', 'Rückforderung')$$, :'e_fb'),
-  '23514', NULL, 'negative amounts are not subsidies');
+  '22023', 'invalid_input', 'negative amounts are not subsidies');
 
 -- locked months
 SELECT public.rpc_set_statement_status('2026-08-01', 'reviewed', 'Prüfung August');

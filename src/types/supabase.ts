@@ -3455,13 +3455,17 @@ export type Database = {
       }
       v_goals: {
         Row: {
+          can_review: boolean | null
           created_at: string | null
           current_version: number | null
           draft: Json | null
+          employee_comment: string | null
           employee_id: string | null
           employee_name: string | null
           id: string | null
           last_review_comment: string | null
+          last_review_decision: string | null
+          last_reviewed_at: string | null
           late: boolean | null
           month: string | null
           reviewer_id: string | null

@@ -109,7 +109,10 @@ Deno.serve(async (req: Request) => {
     p_employee_id: employeeId,
   });
   if (issueError) {
-    return json(req, statusForDbError(issueError.code), { error: issueError.message });
+    // Only machine keys leave the function; raw Postgres text stays in the logs.
+    const key = /^[a-z_]+$/.test(issueError.message) ? issueError.message : "unexpected";
+    if (key === "unexpected") console.error("rpc_issue_invite failed:", issueError.message);
+    return json(req, statusForDbError(issueError.code), { error: key });
   }
 
   const email = (issued as { email?: string } | null)?.email;
