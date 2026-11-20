@@ -12,6 +12,9 @@ export type StructureProgress = {
   eligible: string;
   eligible_kv: string;
   cap_applied: boolean;
+  /** The strongest structure: the only one the 50 % clause limits. */
+  strongest?: boolean;
+  kv_cap_applied?: boolean;
 };
 
 /** Shape of rpc_career_progress (see migration 20261026190000). */
@@ -33,6 +36,12 @@ export type CareerProgress =
       eligible_kv: string;
       points_missing: string;
       kv_missing: string;
+      /** Minimum own business (FB 30, TL 60 EP); null when the target has none. */
+      own_required: string | null;
+      own_missing: string;
+      own_ok: boolean;
+      /** Nachhaltigkeitsquote = net ÷ (net + cancelled); ratio null without settled business. */
+      retention: { settled: string; cancelled: string; ratio: string | null; required: string | null; ok: boolean };
       is_ready: boolean;
       window: { start: string; end: string };
       period: { type: "first_personal" | "transition" | "calendar"; start: string; end: string };

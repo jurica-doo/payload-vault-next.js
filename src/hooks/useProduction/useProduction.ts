@@ -74,7 +74,12 @@ export function useProduction(page: number, pageSize: number, producerId: string
   });
   const submit = useMutation({ mutationFn: (id: string) => rpc("rpc_submit_production", { p_id: id }), onSuccess: invalidate });
   const removeDraft = useMutation({ mutationFn: (id: string) => rpc("rpc_delete_production_draft", { p_id: id }), onSuccess: invalidate });
-  const markEligible = useMutation({ mutationFn: (id: string) => rpc("rpc_mark_production_eligible", { p_id: id }), onSuccess: invalidate });
+  /** Confirms the settlement with the policy date (decides level and rate) and the own-contract flag. */
+  const markEligible = useMutation({
+    mutationFn: (a: { id: string; policyDate: string; ownContract: boolean }) =>
+      rpc("rpc_mark_production_eligible", { p_id: a.id, p_policy_date: a.policyDate, p_own_contract: a.ownContract }),
+    onSuccess: invalidate,
+  });
   const cancel = useMutation({
     mutationFn: (a: { id: string; reason: string }) => rpc("rpc_cancel_production", { p_id: a.id, p_reason: a.reason }),
     onSuccess: invalidate,

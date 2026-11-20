@@ -24,6 +24,7 @@ import { useProduction, type ProductionRow } from "../../hooks/useProduction/use
 import { formatDate } from "../../utils/format";
 import { ProductionForm } from "./ProductionForm";
 import { ProductionDetails } from "./ProductionDetails";
+import { SettlementConfirmForm } from "./SettlementConfirmForm";
 
 export const productionStatus: StatusMap<"draft" | "submitted" | "eligible" | "cancelled"> = {
   draft: { label: "Entwurf", tone: "neutral" },
@@ -86,6 +87,22 @@ export const ProductionPage = () => {
 
   const openDetails = (row: ProductionRow) =>
     openModal({ title: `Produktion vom ${formatDate(row.production_date)}`, size: "large", children: <ProductionDetails record={row} /> });
+
+  const openSettlement = (row: ProductionRow) =>
+    openModal({
+      title: "Abrechnung bestätigen",
+      children: (
+        <SettlementConfirmForm
+          productionDate={row.production_date!}
+          onCancel={closeModal}
+          onSubmit={async (policyDate, ownContract) => {
+            await markEligible.mutateAsync({ id: row.id!, policyDate, ownContract });
+            closeModal();
+            showBanner("Abrechnung bestätigt", ownContract ? "Eigenvertrag: Punkte gebucht, keine Provision." : "Punkte und Provision sind gebucht.", "success");
+          }}
+        />
+      ),
+    });
 
   const openCancel = (row: ProductionRow) =>
     openModal({
@@ -211,7 +228,7 @@ export const ProductionPage = () => {
                     <button type="button" className={action} onClick={() => run(() => submit.mutateAsync(r.id!), "Eingereicht.")}>Einreichen</button>
                   )}
                   {r.status === "submitted" && isApprover && (
-                    <button type="button" className={action} onClick={() => run(() => markEligible.mutateAsync(r.id!), "Abrechnung bestätigt.")}>Abrechnung bestätigen</button>
+                    <button type="button" className={action} onClick={() => openSettlement(r)}>Abrechnung bestätigen</button>
                   )}
                   <ActionMenu
                     label="Weitere Aktionen"

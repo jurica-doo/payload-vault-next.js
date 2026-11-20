@@ -43,7 +43,7 @@ export const CareerSimulator = ({ base, target }: { base: ProgressBase; target: 
             {gap.headroom.map((h) => (
               <li key={h.id}>
                 Struktur {h.name ?? h.id}:{" "}
-                {h.remaining === null ? "unbegrenzt" : h.remaining.isZero() ? "Grenze erreicht – weitere Punkte zählen nicht" : `noch ${formatPoints(h.remaining)} P anrechenbar`}
+                {h.remaining === null ? "zählt vollständig" : h.remaining.isZero() ? "Grenze erreicht – weitere Punkte zählen nicht" : `noch ${formatPoints(h.remaining)} P anrechenbar`}
               </li>
             ))}
           </ul>

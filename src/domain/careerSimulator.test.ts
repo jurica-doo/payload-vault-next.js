@@ -32,10 +32,16 @@ describe("simulateCareer", () => {
     expect(after.eligible.toString()).toBe(before.eligible.toString());
   });
 
-  it("adding to a structure below the cap counts up to the cap", () => {
+  it("only the strongest structure is capped: another one counts in full", () => {
     const r = simulateCareer(tl, { structures: { B: { points: 400 } } });
-    // B: 100 + 400 = 500 → capped at 375
-    expect(r.structures.find((s) => s.id === "B")?.eligible.toString()).toBe("375");
+    // B: 100 + 400 = 500, still below A (800) → counts in full
+    expect(r.structures.find((s) => s.id === "B")?.eligible.toString()).toBe("500");
+  });
+
+  it("a structure that overtakes the strongest becomes the capped one", () => {
+    const r = simulateCareer(tl, { structures: { B: { points: 900 } } });
+    // B: 1.000 > A: 800 → B capped at 375, A counts 800
+    expect(r.structures.map((s) => [s.id, s.eligible.toString()])).toEqual([["B", "375"], ["A", "800"]]);
   });
 
   it("personal additions are never capped", () => {
@@ -47,14 +53,14 @@ describe("simulateCareer", () => {
 describe("careerGap", () => {
   it("shows missing points and KV", () => {
     const g = careerGap(tl);
-    // eligible = 100 + 375 + 100 = 575 → 175 missing; KV = 0 + 80×375/800 + 10 = 47.5 → 27.5 missing
+    // eligible = 100 + 375 + 100 = 575 → 175 missing; KV = 0 + min(80, 75 × 50 %) + 10 = 47.5 → 27.5 missing
     expect(g.pointsMissing.toString()).toBe("175");
     expect(g.kvMissing.toString()).toBe("27.5");
   });
 
-  it("shows where structure points can still count", () => {
+  it("shows where structure points can still count (only the strongest structure is limited)", () => {
     const g = careerGap(tl);
-    expect(g.headroom.map((h) => [h.id, h.remaining?.toString()])).toEqual([["A", "0"], ["B", "275"]]);
+    expect(g.headroom.map((h) => [h.id, h.remaining?.toString()])).toEqual([["A", "0"], ["B", undefined]]);
   });
 
   it("has no headroom limit below OL (no cap)", () => {

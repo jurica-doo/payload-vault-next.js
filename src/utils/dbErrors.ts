@@ -69,7 +69,9 @@ const MESSAGES: Record<string, string> = {
   period_locked: "Der Monat ist freigegeben oder ausgezahlt und kann nicht mehr geändert werden.",
   subsidy_above_maximum: "Über dem Höchstbetrag der Stufe, bei FA oder Teilzeit nur mit Ausnahme-Begründung.",
   producer_without_level: "Für die Person ist keine Karrierestufe hinterlegt.",
-  level_without_rate: "Für die Karrierestufe gibt es zum Produktionsdatum keinen Provisionssatz im Regelwerk.",
+  level_without_rate: "Für die Karrierestufe gibt es zum Policierungsdatum keinen Provisionssatz im Regelwerk.",
+  policy_date_in_future: "Das Policierungsdatum darf nicht in der Zukunft liegen.",
+  policy_before_production: "Das Policierungsdatum darf nicht vor dem Produktionsdatum liegen.",
   level_not_in_rules: "Diese Stufe gibt es im Regelwerk zum gewählten Datum nicht.",
 
   // goals

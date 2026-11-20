@@ -191,6 +191,7 @@ const LevelTable = ({ rows }: { rows: LevelRow[] }) => (
         <tr className="border-b border-color-border-light">
           <th className={th}>Stufe</th><th className={th}>Satz/P</th><th className={th}>Max. Zuschuss</th>
           <th className={th}>Schwelle</th><th className={th}>KV-Anteil</th><th className={th}>Strukturgrenze</th>
+          <th className={th}>Eigenumsatz</th><th className={th}>Nachhaltigkeit</th>
         </tr>
       </thead>
       <tbody>
@@ -202,6 +203,8 @@ const LevelTable = ({ rows }: { rows: LevelRow[] }) => (
             <td className={td}>{r.appointed_only ? "Ernennung" : `${formatPoints(r.threshold_points, 0)} P`}</td>
             <td className={td}>{formatPercent(r.kv_min_ratio)}</td>
             <td className={td}>{r.structure_cap_ratio === null ? "–" : formatPercent(r.structure_cap_ratio)}</td>
+            <td className={td}>{r.own_min_points === null ? "–" : `${formatPoints(r.own_min_points, 0)} P`}</td>
+            <td className={td}>{r.min_retention_ratio === null ? "–" : `≥ ${formatPercent(r.min_retention_ratio)}`}</td>
           </tr>
         ))}
       </tbody>
@@ -264,7 +267,7 @@ const LevelDraftEditor = ({
   activeRows: LevelRow[];
   canWrite: boolean;
 }) => {
-  const { updateLevel } = useRuleAdmin();
+  const { updateLevel, updateRequirements } = useRuleAdmin();
   const { showBanner } = useBanner();
   const [edits, setEdits] = useState<Record<string, Record<string, string>>>({});
   const value = (r: LevelRow, field: keyof LevelRow) =>
@@ -280,9 +283,12 @@ const LevelDraftEditor = ({
       threshold_points: fromInput(value(r, "threshold_points")) ?? r.threshold_points,
       kv_min_ratio: fromInput(value(r, "kv_min_ratio")) ?? r.kv_min_ratio,
       structure_cap_ratio: fromInput(value(r, "structure_cap_ratio")),
+      own_min_points: fromInput(value(r, "own_min_points")),
+      min_retention_ratio: fromInput(value(r, "min_retention_ratio")),
     };
     try {
       await updateLevel.mutateAsync({ versionId: draftId, row: next });
+      await updateRequirements.mutateAsync({ versionId: draftId, row: next });
       setEdits((e) => ({ ...e, [r.code]: {} }));
     } catch (e) {
       showBanner("Nicht gespeichert", errorText(e), "error");
@@ -294,13 +300,15 @@ const LevelDraftEditor = ({
       {rows.map((r) => {
         const a = activeRows.find((x) => x.code === r.code);
         return (
-          <fieldset key={r.id} className="grid grid-cols-2 gap-2 border-b border-color-border-light pb-3 sm:grid-cols-6 sm:items-end">
+          <fieldset key={r.id} className="grid grid-cols-2 gap-2 border-b border-color-border-light pb-3 sm:grid-cols-4 lg:grid-cols-8 sm:items-end">
             <legend className="col-span-full text-sm font-semibold">{levelShort(r.code)} – {r.name_de}</legend>
             <div className={mark(changed(r.point_rate, a?.point_rate))}><DecimalInput label="Satz/P" suffix="€" value={value(r, "point_rate")} onChange={set(r.code, "point_rate")} isReadOnly={!canWrite} /></div>
             <div className={mark(changed(r.max_subsidy, a?.max_subsidy))}><DecimalInput label="Max. Zuschuss" suffix="€" value={value(r, "max_subsidy")} onChange={set(r.code, "max_subsidy")} isReadOnly={!canWrite} /></div>
             <div className={mark(changed(r.threshold_points, a?.threshold_points))}><DecimalInput label="Schwelle P" value={value(r, "threshold_points")} onChange={set(r.code, "threshold_points")} isReadOnly={!canWrite} /></div>
             <div className={mark(changed(r.kv_min_ratio, a?.kv_min_ratio))}><DecimalInput label="KV-Anteil (0–1)" value={value(r, "kv_min_ratio")} onChange={set(r.code, "kv_min_ratio")} isReadOnly={!canWrite} /></div>
             <div className={mark(changed(r.structure_cap_ratio, a?.structure_cap_ratio))}><DecimalInput label="Strukturgrenze (0–1)" value={value(r, "structure_cap_ratio")} onChange={set(r.code, "structure_cap_ratio")} isReadOnly={!canWrite} /></div>
+            <div className={mark(changed(r.own_min_points, a?.own_min_points))}><DecimalInput label="Eigenumsatz P" value={value(r, "own_min_points")} onChange={set(r.code, "own_min_points")} isReadOnly={!canWrite} /></div>
+            <div className={mark(changed(r.min_retention_ratio, a?.min_retention_ratio))}><DecimalInput label="Nachhaltigkeit (0–1)" value={value(r, "min_retention_ratio")} onChange={set(r.code, "min_retention_ratio")} isReadOnly={!canWrite} /></div>
             <Button text="Speichern" size="small" variant="secondary" onClick={() => save(r)} isDisabled={!canWrite || !edits[r.code] || Object.keys(edits[r.code]).length === 0} />
           </fieldset>
         );

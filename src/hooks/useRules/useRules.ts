@@ -71,6 +71,17 @@ export function useRuleAdmin() {
       }),
     onSuccess: invalidate,
   });
+  /** Own-business minimum and retention rate of a level in a draft. */
+  const updateRequirements = useMutation({
+    mutationFn: (a: { versionId: string; row: LevelRow }) =>
+      rpc("rpc_update_level_requirements_draft", {
+        p_version_id: a.versionId,
+        p_code: a.row.code,
+        p_own_min_points: a.row.own_min_points,
+        p_min_retention_ratio: a.row.min_retention_ratio,
+      }),
+    onSuccess: invalidate,
+  });
   const updateConversion = useMutation({
     mutationFn: (a: { versionId: string; row: ConversionRow; aePerPoint: number | null }) =>
       rpc("rpc_update_conversion_draft", {
@@ -92,5 +103,5 @@ export function useRuleAdmin() {
     onSuccess: invalidate,
   });
 
-  return { ...query, createDraft, updateLevel, updateConversion, publish, deleteDraft };
+  return { ...query, createDraft, updateLevel, updateRequirements, updateConversion, publish, deleteDraft };
 }

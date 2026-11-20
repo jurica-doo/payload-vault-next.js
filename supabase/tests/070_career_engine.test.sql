@@ -42,13 +42,13 @@ SELECT is(pg_temp.rules_str(100, 0.10, NULL, 100, 10, '[]'), '100|10|true|0',
 SELECT is(pg_temp.rules_str(750, 0.10, 0.5, 0, 0, '[{"id":"A","points":"800","kv":"0"}]'), '375|0|false|75',
   'GC-CAREER-003 750 target: one structure with 800 P counts 375 (§4.5/§14.4)');
 SELECT is(pg_temp.rules_str(750, 0.10, 0.5, 100, 0, '[{"id":"A","points":"800","kv":"80"},{"id":"B","points":"300","kv":"40"}]'),
-  '775|77.5|true|0', 'GC-CAREER-004 capped structure keeps its KV share proportionally (OD-03)');
+  '775|77.5|true|0', 'GC-CAREER-004 strongest structure: 375 P and 37,5 KV (half the KV requirement); the other in full (A2 §3d)');
 SELECT is(pg_temp.rules_str(300, 0.10, NULL, 0, 0, '[{"id":"A","points":"800","kv":"30"}]'), '800|30|true|0',
-  'GC-CAREER-005 no cap below OL (OD-04)');
+  'GC-CAREER-005 no cap configured → no cap');
 SELECT is(pg_temp.rules_str(100, 0.10, NULL, -10, -1, '[{"id":"A","points":"-5","kv":"0"}]'), '0|0|false|10',
   'GC-CAREER-006 negative nets (reversals) count as 0');
-SELECT is(pg_temp.rules_str(750, 0.10, 0.5, 0, 0, '[{"id":"A","points":"375","kv":"50"}]'), '375|50|false|25',
-  'GC-CAREER-007 exactly at the cap');
+SELECT is(pg_temp.rules_str(750, 0.10, 0.5, 0, 0, '[{"id":"A","points":"375","kv":"50"}]'), '375|37.5|false|37.5',
+  'GC-CAREER-007 exactly at the cap; KV from the strongest structure counts at most half the KV requirement (A2 §3d)');
 SELECT is((app_private.apply_career_rules(750, 0.10, 0.5, 0, 0, '[{"id":"A","points":"375","kv":"50"}]') -> 'structures' -> 0 ->> 'cap_applied'),
   'false', 'exactly at the cap is not "capped"');
 

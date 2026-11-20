@@ -83,6 +83,11 @@ test("Finanzen bestätigt eingereichte Produktion (Strom → 0 P, abgerechnet)",
   const strom = rowWith(page, "Punkte, Paula", "STROM");
   await expect(strom).toContainText("Eingereicht");
   await strom.getByRole("button", { name: "Abrechnung bestätigen" }).click();
+  // The dialog asks for the policy date (prefilled) and the own-contract flag.
+  const confirm = page.getByRole("dialog", { name: "Abrechnung bestätigen" });
+  await expect(confirm.getByLabel("Policierungsdatum")).not.toHaveValue("");
+  await confirm.getByRole("button", { name: "Abrechnung bestätigen" }).click();
+  await expect(confirm).toBeHidden();
   await expect(strom).toContainText("Abgerechnet");
 });
 

@@ -7,7 +7,6 @@ import { useState } from "react";
 import { EmptyState } from "../../components/emptyState/EmptyState";
 import { EmployeePicker } from "../../components/employeePicker/EmployeePicker";
 import { ProgressMeter } from "../../components/progressMeter/ProgressMeter";
-import { ProvisionalRuleNotice } from "../../components/provisionalRuleNotice/ProvisionalRuleNotice";
 import { StatusBadge } from "../../components/statusBadge/StatusBadge";
 import { PointsValue } from "../../components/values/Values";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
@@ -15,7 +14,7 @@ import { useStructure } from "../../hooks/useStructure/useStructure";
 import { useCareerProgress, type CareerProgress } from "../../hooks/useCareer/useCareer";
 import { PERIOD_LABELS } from "../../domain/careerPeriods";
 import { levelName, levelShort } from "../../domain/rules";
-import { formatDate } from "../../utils/format";
+import { formatDate, formatPercent, formatPoints } from "../../utils/format";
 import { CareerSimulator } from "./CareerSimulator";
 
 // Period end is exclusive in the database; people think in "last day".
@@ -79,7 +78,10 @@ const ProgressView = ({ progress }: { progress: CareerProgress }) => {
   }
 
   const p = progress;
-  const windowStartsLater = p.window.start !== p.period.start;
+  // Earlier: the rest of the calendar year counts from 1 January; later: a level change restarted the count.
+  const windowNote =
+    p.window.start < p.period.start ? "ganzes Kalenderjahr" : p.window.start > p.period.start ? "Stufenwechsel" : null;
+  const retention = p.retention;
 
   return (
     <div className="flex flex-col gap-4">
@@ -98,7 +100,7 @@ const ProgressView = ({ progress }: { progress: CareerProgress }) => {
 
         <p className="text-sm">
           {PERIOD_LABELS[p.period.type]}: {formatDate(p.period.start)} – {lastDay(p.period.end)}
-          {windowStartsLater && <> · gezählt ab {formatDate(p.window.start)} (Stufenwechsel)</>}
+          {windowNote && <> · gezählt ab {formatDate(p.window.start)} ({windowNote})</>}
         </p>
 
         <ProgressMeter
@@ -106,13 +108,33 @@ const ProgressView = ({ progress }: { progress: CareerProgress }) => {
           achieved={p.eligible}
           required={p.required}
           expected={p.expected_now ?? undefined}
-          markers={p.cap_value ? [{ value: p.cap_value, label: "Höchstens anrechenbar je Struktur" }] : []}
+          markers={p.cap_value ? [{ value: p.cap_value, label: "Höchstens anrechenbar aus der stärksten Struktur" }] : []}
         />
         <ProgressMeter label="davon KV-Punkte" achieved={p.eligible_kv} required={p.kv_required} unit="KV-P" />
+        {p.own_required !== null && p.own_required !== undefined && (
+          <ProgressMeter label="davon eigene Produktion" achieved={p.personal.points} required={p.own_required} />
+        )}
+        {retention && (
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+            <span>
+              Nachhaltigkeitsquote:{" "}
+              <span className="font-semibold tabular">{retention.ratio === null ? "–" : formatPercent(retention.ratio, 1)}</span>
+              {retention.required !== null && <> (mindestens {formatPercent(retention.required)})</>}
+              {Number(retention.cancelled) > 0 && (
+                <span className="text-color-text-subtle"> · {formatPoints(retention.cancelled)} P storniert</span>
+              )}
+            </span>
+            <StatusBadge
+              status={retention.ok ? "ok" : "low"}
+              map={{ ok: { label: "erfüllt", tone: "success" }, low: { label: "zu niedrig", tone: "error" } }}
+            />
+          </div>
+        )}
 
         <p className="text-xs text-color-text-subtle">
-          Es zählen nur abgerechnete Verträge mit Produktionsdatum im Zeitraum. Strukturproduktion wird der Struktur zugerechnet,
-          zu der die Person am Produktionsdatum gehörte.
+          Es zählen nur abgerechnete Verträge mit Produktionsdatum im Zeitraum; stornierte Verträge werden abgezogen.
+          Strukturproduktion wird der Struktur zugerechnet, zu der die Person am Produktionsdatum gehörte. Aus der stärksten
+          Struktur zählt höchstens die Hälfte der Punkte und der KV-Punkte.
         </p>
       </section>
 
@@ -130,16 +152,16 @@ const ProgressView = ({ progress }: { progress: CareerProgress }) => {
             </thead>
             <tbody>
               <tr className="border-b border-color-border-light">
-                <td className="py-2 pr-3">Eigene Produktion</td>
+                <td className="py-2 pr-3 hyphens-none">Eigene Produktion</td>
                 <td className="py-2 pr-3 text-right"><PointsValue value={p.personal.points} /></td>
                 <td className="py-2 pr-3 text-right"><PointsValue value={p.personal.points} /></td>
                 <td className="py-2 pr-3 text-right"><PointsValue value={p.personal.kv} isKv /></td>
               </tr>
               {p.structures.map((s) => (
                 <tr key={s.id} className="border-b border-color-border-light last:border-0">
-                  <td className="py-2 pr-3">
+                  <td className="py-2 pr-3 hyphens-none">
                     Struktur {s.name}
-                    {s.cap_applied && (
+                    {(s.cap_applied || s.kv_cap_applied) && (
                       <span className="ml-2 rounded-full border border-color-secondary/40 px-2 text-xs text-color-secondary">begrenzt</span>
                     )}
                   </td>
@@ -154,11 +176,6 @@ const ProgressView = ({ progress }: { progress: CareerProgress }) => {
       </section>
 
       <CareerSimulator base={p} target={p.target} />
-
-      <ProvisionalRuleNotice decisionId="OD-02" text="Zeitraumgrenzen, Übergangszeitraum und Neustart der Punkte nach einem Stufenwechsel sind noch nicht von Profina bestätigt." />
-      {p.cap_value && (
-        <ProvisionalRuleNotice decisionId="OD-03/OD-04" text="Strukturbegriff (je direkte Führungslinie) und anteilige KV-Anrechnung bei Begrenzung sind noch nicht bestätigt." />
-      )}
     </div>
   );
 };

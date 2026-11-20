@@ -255,7 +255,9 @@ export type Database = {
           id: string
           kv_min_ratio: number
           max_subsidy: number | null
+          min_retention_ratio: number | null
           name_de: string
+          own_min_points: number | null
           point_rate: number
           rank: number
           rule_version_id: string
@@ -268,7 +270,9 @@ export type Database = {
           id?: string
           kv_min_ratio?: number
           max_subsidy?: number | null
+          min_retention_ratio?: number | null
           name_de: string
+          own_min_points?: number | null
           point_rate: number
           rank: number
           rule_version_id: string
@@ -281,7 +285,9 @@ export type Database = {
           id?: string
           kv_min_ratio?: number
           max_subsidy?: number | null
+          min_retention_ratio?: number | null
           name_de?: string
+          own_min_points?: number | null
           point_rate?: number
           rank?: number
           rule_version_id?: string
@@ -2819,6 +2825,7 @@ export type Database = {
       product_categories: {
         Row: {
           active: boolean
+          cancellation_liability_months: number
           code: string
           is_kv: boolean
           name_de: string
@@ -2826,6 +2833,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          cancellation_liability_months?: number
           code: string
           is_kv?: boolean
           name_de: string
@@ -2833,6 +2841,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          cancellation_liability_months?: number
           code?: string
           is_kv?: boolean
           name_de?: string
@@ -2852,6 +2861,8 @@ export type Database = {
           import_batch_id: string | null
           net_or_gross: string | null
           notes: string | null
+          own_contract: boolean
+          policy_date: string | null
           premium_amount: number
           premium_period: string
           producer_id: string
@@ -2875,6 +2886,8 @@ export type Database = {
           import_batch_id?: string | null
           net_or_gross?: string | null
           notes?: string | null
+          own_contract?: boolean
+          policy_date?: string | null
           premium_amount: number
           premium_period: string
           producer_id: string
@@ -2898,6 +2911,8 @@ export type Database = {
           import_batch_id?: string | null
           net_or_gross?: string | null
           notes?: string | null
+          own_contract?: boolean
+          policy_date?: string | null
           premium_amount?: number
           premium_period?: string
           producer_id?: string
@@ -3009,6 +3024,7 @@ export type Database = {
       }
       statement_periods: {
         Row: {
+          approved_at: string | null
           created_at: string
           id: string
           period_month: string
@@ -3017,6 +3033,7 @@ export type Database = {
           status_changed_by: string | null
         }
         Insert: {
+          approved_at?: string | null
           created_at?: string
           id?: string
           period_month: string
@@ -3025,6 +3042,7 @@ export type Database = {
           status_changed_by?: string | null
         }
         Update: {
+          approved_at?: string | null
           created_at?: string
           id?: string
           period_month?: string
@@ -3504,7 +3522,9 @@ export type Database = {
           kv_points: number | null
           net_or_gross: string | null
           notes: string | null
+          own_contract: boolean | null
           points: number | null
+          policy_date: string | null
           premium_amount: number | null
           premium_period: string | null
           producer_first_name: string | null
@@ -3822,7 +3842,7 @@ export type Database = {
         Returns: number
       }
       rpc_mark_production_eligible: {
-        Args: { p_id: string }
+        Args: { p_id: string; p_own_contract?: boolean; p_policy_date?: string }
         Returns: undefined
       }
       rpc_may_contact: {
@@ -4190,6 +4210,15 @@ export type Database = {
           p_point_rate: number
           p_structure_cap_ratio: number
           p_threshold_points: number
+          p_version_id: string
+        }
+        Returns: undefined
+      }
+      rpc_update_level_requirements_draft: {
+        Args: {
+          p_code: string
+          p_min_retention_ratio: number
+          p_own_min_points: number
           p_version_id: string
         }
         Returns: undefined

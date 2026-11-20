@@ -61,6 +61,8 @@ export const ProductionDetails = ({ record }: { record: ProductionRow }) => {
             { label: "Beitrag", value: <MoneyValue value={d.inputs?.premium} /> },
             ...(d.term_used ? [{ label: "Laufzeit (gerechnet)", value: `${d.term_used} Jahre`, note: d.term_capped ? "auf Höchstlaufzeit begrenzt" : undefined }] : []),
             { label: "Produktionsdatum", value: formatDate(record.production_date) },
+            ...(record.policy_date ? [{ label: "Policierungsdatum", value: formatDate(record.policy_date) }] : []),
+            ...(record.own_contract ? [{ label: "Eigenvertrag", value: "ja – keine Provision" }] : []),
           ]}
           formula={d.formula}
           steps={[

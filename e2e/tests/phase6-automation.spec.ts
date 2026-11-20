@@ -101,6 +101,8 @@ test.describe("Oberfläche", () => {
     await page.getByLabel("E-Mail-Adresse sperren").fill(email);
     await pick(page, "Grund", "Beschwerde");
     await page.getByRole("button", { name: "Sperren", exact: true }).click();
+    // Search only after the block is saved; under load the search could run first.
+    await expect(page.getByText("Adresse gesperrt")).toBeVisible();
     await page.getByRole("searchbox").fill(`ui-${RUN}`);
     const row = page.locator("li", { hasText: email });
     await expect(row.getByText(/Beschwerde/)).toBeVisible();

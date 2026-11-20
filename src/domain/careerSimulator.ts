@@ -17,6 +17,8 @@ export type ProgressBase = {
   cap_value: NumericInput | null;
   personal: { points: NumericInput; kv: NumericInput };
   structures: { id: string; name?: string; gross: NumericInput; gross_kv: NumericInput }[];
+  own_required?: NumericInput | null;
+  retention?: { cancelled: NumericInput; required: NumericInput | null } | null;
 };
 
 export type Additions = {
@@ -52,13 +54,16 @@ export function simulateCareer(base: ProgressBase, add: Additions = {}): Qualifi
       points: d(s.gross).plus(d(add.structures?.[s.id]?.points)).plus(d(add.structures?.[s.id]?.kv)),
       kv: d(s.gross_kv).plus(d(add.structures?.[s.id]?.kv)),
     })),
+    ownMin: base.own_required ?? null,
+    cancelled: base.retention?.cancelled ?? 0,
+    minRetention: base.retention?.required ?? null,
   });
 }
 
 export type Gap = {
   pointsMissing: Decimal;
   kvMissing: Decimal;
-  /** Points a structure can still contribute before hitting the cap (null = no cap). */
+  /** Points a structure can still contribute before hitting the cap (null = no cap; only the strongest structure is capped). */
   headroom: { id: string; name?: string; remaining: Decimal | null }[];
   /** Personal production is never capped (§4.5). */
   personalUnlimited: true;
@@ -71,11 +76,10 @@ export function careerGap(base: ProgressBase): Gap {
   return {
     pointsMissing: now.pointsMissing,
     kvMissing: now.kvMissing,
-    headroom: base.structures.map((s) => ({
-      id: s.id,
-      name: s.name,
-      remaining: cap === null ? null : Decimal.max(cap.minus(d(s.gross)), 0),
-    })),
+    headroom: base.structures.map((s) => {
+      const strongest = now.structures[0]?.strongest && now.structures[0].id === s.id;
+      return { id: s.id, name: s.name, remaining: cap === null || !strongest ? null : Decimal.max(cap.minus(d(s.gross)), 0) };
+    }),
     personalUnlimited: true,
   };
 }

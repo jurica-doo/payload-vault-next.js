@@ -37,8 +37,8 @@ const NEXT_STEPS: Record<string, { status: string; label: string }[]> = {
 const EXCEPTION_TEXT: Record<string, string> = {
   producer_without_level: "Produzent ohne Karrierestufe",
   ancestor_without_level: "Führungskraft in der Kette ohne Stufe",
-  no_rules_for_date: "Keine Regeln für das Produktionsdatum",
-  level_without_rate: "Stufe ohne Provisionssatz am Produktionsdatum",
+  no_rules_for_date: "Keine Regeln für das Policierungsdatum",
+  level_without_rate: "Stufe ohne Provisionssatz am Policierungsdatum",
 };
 
 /** Finance drill-down (§5.4): one recipient's bookings of the month. */

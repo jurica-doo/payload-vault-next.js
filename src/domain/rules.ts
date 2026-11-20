@@ -45,6 +45,10 @@ export type CareerLevel = {
   structureCapRatio: Decimal | null;
   /** Reached only by appointment (VD+, GM); never a qualification target. */
   appointedOnly: boolean;
+  /** Minimum own business in EP (FB 30, TL 60), null = none. */
+  ownMinPoints: Decimal | null;
+  /** Minimum Nachhaltigkeitsquote (0.90), null = none. */
+  minRetentionRatio: Decimal | null;
 };
 
 export type ConversionRule = {
@@ -106,6 +110,8 @@ export function parseRules(payload: unknown): RulesSnapshot {
             kvMinRatio: dec(r.kv_min_ratio),
             structureCapRatio: decOrNull(r.structure_cap_ratio),
             appointedOnly: r.appointed_only === true,
+            ownMinPoints: decOrNull(r.own_min_points),
+            minRetentionRatio: decOrNull(r.min_retention_ratio),
           })),
         }
       : null,

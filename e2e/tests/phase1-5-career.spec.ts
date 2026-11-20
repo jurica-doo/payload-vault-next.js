@@ -91,6 +91,9 @@ test("§14.4: Fritz ergänzt KV 84 € → nach Bestätigung qualifiziert", asyn
   await financePage.goto("/vertrieb/produktion");
   const row = financePage.getByRole("row").filter({ hasText: "Fleißig, Fritz" }).filter({ hasText: "84,00" });
   await row.getByRole("button", { name: "Abrechnung bestätigen" }).click();
+  const confirm = financePage.getByRole("dialog", { name: "Abrechnung bestätigen" });
+  await confirm.getByRole("button", { name: "Abrechnung bestätigen" }).click();
+  await expect(confirm).toBeHidden();
   await expect(row).toContainText("Abgerechnet");
 
   await fritzPage.goto("/vertrieb/karriere");

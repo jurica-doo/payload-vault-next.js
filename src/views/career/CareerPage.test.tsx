@@ -30,6 +30,10 @@ const tlTowardsOl = {
   eligible_kv: "77.5000",
   points_missing: "0",
   kv_missing: "0",
+  own_required: null,
+  own_missing: "0",
+  own_ok: true,
+  retention: { settled: "1210", cancelled: "10", ratio: "0.9917", required: "0.9000", ok: true },
   is_ready: true,
   window: { start: "2026-05-01", end: "2027-01-01" },
   period: { type: "first_personal", start: "2026-01-01", end: "2027-01-01" },
@@ -58,18 +62,34 @@ describe("CareerPage", () => {
     expect(screen.getByText(/Struktur Tara Team/, { selector: "td" }).closest("tr")).not.toHaveTextContent("begrenzt");
   });
 
-  it("names the provisional decisions behind the numbers", () => {
+  it("shows the retention rate and no provisional notices (rules confirmed by Profina)", () => {
     render(<CareerPage />);
-    const notes = screen.getAllByRole("note").map((n) => n.textContent);
-    expect(notes.some((t) => t?.includes("OD-02"))).toBe(true);
-    expect(notes.some((t) => t?.includes("OD-03/OD-04"))).toBe(true);
+    expect(screen.getByText(/Nachhaltigkeitsquote/)).toHaveTextContent("99,2 %");
+    expect(screen.getByText(/Nachhaltigkeitsquote/)).toHaveTextContent("10,00 P storniert");
+    expect(screen.getByText("erfüllt")).toBeInTheDocument();
+    expect(screen.queryByText(/OD-0/)).not.toBeInTheDocument();
+  });
+
+  it("shows the own-business minimum when the target asks for it", () => {
+    state.progress = { ...tlTowardsOl, target: "TL", required: "300", own_required: "60", own_missing: "40", own_ok: false,
+      personal: { points: "20", kv: "0" }, is_ready: false };
+    render(<CareerPage />);
+    expect(screen.getByText("davon eigene Produktion")).toBeInTheDocument();
+  });
+
+  it("explains a window that starts on 1 January after the personal year", () => {
+    state.progress = { ...tlTowardsOl, period: { type: "transition", start: "2027-11-01", end: "2028-01-01" },
+      window: { start: "2027-01-01", end: "2028-01-01" } };
+    render(<CareerPage />);
+    expect(screen.getByText(/gezählt ab 01\.01\.2027 \(ganzes Kalenderjahr\)/)).toBeInTheDocument();
   });
 
   it("offers a simulation with the remaining gap and structure headroom", () => {
     render(<CareerPage />);
     expect(screen.getByText("Schätzung – wird nicht gespeichert")).toBeInTheDocument();
     expect(screen.getByText(/Struktur Fritz Berater: Grenze erreicht/)).toBeInTheDocument();
-    expect(screen.getByText(/Struktur Tara Team: noch 75,00 P anrechenbar/)).toBeInTheDocument();
+    // Only the strongest structure is limited (Profina 2026-11).
+    expect(screen.getByText(/Struktur Tara Team: zählt vollständig/)).toBeInTheDocument();
     expect(screen.getByText(/wäre die Qualifikation für OL erreicht/)).toBeInTheDocument();
   });
 

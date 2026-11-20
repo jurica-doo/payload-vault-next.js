@@ -34,6 +34,19 @@ export function useStatement(month: string, employeeId: string | null, enabled =
   });
 }
 
+/** When finance approved (made available) the month's statements; null while open. */
+export function useStatementApproval(month: string, enabled = true) {
+  return useQuery({
+    queryKey: ["statementPeriod", "approval", month],
+    enabled,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("statement_periods").select("approved_at").eq("period_month", month).maybeSingle();
+      if (error) throwDbError(error);
+      return data?.approved_at ?? null;
+    },
+  });
+}
+
 /** Ledger entries of a recipient in a month (RLS/view rule applies). */
 export function useLedgerEntries(month: string, recipientId: string | null) {
   return useQuery({

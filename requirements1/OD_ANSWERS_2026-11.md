@@ -10,6 +10,32 @@ References: **A1** = Anlage 1, **A2** = Anlage 2, **Ziff.** = clause of the cont
 
 Legend: ✅ answered · ◐ partly answered · ⏳ not covered by the documents.
 
+## 0. Final answers (Profina, 2026-11-20) — these override the contract reading below
+
+Profina answered the follow-up questions (section 5). Where they differ from the reading of the contract in sections 1–4,
+**this section wins**. Built in migration `20261101170000_profina_final_rules.sql` (pgTAP `330`, golden GC-PERIOD-006,
+GC-CAREER-007…012).
+
+| Topic | Final answer | Built |
+|---|---|---|
+| Commission rates (OD-05) | **€ per EP per level stays**: FA 28, FB 56, TL 70, OL 92, DL 112, RL 132, VD 144 €. VD+ and GM: set by the management. The product rates of Anlage 1 stay as they are (no % per line in the system). | Unchanged rate-compression engine (differential = rate difference). OD-05 notices removed. VD+/GM carry VD's 144 € until the management enters their rate in a levels draft at `/admin/regeln`. |
+| Career periods (OD-01, OD-02) | **Personal year** of 12 months from the start date, then **calendar years**. Example: start 01.11.2026 → personal year to 01.11.2027 → from then the points from **01.01.2027** count → on 01.01.2028 a new year starts and 2027 no longer counts. **No rolling 12-month window.** | `app_private.period_count_from`: the period after the personal year counts from 1 January of that year. Restart after a promotion unchanged. The confirmation year (80 %) from Anlage 2 is **not** adopted (not in the final list). |
+| Contract types | Tippgeber- and Handelsvertretervertrag follow the **same rules**. | One implementation for both. |
+| Cancellation liability, reserve, clawback (OD-10) | 5 years unless a product or company says otherwise; reserve at least 10 % of advanced commission; clawback possible on cancellation, premium reduction, non-payment. | `product_categories.cancellation_liability_months` (default 60): a cancellation after it reverses nothing. Within it: full reversal (as before). Reserve 10 % of every amount; release stays a finance action. |
+| Own contracts | No commission when the agent is policyholder or insured person. | `production_records.own_contract`, set at „Abrechnung bestätigen“; EP still count for the career (not excluded). |
+| Statements | Monthly when there is a booking; objection within 8 weeks; debit balance within 10 days. | Monthly statements as before; `statement_periods.approved_at`; the statement page shows both deadlines (`src/domain/statementDeadlines.ts`). |
+| Level date (OD-12) | **Policierungsdatum** decides the level (not submission, not the insurer's settlement). New rates from the **month after** a promotion or demotion. | `production_records.policy_date`, entered at „Abrechnung bestätigen“ (prefilled with the production date). `app_private.commission_level_at`: initial level from its date, every later change from the 1st of the next month. Rules version and structure also on the policy date. |
+| Promotion rules (OD-03, OD-04, OD-15) | Thresholds FB 100 (30 own), TL 300 (60 own), OL 750, DL 1.500, RL 4.000, VD 9.000; VD+/GM by appointment; 1 EP = 28 AE; only net settled AE; cancellations deducted; own + structure; strongest structure at most 50 %; at least 10 % KV; retention rate at least 90 %; automatic check, manual appointment of VD+/GM. | `own_min_points` (FB 30, TL 60), `min_retention_ratio` 0.90; 50 % clause on the **strongest** structure only (points, and half of the KV requirement as in A2 §3d); Nachhaltigkeitsquote = net ÷ (net + cancelled) of the counted business. Qualification is checked automatically; promotion stays an admin approval from the "ready" queue; VD+/GM through "Stufe setzen". |
+| Subsidies (OD-09) | Stay as they are (existing rules and separate agreements). | Unchanged. |
+
+Still open after the final answers:
+- Kfz and Rechtsschutz create EP since 01.11.2026 but **book no commission per EP** (Anlage 1 pays them only as
+  recurring commission). Confirm with Profina whether EP × level rate should apply to them too (one switch per line:
+  `conversion_rules.pays_commission`).
+- Own contracts: confirm that their EP count for the career.
+- VD+ and GM: the management enters their rate in the rules.
+- OD-11, OD-13, OD-14, OD-16, OD-17, OD-19 (not part of these answers).
+
 ## 1. Verdicts
 
 | OD | Status | What the documents say | Built model | Action |
@@ -89,7 +115,11 @@ Rules version **„Stand 01.11.2026“** (migration `20261101140000_rules_profin
 - levels VD+ (`VDP`) and GM (`appointed_only`; no automatic target, rate = VD's, provisional)
 - the eligible status reads „Abgerechnet“; the notices for OD-06/07/08 are gone
 
-## 4. Engine phases still to build
+## 4. Engine phases (superseded by section 0)
+
+E1 (rolling window) was rejected by Profina; E2 and the parts of E3 Profina confirmed are built (section 0); the % per line commission engine is not needed.
+
+### Original plan
 
 | Phase | Content |
 |---|---|

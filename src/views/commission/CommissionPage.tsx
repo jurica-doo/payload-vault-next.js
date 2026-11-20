@@ -8,14 +8,15 @@ import { Button } from "../../components/button/Button";
 import { DataTable } from "../../components/dataTable/DataTable";
 import { KpiTile } from "../../components/kpiTile/KpiTile";
 import { CalculationBreakdown } from "../../components/calculationBreakdown/CalculationBreakdown";
-import { ProvisionalRuleNotice } from "../../components/provisionalRuleNotice/ProvisionalRuleNotice";
 import { StatusBadge, type StatusMap } from "../../components/statusBadge/StatusBadge";
 import { EmptyState } from "../../components/emptyState/EmptyState";
 import { MoneyValue, PointsValue } from "../../components/values/Values";
 import { useModal } from "../../context/modal/ModalContext";
 import { useBanner } from "../../context/banner/BannerContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
-import { logExport, useLedgerEntries, useStatement, type LedgerEntry } from "../../hooks/useCommission/useCommission";
+import { logExport, useLedgerEntries, useStatement, useStatementApproval, type LedgerEntry } from "../../hooks/useCommission/useCommission";
+import { statementDeadlines } from "../../domain/statementDeadlines";
+import { Notice } from "../../components/notice/Notice";
 import { downloadCsv } from "../../utils/csvExport";
 import { formatDate, formatMoney, formatPercent, safeRatio } from "../../utils/format";
 import { ledgerCsv } from "./statementCsv";
@@ -49,6 +50,8 @@ export const CommissionPage = () => {
   const [month, setMonth] = useState(currentMonth());
   const { data: statement, isLoading, error } = useStatement(month, null, !!permissions.employeeId);
   const { data: entries = [], isLoading: entriesLoading, error: entriesError } = useLedgerEntries(month, permissions.employeeId);
+  const { data: approvedAt } = useStatementApproval(month, !!permissions.employeeId);
+  const deadlines = approvedAt ? statementDeadlines(approvedAt) : null;
   // The reserve ratio is a versioned rule (rule_versions.reserve_ratio), so
   // the label follows the booked amounts instead of a hard-coded "10 %".
   const reserveRatio = statement ? safeRatio(statement.total.reserve, statement.total.gross) : null;
@@ -63,7 +66,7 @@ export const CommissionPage = () => {
         <CalculationBreakdown
           inputs={[
             { label: "Produktion", value: `${formatDate(e.production_date)} · ${e.category_code} · ${e.producer_name}` },
-            { label: "Stufen am Produktionsdatum", value: `${levelShort(e.producer_level)} → ${levelShort(e.recipient_level)}` },
+            { label: "Stufen zum Policierungsdatum", value: `${levelShort(e.producer_level)} → ${levelShort(e.recipient_level)}` },
             { label: "Punkte", value: <PointsValue value={e.points} /> },
             { label: e.commission_type === "personal" ? "Satz je Punkt" : "Differenzsatz je Punkt", value: formatMoney(e.rate_per_point) },
           ]}
@@ -74,7 +77,6 @@ export const CommissionPage = () => {
           ]}
           result={{ label: "Nach Reserve", value: <MoneyValue value={e.net_after_reserve} kind="nachReserve" /> }}
           ruleVersion={e.entry_kind === "reversal" ? "Rückbuchung (Storno oder Korrektur)" : undefined}
-          provisionalNotice={e.commission_type === "differential" ? <ProvisionalRuleNotice decisionId="OD-05" /> : undefined}
         />
       ),
     });
@@ -129,6 +131,19 @@ export const CommissionPage = () => {
             />
           </div>
 
+          {deadlines && (
+            <div className="flex flex-col gap-2">
+              <Notice title={`Abrechnung bereitgestellt am ${formatDate(deadlines.availableOn)}.`}>
+                Einwände sind bis {formatDate(deadlines.objectionUntil)} möglich (8 Wochen); danach gilt die Abrechnung als anerkannt.
+              </Notice>
+              {Number(statement.total.net) < 0 && (
+                <Notice tone="warning" title="Sollsaldo.">
+                  Bitte gleichen Sie {formatMoney(-Number(statement.total.net))} bis {formatDate(deadlines.debitDue)} aus (10 Tage).
+                </Notice>
+              )}
+            </div>
+          )}
+
           <section className="ui-card p-4 sm:p-5">
             <table className="w-full text-sm">
               <thead>
@@ -176,7 +191,11 @@ export const CommissionPage = () => {
             ]}
           />
 
-          <ProvisionalRuleNotice decisionId="OD-05/OD-10" text="Differenzprovision nach Satzdifferenz (Stufenkette) und Reserve ohne automatische Freigabe sind noch nicht von Profina bestätigt." />
+          <p className="text-xs text-color-text-subtle">
+            Provision je Punkt nach Karrierestufe zum Policierungsdatum; neue Sätze gelten ab dem Monat nach einem Stufenwechsel.
+            Die Stornoreserve (mindestens 10 %) wird einbehalten und von der Finanzabteilung freigegeben. Für Eigenverträge wird keine
+            Provision gezahlt.
+          </p>
         </>
       )}
     </div>

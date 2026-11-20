@@ -42,8 +42,18 @@ export function periodPlan(start: string, until: string): PlannedPeriod[] {
   return plan;
 }
 
+/**
+ * First day whose business counts in a period (mirror of
+ * app_private.period_count_from). After the personal year the rest of that
+ * calendar year counts from 1 January (Profina, 2026-11): start 01.11.2026 →
+ * from 01.11.2027 the points from 01.01.2027 count. GC-PERIOD-006.
+ */
+export function periodCountFrom(type: CareerPeriodType, start: string): string {
+  return type === "transition" ? `${start.slice(0, 4)}-01-01` : start;
+}
+
 export const PERIOD_LABELS: Record<CareerPeriodType, string> = {
-  first_personal: "Erstes persönliches Karrierejahr",
-  transition: "Übergangszeitraum",
+  first_personal: "Persönliches Karrierejahr",
+  transition: "Kalenderjahr nach dem persönlichen Jahr",
   calendar: "Kalenderjahr",
 };

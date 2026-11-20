@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({
   perms: { employeeId: "e1", isFinance: false, isAdmin: false, hasMfa: true },
   periodStatus: "open",
+  approvedAt: null as string | null,
 }));
 
 const statement = {
@@ -27,6 +28,7 @@ const m = { mutateAsync: vi.fn(), isPending: false };
 vi.mock("../../hooks/useCommission/useCommission", () => ({
   useStatement: () => ({ data: statement, isLoading: false, error: null }),
   useLedgerEntries: () => ({ data: [], isLoading: false }),
+  useStatementApproval: () => ({ data: state.approvedAt }),
   useFinance: () => ({
     overview: { data: [], isLoading: false, error: null },
     period: { data: state.periodStatus },
@@ -44,6 +46,28 @@ const norm = (s: string | null) => (s ?? "").replace(/\s/g, " ");
 describe("CommissionPage", () => {
   beforeEach(() => {
     state.perms = { employeeId: "e1", isFinance: false, isAdmin: false, hasMfa: true };
+    state.approvedAt = null;
+  });
+
+  it("shows the 8-week objection period once the statement is approved (Ziff. 9)", () => {
+    state.approvedAt = "2026-12-03T09:00:00Z";
+    render(<CommissionPage />);
+    expect(screen.getByText(/Abrechnung bereitgestellt am 03\.12\.2026/)).toBeInTheDocument();
+    expect(screen.getByText(/bis 28\.01\.2027 möglich/)).toBeInTheDocument();
+    expect(screen.queryByText(/Sollsaldo/)).not.toBeInTheDocument();
+  });
+
+  it("asks to settle a debit balance within 10 days (Ziff. 10)", () => {
+    state.approvedAt = "2026-12-03T09:00:00Z";
+    statement.total = { gross: -134, reserve: -13.5, net: -120.5, entries: 1 };
+    render(<CommissionPage />);
+    expect(screen.getByText(/Sollsaldo/).closest("[role=note]")).toHaveTextContent("120,50 € bis 13.12.2026");
+    statement.total = { gross: 840, reserve: 84, net: 756, entries: 2 };
+  });
+
+  it("shows no deadlines while the month is open", () => {
+    render(<CommissionPage />);
+    expect(screen.queryByText(/bereitgestellt/)).not.toBeInTheDocument();
   });
 
   it("shows gross, reserve, after-reserve and subsidy separately (§6.3, §14.2)", () => {
