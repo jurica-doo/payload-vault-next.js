@@ -1,12 +1,12 @@
 "use client";
 
 import { errorText } from "../../utils/dbErrors";
+import { LeadAppointments } from "./LeadAppointments";
 import { SALUTATION_LABEL, type Salutation } from "../../domain/emailTemplate";
 import { DetailLayout, RecordHeader } from "../../components/detailLayout/DetailLayout";
 import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { LoadingState } from "../../components/loadingState/LoadingState";
 import { cardClass } from "../../components/card/card.const";
-import Link from "next/link";
 import { Fragment, useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea, TimeInput } from "../../components/formFields/FormFields";
@@ -18,7 +18,8 @@ import { useBanner } from "../../context/banner/BannerContext";
 import { useModal } from "../../context/modal/ModalContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useStructure } from "../../hooks/useStructure/useStructure";
-import { customerName, customerNo, useCustomer, useCustomerMutations, type Customer } from "../../hooks/useCustomers/useCustomers";
+import { customerName, customerNo, useConsents, useCustomer, useCustomerMutations, type Customer } from "../../hooks/useCustomers/useCustomers";
+import { currentState, type ConsentEvent } from "../../domain/consent";
 import { CHANNEL_LABEL } from "../../domain/leads";
 import { berlinLocalToUtcIso, berlinToday, formatDate, formatDateTime, formatPhone } from "../../utils/format";
 import { ActivityPanel } from "../activities/ActivityPanel";
@@ -52,6 +53,7 @@ const CustomerDetail = ({ customerId }: { customerId: string }) => {
   const { data, isLoading, error, refetch } = useCustomer(customerId);
   const { permissions } = usePermissions();
   const { data: structure } = useStructure();
+  const { data: consentEvents = [] } = useConsents(customerId);
   if (isLoading) return <LoadingState rows={6} />;
   if (error) return <ErrorBlock variant="inline" message="Der Kunde konnte nicht geladen werden." onRetry={() => refetch()} />;
   const c = data?.customer;
@@ -68,6 +70,13 @@ const CustomerDetail = ({ customerId }: { customerId: string }) => {
   const canWork = !c.erased_at && !adminNeedsMfa && (c.owner_id === permissions.employeeId || permissions.isLeader || permissions.isAdmin);
   // Compliance (with 2FA) records objections and withdrawals (P5-PRIV-01).
   const canObject = !c.erased_at && !canWork && permissions.isCompliance && permissions.hasMfa;
+  // No one-tap call/e-mail after an objection to all contact or a withdrawn consent for that channel.
+  const consent = currentState(consentEvents as ConsentEvent[]);
+  const optedOut = consent.get("all")?.action === "opt_out";
+  const contact = c.erased_at ? undefined : {
+    phone: optedOut || consent.get("contact_phone")?.action === "withdrawn" ? null : c.phone,
+    email: optedOut || consent.get("contact_email")?.action === "withdrawn" ? null : c.email,
+  };
 
   return (
     <DetailLayout
@@ -75,6 +84,7 @@ const CustomerDetail = ({ customerId }: { customerId: string }) => {
         <RecordHeader
           title={c.erased_at ? "Gelöscht (pseudonymisiert)" : customerName(c)}
           meta={`${customerNo(c.customer_no)} · ${CUSTOMER_STATUS_LABEL[c.status]}${c.archived_at ? " · archiviert" : ""}`}
+          contact={contact}
         >
           {c.erased_at && <p className="text-sm text-color-text-secondary">Personenbezogene Daten wurden am {formatDate(c.erased_at.slice(0, 10))} gelöscht. Vertrags- und Abrechnungsbezüge bleiben erhalten.</p>}
           {adminNeedsMfa && !c.erased_at && <MfaRequiredNotice />}
@@ -85,11 +95,7 @@ const CustomerDetail = ({ customerId }: { customerId: string }) => {
           <section className={card}>
             <h2 className="text-base font-semibold">Kontakt- und Beratungshistorie</h2>
             <ActivityPanel filter={{ linkedType: "customer", linkedId: c.id }} canLog={canWork} />
-            {c.lead_id && (
-              <p className="text-xs text-color-text-subtle">
-                Frühere Aktivitäten als Lead: <Link href={`/vertrieb/leads/${c.lead_id}`}>zum Lead</Link>
-              </p>
-            )}
+            {c.lead_id && <LeadAppointments leadId={c.lead_id} />}
           </section>
           <ContractsCard customer={c} canWork={canWork} />
           <ServiceCard customer={c} canWork={canWork} />

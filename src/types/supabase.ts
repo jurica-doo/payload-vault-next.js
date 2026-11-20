@@ -3926,6 +3926,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      rpc_reset_employee_mfa: {
+        Args: { p_employee_id: string; p_reason: string }
+        Returns: number
+      }
       rpc_retention_candidates: { Args: never; Returns: Json }
       rpc_retry_commission: {
         Args: { p_calculation_id: string }

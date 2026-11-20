@@ -171,5 +171,15 @@ export function useEmployees() {
     onSuccess: invalidate,
   });
 
-  return { ...query, createEmployee, resendInvite, setActive, setRole, setLevel };
+  /** Removes a lost authenticator and ends the person's sessions (admin with 2FA, not for oneself). */
+  const resetMfa = useMutation({
+    mutationFn: async (args: { employeeId: string; reason: string }) => {
+      const { data, error } = await supabase.rpc("rpc_reset_employee_mfa", { p_employee_id: args.employeeId, p_reason: args.reason });
+      if (error) throwDbError(error);
+      return data as number;
+    },
+    onSuccess: invalidate,
+  });
+
+  return { ...query, createEmployee, resendInvite, setActive, setRole, setLevel, resetMfa };
 }

@@ -25,3 +25,5 @@ export { CameraIcon } from "./CameraIcon";
 export { MoreIcon } from "./MoreIcon";
 export { EditIcon } from "./EditIcon";
 export * from "./LineIcons";
+
+export { PhoneIcon } from "./LineIcons";

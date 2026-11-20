@@ -239,20 +239,23 @@ Fixed:
   „Zuschuss zurücknehmen“ only for a real subsidy; `rpc_create_task` defaults the owner to the caller; old lint
   warnings fixed (search box stale callback, delete icon 800 px).
 
-Still open before go-live:
-- [ ] **Impressum and Datenschutzerklärung contain placeholders** („[First and last name]“, „[Phone number]“ …) and cite
-  § 5 TMG / § 55 RStV (now § 5 DDG / § 18 MStV). The privacy policy covers only the vault: add the CRM (clients, leads),
-  receipt AI (Google Gemini, third country), the e-mail provider and hosting (Vercel). Needs the operator's real data and
-  a check by Profina's privacy contact. For an insurance intermediary also § 34d GewO / Vermittlerregister details.
-- [ ] Enter the real sender details on Kommunikation (company, address, register court/number, management, contact
-  e-mail, app address) and copy the German auth e-mail templates into the production dashboard
-  (Authentication → Email Templates).
-- [ ] Save the lead SLA once at `/admin/leads` (removes the OD-19 notice) and replace the test template text
-  („Liebe/r {{rufname}}“) with `{{briefanrede}}`.
-- [ ] Recommendation: on phones, put contact details and „Aktivitäten“ first on record pages and fold rarely used forms
-  (reassign, phase) behind buttons; show a lead's upcoming appointments on the customer page after conversion.
-- [ ] No self-service to replace a lost authenticator: define the support process (admin resets the factor in the
-  Supabase dashboard).
+Done 2026-11-21 (go-live items, see [GO_LIVE.md](GO_LIVE.md)): Impressum and Datenschutzerklärung rewritten from one
+data file (`src/data/legalEntity.ts`, missing values show „noch offen“), current law (DDG, MStV, § 34d GewO, VersVermV,
+Schlichtungsstellen), processors Vercel/Supabase/Resend/Gemini; Resend adapter + signed Resend webhooks; sender details
+prefilled; three German template drafts with `{{briefanrede}}`; „2FA zurücksetzen“ for admins; record pages work-first on
+phones with call/e-mail buttons (hidden after an objection); the lead's open appointments on the customer page.
+
+Still open before go-live (operator data and service setup, see GO_LIVE.md):
+- [ ] Fill the operator data in `src/data/legalEntity.ts` (Geschäftsführung, Kontakt, Register, USt-IdNr.,
+  Vermittlerregister, IHK, Beteiligungen, § 18 MStV, Datenschutzbeauftragte/r, Region) and have Profina's privacy
+  contact check both legal texts.
+- [ ] Complete the sender details on Kommunikation (register, management, contact e-mail, app address; company and
+  address are prefilled), copy the German auth e-mail templates and the Resend SMTP settings into the production
+  dashboard (GO_LIVE.md §1).
+- [ ] Review and approve the three German template drafts (four-eyes); save the lead SLA once (OD-19 values).
+- [ ] Set up Resend (domain, webhook, DPA) and the Edge Function secrets (GO_LIVE.md §2–3).
+- [x] Phones: work area first on record pages, call/e-mail buttons; the lead's open appointments on the customer page.
+- [x] Lost authenticator: „2FA zurücksetzen“ in Mitarbeitende (another admin, with reason, logged).
 
 ## 6. Clean-up backlog [Dev]
 

@@ -74,6 +74,8 @@ const MESSAGES: Record<string, string> = {
   sender_details_missing: "Bitte zuerst die Absenderangaben (Firma, Anschrift, Register, Geschäftsführung, Kontakt, App-Adresse) vollständig hinterlegen.",
   invalid_url: "Bitte eine vollständige Adresse mit https:// angeben.",
   invalid_link: "Dieser Abmeldelink ist ungültig oder nicht mehr gültig.",
+  no_account: "Für diese Person gibt es noch kein Konto (Einladung nicht angenommen).",
+  cannot_reset_own_mfa: "Die eigene Zwei-Faktor-Anmeldung kann nur eine andere Person aus der Verwaltung zurücksetzen.",
   policy_before_production: "Das Policierungsdatum darf nicht vor dem Produktionsdatum liegen.",
   level_not_in_rules: "Diese Stufe gibt es im Regelwerk zum gewählten Datum nicht.",
 

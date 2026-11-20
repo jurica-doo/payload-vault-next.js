@@ -87,6 +87,7 @@ const LeadDetail = ({ leadId }: { leadId: string }) => {
           title={leadName(lead)}
           meta={`${leadNo(lead.lead_no)}${lead.company && lead.first_name ? ` · ${lead.company}` : ""}`}
           action={<ConvertLead lead={lead} />}
+          contact={{ phone: lead.phone, email: lead.email }}
         >
           <StageStepper stages={mainPath} currentId={current?.kind === "open" ? lead.stage : lastOpen} outcome={outcome} visited={visited} />
         </RecordHeader>

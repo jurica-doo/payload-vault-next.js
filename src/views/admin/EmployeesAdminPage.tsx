@@ -3,7 +3,7 @@
 import { errorText } from "../../utils/dbErrors";
 import { PlusIcon } from "../../components/icons";
 import { ActionMenu } from "../../components/actionMenu/ActionMenu";
-import { AwardIcon, XIcon } from "../../components/icons";
+import { AwardIcon, LockIcon, XIcon } from "../../components/icons";
 import { PageActions } from "../../components/pageHeader/PageActions";
 import { rowActionClass } from "../../components/card/card.const";
 import { useState } from "react";
@@ -41,7 +41,7 @@ export const EmployeesAdminPage = () => {
   const { showBanner } = useBanner();
   const { user } = useAuth();
   const { permissions } = usePermissions();
-  const { data = [], isLoading, error, createEmployee, resendInvite, setActive, setRole, setLevel } = useEmployees();
+  const { data = [], isLoading, error, createEmployee, resendInvite, setActive, setRole, setLevel, resetMfa } = useEmployees();
   const [search, setSearch] = useState("");
   const canWrite = permissions.isAdmin && permissions.hasMfa;
 
@@ -113,6 +113,24 @@ export const EmployeesAdminPage = () => {
       ),
     });
   };
+
+  const openMfaReset = (employee: EmployeeWithRoles) =>
+    openModal({
+      title: "Zwei-Faktor-Anmeldung zurücksetzen",
+      children: (
+        <ReasonConfirmForm
+          message={`Für den Fall eines verlorenen oder neuen Handys: Die Authenticator-App von ${employee.first_name} ${employee.last_name} wird entfernt und alle Sitzungen werden beendet. Danach meldet sich die Person mit ihrem Passwort an und richtet die Zwei-Faktor-Anmeldung unter „Sicherheit“ neu ein. Prüfen Sie vorher die Identität der Person (z. B. per Rückruf).`}
+          confirmText="Zurücksetzen"
+          variant="decline"
+          onCancel={closeModal}
+          onConfirm={async (reason) => {
+            const removed = await resetMfa.mutateAsync({ employeeId: employee.id, reason });
+            closeModal();
+            showBanner("Zurückgesetzt", removed > 0 ? `${employee.first_name} ${employee.last_name} richtet die Zwei-Faktor-Anmeldung neu ein.` : "Es war keine Zwei-Faktor-Anmeldung eingerichtet; die Sitzungen wurden beendet.", "success");
+          }}
+        />
+      ),
+    });
 
   const openRoleChange = (employee: EmployeeWithRoles, role: AppRole) => {
     if (!employee.user_id) return;
@@ -274,6 +292,13 @@ export const EmployeesAdminPage = () => {
                   label={`Aktionen für ${e.last_name}, ${e.first_name}`}
                   items={[
                     { label: "Stufe ändern", icon: AwardIcon, disabled: !canWrite, onClick: () => openLevel(e) },
+                    {
+                      label: "2FA zurücksetzen",
+                      icon: LockIcon,
+                      disabled: !canWrite,
+                      hidden: !e.user_id || e.user_id === user?.id,
+                      onClick: () => openMfaReset(e),
+                    },
                     {
                       label: "Deaktivieren",
                       icon: XIcon,

@@ -120,3 +120,15 @@ ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS phone text;
 ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS banned_until timestamptz;
 ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS deleted_at timestamptz;
 ALTER TABLE auth.users ADD COLUMN IF NOT EXISTS is_anonymous boolean NOT NULL DEFAULT false;
+
+-- Minimal stand-ins for GoTrue's MFA factor and session tables (hosted
+-- projects have them; the test image's older schema doesn't). Used by
+-- rpc_reset_employee_mfa (migration 20261101200000).
+CREATE TABLE IF NOT EXISTS auth.mfa_factors (
+  id uuid PRIMARY KEY, user_id uuid NOT NULL, friendly_name text, factor_type text NOT NULL, status text NOT NULL,
+  created_at timestamptz NOT NULL, updated_at timestamptz NOT NULL, secret text
+);
+CREATE TABLE IF NOT EXISTS auth.sessions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL, created_at timestamptz DEFAULT now()
+);
+GRANT ALL ON auth.mfa_factors, auth.sessions TO postgres;

@@ -1,434 +1,147 @@
-import Link from "next/link";
-import { ChevronLeftIcon } from "../../components/icons";
-import { MiniFooter } from "../../components/footer/MiniFooter";
+import { LegalPage, Section, Address, V } from "../legal/LegalText";
+import { LEGAL } from "../../data/legalEntity";
 
-export const DatenschutzPage = () => {
-  return (
-    <div className="flex flex-col min-h-screen">
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6 lg:px-8 animate-fade-in"><div className="ui-card p-6 sm:p-10">
-        <Link
-          href="/"
-          className="mb-8 inline-flex items-center gap-2 rounded-radius-md py-2 text-sm font-medium text-color-text-subtle no-underline transition-colors hover:text-color-text-main hover:no-underline"
-        >
-          <ChevronLeftIcon size={16} />
-          <span>Zurück zur Übersicht</span>
-        </Link>
+const H = ({ children }: { children: React.ReactNode }) => <h3 className="mt-2 font-semibold text-color-text-main">{children}</h3>;
 
-        <h1 className="text-color-text-main mb-8">Datenschutzerklärung</h1>
+/**
+ * Datenschutzerklärung (Art. 13 GDPR) for the people who use the app:
+ * Profina employees and sales partners. Clients and leads whose data is kept in
+ * the sales part are informed by Profina separately (Art. 14); section 6 lists
+ * the processing for transparency. Operator data: src/data/legalEntity.ts.
+ */
+export const DatenschutzPage = () => (
+  <LegalPage title="Datenschutzerklärung">
+    <Section title="1. Verantwortliche Stelle">
+      <Address />
+      <p>
+        Telefon: <V k="phone" />
+        <br />
+        E-Mail: <V k="email" />
+      </p>
+      <p>
+        Datenschutzbeauftragte/r: <V k="dataProtectionOfficer" />
+      </p>
+    </Section>
 
-        <div className="flex flex-col gap-8 text-color-text-secondary text-sm sm:text-base leading-relaxed">
-          {/* 1. Überblick */}
-          <section>
-            <h2 className="mb-3 text-lg font-semibold text-color-text-main">
-              1. Datenschutz auf einen Blick
-            </h2>
-            <h4 className="text-color-text-main mb-2 text-base font-semibold">
-              Allgemeine Hinweise
-            </h4>
-            <p className="text-color-text-secondary">
-              Die folgenden Hinweise geben einen einfachen Überblick darüber,
-              was mit Ihren personenbezogenen Daten passiert, wenn Sie diese
-              Website nutzen. Personenbezogene Daten sind alle Daten, mit denen
-              Sie persönlich identifiziert werden können. Ausführliche
-              Informationen zum Thema Datenschutz entnehmen Sie unserer
-              nachfolgenden Datenschutzerklärung.
-            </p>
-            <h4 className="text-color-text-main mb-2 mt-4 text-base font-semibold">
-              Datenerfassung auf dieser Website
-            </h4>
-            <p className="text-color-text-secondary">
-              <strong className="text-color-text-main">
-                Wer ist verantwortlich für die Datenerfassung auf dieser
-                Website?
-              </strong>
-              <br />
-              Die Datenverarbeitung auf dieser Website erfolgt durch den
-              Websitebetreiber. Dessen Kontaktdaten können Sie dem Abschnitt
-              „Hinweis zur verantwortlichen Stelle&ldquo; in dieser
-              Datenschutzerklärung entnehmen.
-            </p>
-            <p className="text-color-text-secondary mt-2">
-              <strong className="text-color-text-main">
-                Wie erfassen wir Ihre Daten?
-              </strong>
-              <br />
-              Ihre Daten werden zum einen dadurch erhoben, dass Sie uns diese
-              mitteilen. Hierbei kann es sich z.&nbsp;B. um Daten handeln, die
-              Sie bei der Registrierung oder beim Hochladen von Dokumenten
-              eingeben. Andere Daten werden automatisch oder nach Ihrer
-              Einwilligung beim Besuch der Website durch unsere IT-Systeme
-              erfasst. Das sind vor allem technische Daten (z.&nbsp;B.
-              Internetbrowser, Betriebssystem oder Uhrzeit des Seitenaufrufs).
-            </p>
-            <p className="text-color-text-secondary mt-2">
-              <strong className="text-color-text-main">
-                Wofür nutzen wir Ihre Daten?
-              </strong>
-              <br />
-              PayloadVault ist eine Anwendung zur digitalen Verwaltung von
-              Belegen, Rechnungen und steuerrelevanten Dokumenten. Ihre Daten
-              werden erhoben, um Ihnen diese Dienste bereitzustellen, Ihre
-              Dokumente sicher zu speichern und Ihre Einnahmen und Ausgaben zu
-              verwalten. Ein Teil der Daten wird erhoben, um eine fehlerfreie
-              Bereitstellung der Website zu gewährleisten.
-            </p>
-            <p className="text-color-text-secondary mt-2">
-              <strong className="text-color-text-main">
-                Welche Rechte haben Sie bezüglich Ihrer Daten?
-              </strong>
-              <br />
-              Sie haben jederzeit das Recht, unentgeltlich Auskunft über
-              Herkunft, Empfänger und Zweck Ihrer gespeicherten
-              personenbezogenen Daten zu erhalten. Sie haben außerdem ein Recht,
-              die Berichtigung oder Löschung dieser Daten zu verlangen. Wenn Sie
-              eine Einwilligung zur Datenverarbeitung erteilt haben, können Sie
-              diese Einwilligung jederzeit für die Zukunft widerrufen. Außerdem
-              haben Sie das Recht, unter bestimmten Umständen die Einschränkung
-              der Verarbeitung Ihrer personenbezogenen Daten zu verlangen.
-              Ferner steht Ihnen ein Beschwerderecht bei der zuständigen
-              Aufsichtsbehörde zu.
-            </p>
-          </section>
+    <Section title="2. Worum es geht">
+      <p>
+        Der Profina Payload Vault ist eine interne Anwendung für Mitarbeitende und Vertriebspartner der {LEGAL.company}. Sie
+        besteht aus zwei Teilen: dem persönlichen Tresor (eigene Abrechnungen, steuerrelevante Belege, Auswertungen) und dem
+        Vertriebssystem (Produktion, Karriere, Provisionen, Leads, Kundinnen und Kunden, Aufgaben). Zugang erhält nur, wer von
+        der Verwaltung eingeladen wurde.
+      </p>
+    </Section>
 
-          {/* 2. Hosting */}
-          <section>
-            <h2 className="mb-3 text-lg font-semibold text-color-text-main">2. Hosting</h2>
-            <p className="text-color-text-secondary">
-              Die Inhalte unserer Website werden bei folgendem Anbieter
-              gehostet:
-            </p>
-            <h4 className="text-color-text-main mb-2 mt-4 text-base font-semibold">
-              Supabase
-            </h4>
-            <p className="text-color-text-secondary">
-              Wir nutzen Supabase (Supabase Inc., 970 Toa Payoh North #07-04,
-              Singapore 318992) für die Authentifizierung, Datenbankverwaltung
-              und Dateispeicherung. Bei der Nutzung unserer Anwendung werden
-              Daten auf Servern von Supabase verarbeitet und gespeichert.
-              Supabase setzt auf eine Infrastruktur, die den Anforderungen der
-              DSGVO entspricht.
-            </p>
-            <p className="text-color-text-secondary mt-2">
-              Weitere Informationen entnehmen Sie der Datenschutzerklärung von
-              Supabase.
-            </p>
-            <p className="text-color-text-secondary mt-2">
-              Die Verwendung von Supabase erfolgt auf Grundlage von Art. 6 Abs.
-              1 lit. f DSGVO. Wir haben ein berechtigtes Interesse an einer
-              möglichst zuverlässigen und sicheren Darstellung und
-              Bereitstellung unserer Website. Sofern eine entsprechende
-              Einwilligung abgefragt wurde, erfolgt die Verarbeitung
-              ausschließlich auf Grundlage von Art. 6 Abs. 1 lit. a DSGVO.
-            </p>
-          </section>
+    <Section title="3. Hosting und technische Dienstleister">
+      <p>
+        Wir setzen die folgenden Dienstleister als Auftragsverarbeiter nach Art. 28 DSGVO ein. Mit allen bestehen Verträge zur
+        Auftragsverarbeitung. Soweit Daten in die USA übermittelt werden, geschieht das auf Grundlage des EU-US Data Privacy
+        Framework (soweit der Anbieter zertifiziert ist) bzw. der EU-Standardvertragsklauseln (Art. 46 DSGVO).
+      </p>
+      <H>Vercel (Auslieferung der Anwendung)</H>
+      <p>
+        Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, USA, stellt die Webanwendung bereit. Dabei werden technisch
+        notwendige Verbindungsdaten verarbeitet (IP-Adresse, Zeitpunkt, aufgerufene Seite, Browserangaben), um die Seiten
+        auszuliefern und Angriffe abzuwehren. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.
+      </p>
+      <H>Supabase (Datenbank, Anmeldung, Dateien, Serverfunktionen)</H>
+      <p>
+        Supabase Inc., 970 Toa Payoh North #07-04, Singapur 318992, betreibt Datenbank, Anmeldung, Dateispeicher und
+        Serverfunktionen. Speicherort der Daten: <V k="dataRegion" />. Rechtsgrundlage: Art. 6 Abs. 1 lit. b und f DSGVO.
+      </p>
+      <H>Resend (E-Mail-Versand)</H>
+      <p>
+        Resend Inc., 2261 Market Street #5039, San Francisco, CA 94114, USA, versendet die E-Mails der Anwendung: Einladungen,
+        Passwort-Links und – nur wenn freigeschaltet – E-Mails an Kundinnen und Kunden. Dabei werden Empfängeradresse, Inhalt
+        und Zustellstatus verarbeitet. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Konto) bzw. die Grundlage der jeweiligen
+        Kunden-E-Mail (siehe Abschnitt 7).
+      </p>
+      <H>Google Gemini (Belegerkennung)</H>
+      <p>
+        Wenn Sie im Tresor einen Beleg hochladen und die automatische Erkennung nutzen, wird das Bild bzw. die PDF über eine
+        Serverfunktion an die Gemini-API von Google übermittelt (Google LLC, 1600 Amphitheatre Parkway, Mountain View, CA
+        94043, USA, bzw. Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland). Zurück kommen Betrag, Datum
+        und Kategorie, die Sie prüfen und ändern können. Die Datei wird dafür nur verarbeitet, nicht von Google zu eigenen
+        Zwecken verwendet. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (von Ihnen ausgelöste Funktion).
+      </p>
+    </Section>
 
-          {/* 3. Allgemeine Hinweise und Pflichtinfos */}
-          <section>
-            <h2 className="mb-3 text-lg font-semibold text-color-text-main">
-              3. Allgemeine Hinweise und Pflichtinformationen
-            </h2>
-            <h4 className="text-color-text-main mb-2 text-base font-semibold">
-              Datenschutz
-            </h4>
-            <p className="text-color-text-secondary">
-              Die Betreiber dieser Seiten nehmen den Schutz Ihrer persönlichen
-              Daten sehr ernst. Wir behandeln Ihre personenbezogenen Daten
-              vertraulich und entsprechend den gesetzlichen
-              Datenschutzvorschriften sowie dieser Datenschutzerklärung.
-            </p>
-            <p className="text-color-text-secondary mt-2">
-              Wir weisen darauf hin, dass die Datenübertragung im Internet
-              (z.&nbsp;B. bei der Kommunikation per E-Mail) Sicherheitslücken
-              aufweisen kann. Ein lückenloser Schutz der Daten vor dem Zugriff
-              durch Dritte ist nicht möglich.
-            </p>
+    <Section title="4. Konto und Anmeldung">
+      <p>
+        Für Ihr Konto verarbeiten wir Name, E-Mail-Adresse, Telefonnummer, Rolle, Karrierestufe, Zuordnung in der
+        Vertriebsstruktur, Eintrittsdatum sowie Anmeldedaten (Passwort nur als sicherer Hash, optional ein zweiter Faktor über
+        eine Authenticator-App). Sicherheitsrelevante Vorgänge (z. B. Rollen- und Stufenänderungen, Freigaben, Exporte) werden
+        mit Zeitpunkt und handelnder Person protokolliert. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Vertrag mit Profina) und
+        Art. 6 Abs. 1 lit. c und f DSGVO (Nachweis- und Sicherheitspflichten).
+      </p>
+    </Section>
 
-            <h4 className="text-color-text-main mb-2 mt-4 text-base font-semibold">
-              Hinweis zur verantwortlichen Stelle
-            </h4>
-            <p className="text-color-text-secondary">
-              Die verantwortliche Stelle für die Datenverarbeitung auf dieser
-              Website ist:
-            </p>
-            <p className="text-color-text-secondary mt-2">
-              [First and last name]
-              <br />
-              [Street and house number]
-              <br />
-              [Postal code and city]
-              <br />
-              Deutschland
-            </p>
-            <p className="text-color-text-secondary mt-2">
-              Telefon: [Phone number]
-              <br />
-              E-Mail: [Email address]
-            </p>
-            <p className="text-color-text-secondary mt-2">
-              Verantwortliche Stelle ist die natürliche oder juristische Person,
-              die allein oder gemeinsam mit anderen über die Zwecke und Mittel
-              der Verarbeitung von personenbezogenen Daten entscheidet.
-            </p>
+    <Section title="5. Persönlicher Tresor">
+      <p>
+        Hochgeladene Abrechnungen und Belege sowie die daraus gelesenen Beträge speichern wir ausschließlich für Sie. Andere
+        Nutzerinnen und Nutzer – auch Führungskräfte, Verwaltung und Finanzabteilung – haben keinen Zugriff auf Ihren Tresor.
+        PDFs von Abrechnungen werden in Ihrem Browser ausgelesen. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO.
+      </p>
+    </Section>
 
-            <h4 className="text-color-text-main mb-2 mt-4 text-base font-semibold">
-              Speicherdauer
-            </h4>
-            <p className="text-color-text-secondary">
-              Soweit innerhalb dieser Datenschutzerklärung keine speziellere
-              Speicherdauer genannt wurde, verbleiben Ihre personenbezogenen
-              Daten bei uns, bis der Zweck für die Datenverarbeitung entfällt.
-              Wenn Sie ein berechtigtes Löschersuchen geltend machen oder eine
-              Einwilligung zur Datenverarbeitung widerrufen, werden Ihre Daten
-              gelöscht, sofern wir keine anderen rechtlich zulässigen Gründe für
-              die Speicherung Ihrer personenbezogenen Daten haben; in letzterem
-              Fall erfolgt die Löschung nach Fortfall dieser Gründe.
-            </p>
+    <Section title="6. Vertriebssystem: Daten von Kundinnen, Kunden und Interessenten">
+      <p>
+        Im Vertriebssystem werden Daten von Kundinnen, Kunden und Interessenten (Leads) gespeichert: Kontaktdaten, Anrede,
+        gegebenenfalls Geburtsdatum, vermittelte Verträge, Beratungs- und Kontakthistorie, Termine, Einwilligungen und
+        Widersprüche. Zweck sind Beratung, Vermittlung und Betreuung von Versicherungen sowie die Provisionsabrechnung.
+        Rechtsgrundlagen: Art. 6 Abs. 1 lit. b DSGVO (Anbahnung und Durchführung von Verträgen), Art. 6 Abs. 1 lit. c DSGVO
+        (Dokumentations- und Aufbewahrungspflichten, z. B. § 61 VVG, HGB, AO) und Art. 6 Abs. 1 lit. a DSGVO (Einwilligungen,
+        etwa für Geburtstagsgrüße). Zugriff haben nur die betreuende Person, deren Führungskräfte sowie Verwaltung und
+        Datenschutz im erforderlichen Umfang. Die Betroffenen werden von Profina gesondert nach Art. 14 DSGVO informiert.
+      </p>
+    </Section>
 
-            <h4 className="text-color-text-main mb-2 mt-4 text-base font-semibold">
-              Widerruf Ihrer Einwilligung zur Datenverarbeitung
-            </h4>
-            <p className="text-color-text-secondary">
-              Viele Datenverarbeitungsvorgänge sind nur mit Ihrer ausdrücklichen
-              Einwilligung möglich. Sie können eine bereits erteilte
-              Einwilligung jederzeit widerrufen. Die Rechtmäßigkeit der bis zum
-              Widerruf erfolgten Datenverarbeitung bleibt vom Widerruf
-              unberührt.
-            </p>
+    <Section title="7. E-Mails an Kundinnen und Kunden">
+      <p>
+        Automatische E-Mails (z. B. Geburtstags- oder Feiertagsgrüße) gehen nur an Personen mit einer erfassten
+        Rechtsgrundlage – in der Regel einer Einwilligung – und werden vor dem Versand erneut geprüft. Jede E-Mail enthält einen
+        Abmeldelink; eine Abmeldung wirkt sofort. Versanddienstleister: <V k="emailProvider" />.
+      </p>
+    </Section>
 
-            <h4 className="text-color-text-main mb-2 mt-4 text-base font-semibold">
-              Recht auf Datenübertragbarkeit
-            </h4>
-            <p className="text-color-text-secondary">
-              Sie haben das Recht, Daten, die wir auf Grundlage Ihrer
-              Einwilligung oder in Erfüllung eines Vertrags automatisiert
-              verarbeiten, an sich oder an einen Dritten in einem gängigen,
-              maschinenlesbaren Format aushändigen zu lassen. Sofern Sie die
-              direkte Übertragung der Daten an einen anderen Verantwortlichen
-              verlangen, erfolgt dies nur, soweit es technisch machbar ist.
-            </p>
+    <Section title="8. Cookies und lokale Speicherung">
+      <p>
+        Wir verwenden nur technisch notwendige Speicherungen: Ihre Anmeldung (im lokalen Speicher des Browsers), die
+        Einstellung für helles oder dunkles Design, die gewählte Seitengröße von Listen und Ihre Cookie-Auswahl. Es gibt kein
+        Tracking und keine Werbe- oder Analyse-Cookies. Rechtsgrundlage: § 25 Abs. 2 Nr. 2 TDDDG, Art. 6 Abs. 1 lit. f DSGVO.
+      </p>
+    </Section>
 
-            <h4 className="text-color-text-main mb-2 mt-4 text-base font-semibold">
-              Auskunft, Löschung und Berichtigung
-            </h4>
-            <p className="text-color-text-secondary">
-              Sie haben im Rahmen der geltenden gesetzlichen Bestimmungen
-              jederzeit das Recht auf unentgeltliche Auskunft über Ihre
-              gespeicherten personenbezogenen Daten, deren Herkunft und
-              Empfänger und den Zweck der Datenverarbeitung und ggf. ein Recht
-              auf Berichtigung oder Löschung dieser Daten. Hierzu sowie zu
-              weiteren Fragen zum Thema personenbezogene Daten können Sie sich
-              jederzeit an uns wenden.
-            </p>
+    <Section title="9. Speicherdauer">
+      <p>
+        Wir speichern personenbezogene Daten, solange sie für die genannten Zwecke erforderlich sind. Danach werden sie gelöscht,
+        sofern keine gesetzlichen Aufbewahrungspflichten bestehen (insbesondere sechs bzw. zehn Jahre nach HGB und AO für
+        Abrechnungs- und Buchungsunterlagen). Bei einer Löschung von Kundendaten bleiben Verträge und Abrechnungen ohne Bezug
+        zur Person erhalten.
+      </p>
+    </Section>
 
-            <h4 className="text-color-text-main mb-2 mt-4 text-base font-semibold">
-              Recht auf Einschränkung der Verarbeitung
-            </h4>
-            <p className="text-color-text-secondary">
-              Sie haben das Recht, die Einschränkung der Verarbeitung Ihrer
-              personenbezogenen Daten zu verlangen. Hierzu können Sie sich
-              jederzeit an uns wenden. Das Recht auf Einschränkung der
-              Verarbeitung besteht in folgenden Fällen:
-            </p>
-            <ul className="list-disc list-inside text-color-text-secondary mt-2 space-y-1">
-              <li>
-                Wenn Sie die Richtigkeit Ihrer bei uns gespeicherten
-                personenbezogenen Daten bestreiten.
-              </li>
-              <li>
-                Wenn die Verarbeitung Ihrer personenbezogenen Daten unrechtmäßig
-                geschah/geschieht und Sie statt der Löschung die Einschränkung
-                der Datenverarbeitung verlangen.
-              </li>
-              <li>
-                Wenn wir Ihre personenbezogenen Daten nicht mehr benötigen, Sie
-                diese jedoch zur Ausübung, Verteidigung oder Geltendmachung von
-                Rechtsansprüchen benötigen.
-              </li>
-              <li>
-                Wenn Sie Widerspruch nach Art. 21 Abs. 1 DSGVO eingelegt haben.
-              </li>
-            </ul>
+    <Section title="10. Ihre Rechte">
+      <p>
+        Sie haben das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der
+        Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch (Art. 21). Eine Einwilligung können Sie jederzeit
+        mit Wirkung für die Zukunft widerrufen (Art. 7 Abs. 3). Wenden Sie sich dazu an die oben genannte Stelle.
+      </p>
+      <p>
+        Sie können sich außerdem bei einer Datenschutz-Aufsichtsbehörde beschweren (Art. 77 DSGVO), zum Beispiel bei der für
+        uns zuständigen Landesbeauftragten für Datenschutz und Informationsfreiheit Nordrhein-Westfalen, Kavalleriestraße 2–4,
+        40213 Düsseldorf.
+      </p>
+    </Section>
 
-            <h4 className="text-color-text-main mb-2 mt-4 text-base font-semibold">
-              Beschwerderecht bei der zuständigen Aufsichtsbehörde
-            </h4>
-            <p className="text-color-text-secondary">
-              Im Falle von Verstößen gegen die DSGVO steht den Betroffenen ein
-              Beschwerderecht bei einer Aufsichtsbehörde zu, insbesondere in dem
-              Mitgliedstaat ihres gewöhnlichen Aufenthalts, ihres Arbeitsplatzes
-              oder des Orts des mutmaßlichen Verstoßes. Das Beschwerderecht
-              besteht unbeschadet anderweitiger verwaltungsrechtlicher oder
-              gerichtlicher Rechtsbehelfe.
-            </p>
-          </section>
+    <Section title="11. Datensicherheit">
+      <p>
+        Alle Verbindungen sind verschlüsselt (TLS). Zugriffe werden in der Datenbank je Rolle und Struktur geprüft; Verwaltungs-
+        und Finanzfunktionen erfordern eine Zwei-Faktor-Anmeldung. Sicherheitsrelevante Änderungen werden unveränderbar
+        protokolliert.
+      </p>
+    </Section>
 
-          {/* 4. Datenerfassung */}
-          <section>
-            <h2 className="mb-3 text-lg font-semibold text-color-text-main">
-              4. Datenerfassung auf dieser Website
-            </h2>
-
-            <h4 className="text-color-text-main mb-2 text-base font-semibold">
-              Registrierung auf dieser Website
-            </h4>
-            <p className="text-color-text-secondary">
-              Sie können sich auf dieser Website registrieren, um zusätzliche
-              Funktionen auf der Seite zu nutzen. Die dazu eingegebenen Daten
-              verwenden wir nur zum Zwecke der Nutzung des jeweiligen Angebotes
-              oder Dienstes, für den Sie sich registriert haben. Bei der
-              Registrierung wird Folgendes erfasst:
-            </p>
-            <ul className="list-disc list-inside text-color-text-secondary mt-2 space-y-1">
-              <li>E-Mail-Adresse</li>
-              <li>Passwort (verschlüsselt gespeichert)</li>
-            </ul>
-            <p className="text-color-text-secondary mt-2">
-              Die Authentifizierung erfolgt über Supabase Auth. Passwörter
-              werden nach aktuellen Sicherheitsstandards gehasht und nicht im
-              Klartext gespeichert. Die Verarbeitung erfolgt auf Grundlage von
-              Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) bzw. Art. 6 Abs. 1
-              lit. a DSGVO (Einwilligung).
-            </p>
-            <p className="text-color-text-secondary mt-2">
-              Die bei der Registrierung erfassten Daten werden von uns
-              gespeichert, solange Sie auf dieser Website registriert sind, und
-              werden anschließend gelöscht. Gesetzliche Aufbewahrungsfristen
-              bleiben unberührt.
-            </p>
-
-            <h4 className="text-color-text-main mb-2 mt-4 text-base font-semibold">
-              Hochgeladene Dokumente
-            </h4>
-            <p className="text-color-text-secondary">
-              Im Rahmen der Nutzung von PayloadVault können Sie PDF-Dokumente
-              (Rechnungen, Belege, Abrechnungen) hochladen. Diese werden in
-              Supabase Storage gespeichert und sind nur für Sie als
-              authentifizierter Nutzer zugänglich. Aus den hochgeladenen
-              Dokumenten werden folgende Daten extrahiert und in der Datenbank
-              gespeichert:
-            </p>
-            <ul className="list-disc list-inside text-color-text-secondary mt-2 space-y-1">
-              <li>Rechnungsnummer</li>
-              <li>Rechnungsdatum</li>
-              <li>Beträge (netto, brutto, MwSt.)</li>
-              <li>Kategorie-Zuordnungen</li>
-            </ul>
-            <p className="text-color-text-secondary mt-2">
-              Diese Verarbeitung erfolgt auf Grundlage von Art. 6 Abs. 1 lit. b
-              DSGVO, da sie zur Bereitstellung des vertraglich vereinbarten
-              Dienstes erforderlich ist.
-            </p>
-
-            <h4 className="text-color-text-main mb-2 mt-4 text-base font-semibold">
-              Lokale Speicherung (Local Storage)
-            </h4>
-            <p className="text-color-text-secondary">
-              Diese Website verwendet den Local Storage Ihres Browsers, um
-              Benutzereinstellungen zu speichern. Dabei werden folgende Daten
-              lokal auf Ihrem Gerät abgelegt:
-            </p>
-            <ul className="list-disc list-inside text-color-text-secondary mt-2 space-y-1">
-              <li>
-                Theme-Präferenz (hell/dunkel) – damit Ihre bevorzugte
-                Darstellung beibehalten wird
-              </li>
-              <li>Authentifizierungs-Token – damit Sie angemeldet bleiben</li>
-            </ul>
-            <p className="text-color-text-secondary mt-2">
-              Diese Daten werden nicht an Server übertragen und verbleiben
-              ausschließlich auf Ihrem Endgerät. Sie können den Local Storage
-              jederzeit über die Browsereinstellungen löschen.
-            </p>
-          </section>
-
-          {/* 5. Externe Dienste */}
-          <section>
-            <h2 className="mb-3 text-lg font-semibold text-color-text-main">
-              5. Verwendete externe Dienste und Technologien
-            </h2>
-
-            <h4 className="text-color-text-main mb-2 text-base font-semibold">
-              Supabase
-            </h4>
-            <p className="text-color-text-secondary">
-              Wir nutzen Supabase für folgende Funktionen:
-            </p>
-            <ul className="list-disc list-inside text-color-text-secondary mt-2 space-y-1">
-              <li>
-                <strong className="text-color-text-main">
-                  Authentifizierung:
-                </strong>{" "}
-                Registrierung, Anmeldung und Passwortverwaltung
-              </li>
-              <li>
-                <strong className="text-color-text-main">Datenbank:</strong>{" "}
-                Speicherung von Rechnungsdaten, Kategorien und Nutzerzuordnungen
-              </li>
-              <li>
-                <strong className="text-color-text-main">
-                  Dateispeicherung:
-                </strong>{" "}
-                Sichere Speicherung hochgeladener PDF-Dokumente
-              </li>
-            </ul>
-            <p className="text-color-text-secondary mt-2">
-              Die Datenverarbeitung erfolgt gemäß den Datenschutzrichtlinien von
-              Supabase und in Übereinstimmung mit der DSGVO.
-            </p>
-          </section>
-
-          {/* 6. Datensicherheit */}
-          <section>
-            <h2 className="mb-3 text-lg font-semibold text-color-text-main">6. Datensicherheit</h2>
-            <p className="text-color-text-secondary">
-              Diese Website nutzt aus Sicherheitsgründen eine
-              SSL-/TLS-Verschlüsselung. Eine verschlüsselte Verbindung erkennen
-              Sie daran, dass die Adresszeile des Browsers von
-              „http://&ldquo; auf „https://&ldquo; wechselt und an dem
-              Schloss-Symbol in Ihrer
-              Browserzeile.
-            </p>
-            <p className="text-color-text-secondary mt-2">
-              Wenn die SSL- bzw. TLS-Verschlüsselung aktiviert ist, können die
-              Daten, die Sie an uns übermitteln, nicht von Dritten mitgelesen
-              werden.
-            </p>
-            <p className="text-color-text-secondary mt-2">
-              Darüber hinaus setzen wir folgende Sicherheitsmaßnahmen ein:
-            </p>
-            <ul className="list-disc list-inside text-color-text-secondary mt-2 space-y-1">
-              <li>Verschlüsselte Passwortspeicherung durch Supabase Auth</li>
-              <li>
-                Row-Level-Security (RLS) in der Datenbank – jeder Nutzer hat nur
-                Zugriff auf seine eigenen Daten
-              </li>
-              <li>Sichere Token-basierte Authentifizierung</li>
-              <li>
-                Regelmäßige Sicherheitsupdates der eingesetzten Technologien
-              </li>
-            </ul>
-          </section>
-
-          {/* 7. Aktualität */}
-          <section>
-            <h2 className="mb-3 text-lg font-semibold text-color-text-main">
-              7. Aktualität und Änderung dieser Datenschutzerklärung
-            </h2>
-            <p className="text-color-text-secondary">
-              Diese Datenschutzerklärung ist aktuell gültig und hat den Stand
-              April 2026.
-            </p>
-            <p className="text-color-text-secondary mt-2">
-              Durch die Weiterentwicklung unserer Website oder aufgrund
-              geänderter gesetzlicher beziehungsweise behördlicher Vorgaben kann
-              es notwendig werden, diese Datenschutzerklärung zu ändern. Die
-              jeweils aktuelle Datenschutzerklärung kann jederzeit auf dieser
-              Seite abgerufen werden.
-            </p>
-          </section>
-        </div>
-      </div></main>
-      <MiniFooter />
-    </div>
-  );
-};
+    <p className="text-xs text-color-text-subtle">Stand: {LEGAL.asOf}</p>
+  </LegalPage>
+);
