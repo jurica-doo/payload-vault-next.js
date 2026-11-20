@@ -13,7 +13,8 @@ import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useBanner } from "../../context/banner/BannerContext";
 import { useModal } from "../../context/modal/ModalContext";
 import { useEmailTemplates, type EmailTemplate, type TemplateVersion } from "../../hooks/useEmail/useEmail";
-import { MERGE_FIELDS, MERGE_FIELD_LABEL, SAMPLE_VALUES, checkTemplateText, renderTemplate } from "../../domain/emailTemplate";
+import { MERGE_FIELDS, MERGE_FIELD_LABEL, SAMPLE_VALUES, checkTemplateText, renderFooter, renderTemplate, sampleUnsubscribeUrl } from "../../domain/emailTemplate";
+import { useEmailSender } from "../../hooks/useEmail/useEmail";
 import { BASIS_LABEL } from "../../domain/consent";
 import { formatDateTime } from "../../utils/format";
 import { Select } from "../../components/select/Select";
@@ -81,6 +82,9 @@ const TemplateEditor = ({ template, versions }: { template: EmailTemplate; versi
   const [bases, setBases] = useState<string[]>(template.allowed_bases);
   const problem = checkTemplateText(subject) ?? checkTemplateText(body);
   const preview = renderTemplate(subject, body, SAMPLE_VALUES);
+  // Every client mail ends with this footer (signature, mandatory details, unsubscribe link).
+  const sender = useEmailSender(true).sender.data ?? {};
+  const footer = renderFooter(sender, SAMPLE_VALUES, sampleUnsubscribeUrl(sender, template.purpose));
   const run = async (fn: () => Promise<unknown>, done: [title: string, text: string], failed: string) => {
     try {
       await fn();
@@ -143,7 +147,10 @@ const TemplateEditor = ({ template, versions }: { template: EmailTemplate; versi
           <p className="text-xs text-color-text-subtle">Vorschau mit Beispieldaten</p>
           <p className="text-sm font-semibold">{preview.subject}</p>
           {/* Rendered from escaped text only (escapeHtml), never from authored HTML. */}
-          <div className="text-sm" dangerouslySetInnerHTML={{ __html: preview.html }} />
+          <div className="text-sm" dangerouslySetInnerHTML={{ __html: preview.html + footer.html }} />
+          {!sender.complete && (
+            <p className="text-xs text-color-warning-text">Absenderangaben unvollständig: Der Fuß ist noch lückenhaft und der Versand gesperrt.</p>
+          )}
         </div>
       </div>
       <ol className="flex flex-col gap-1 text-xs text-color-text-secondary">

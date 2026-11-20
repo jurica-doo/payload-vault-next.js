@@ -27,7 +27,7 @@ export const lastDay = (exclusiveEnd: string) => {
 
 /** German reasons for compute_qualification "blocked" results (shared with the cockpit). */
 export const BLOCKED: Record<string, string> = {
-  no_level: "Für diese Person ist noch keine Karrierestufe hinterlegt. Bitte die Verwaltung kontaktieren.",
+  no_level: "Es ist noch keine Karrierestufe hinterlegt. Die Verwaltung trägt die Einstiegsstufe ein.",
   no_period: "Für heute gibt es keinen Karrierezeitraum (Startdatum liegt in der Zukunft).",
   no_rules_for_date: "Für heute sind keine Karriereregeln hinterlegt.",
 };

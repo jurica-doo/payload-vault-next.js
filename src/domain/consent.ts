@@ -32,7 +32,7 @@ export const BASIS_LABEL: Record<string, string> = {
 
 export const SOURCE_LABEL: Record<string, string> = {
   form: "Formular", phone: "Telefon", email: "E-Mail", in_person: "persönlich", letter: "Brief",
-  portal: "Vertragsportal", import: "Import", lead: "aus Lead",
+  portal: "Vertragsportal", import: "Import", lead: "aus Lead", unsubscribe_link: "Abmeldelink in E-Mail",
 };
 
 /** Latest event per purpose by effective time (ties: later entry), ignoring future events. */

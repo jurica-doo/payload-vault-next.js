@@ -7,6 +7,8 @@ import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DuplicateWarning } from "../../components/duplicateWarning/DuplicateWarning";
 import { useBanner } from "../../context/banner/BannerContext";
+import { useModal } from "../../context/modal/ModalContext";
+import { ConfirmDialog } from "../../components/modal/ConfirmDialog";
 import { customerNo, findCustomerDuplicates, useCustomerMutations, type CustomerDuplicate } from "../../hooks/useCustomers/useCustomers";
 import type { Lead } from "../../hooks/useLeads/useLeads";
 
@@ -17,6 +19,7 @@ import type { Lead } from "../../hooks/useLeads/useLeads";
 export const ConvertLead = ({ lead }: { lead: Lead }) => {
   const { convertLead } = useCustomerMutations();
   const { showBanner } = useBanner();
+  const { openModal, closeModal } = useModal();
   const router = useRouter();
   const [dupes, setDupes] = useState<CustomerDuplicate[] | null>(null);
   const [confirmed, setConfirmed] = useState(false);
@@ -35,8 +38,29 @@ export const ConvertLead = ({ lead }: { lead: Lead }) => {
         setDupes(found);
         if (found.length > 0) return;
       }
-      const id = await convertLead.mutateAsync({ leadId: lead.id, confirmDuplicates: confirmed });
-      router.push(`/vertrieb/kunden/${id}`);
+      // Converting closes the lead as won and can't be undone: ask first.
+      openModal({
+        title: "In Kunden umwandeln?",
+        children: (
+          <ConfirmDialog
+            tone="primary"
+            message={`${[lead.first_name, lead.last_name].filter(Boolean).join(" ") || lead.company || "Der Lead"} wird als Kunde angelegt und der Lead als gewonnen abgeschlossen. Aktivitäten, Termine und Einwilligungen bleiben erhalten. Das lässt sich nicht rückgängig machen.`}
+            confirmText="Umwandeln"
+            onCancel={closeModal}
+            onConfirm={async () => {
+              try {
+                const id = await convertLead.mutateAsync({ leadId: lead.id, confirmDuplicates: confirmed });
+                closeModal();
+                showBanner("Kunde angelegt", "Der Lead ist als gewonnen abgeschlossen.", "success");
+                router.push(`/vertrieb/kunden/${id}`);
+              } catch (e) {
+                closeModal();
+                showBanner("Nicht umgewandelt", errorText(e), "error");
+              }
+            }}
+          />
+        ),
+      });
     } catch (e) {
       showBanner("Nicht umgewandelt", errorText(e), "error");
     }

@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
+import { selectAll } from "../../lib/selectAll";
 import { throwDbError } from "../../utils/dbErrors";
 import { buildStructure, type StructureRow } from "./structure";
 
@@ -12,11 +13,12 @@ export function useStructure() {
   return useQuery({
     queryKey: structureKey,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_current_hierarchy")
-        .select("employee_id, first_name, last_name, employee_no, status, manager_id");
-      if (error) throwDbError(error);
-      const rows = (data ?? []).filter((r): r is StructureRow => r.employee_id !== null) as StructureRow[];
+      // Paged: a structure can pass the API's 1.000-row limit.
+      const data = await selectAll((from, to) =>
+        supabase.from("v_current_hierarchy").select("employee_id, first_name, last_name, employee_no, status, manager_id")
+          .order("employee_id").range(from, to),
+      );
+      const rows = data.filter((r): r is StructureRow => r.employee_id !== null) as StructureRow[];
       return buildStructure(rows);
     },
     staleTime: 1000 * 60,

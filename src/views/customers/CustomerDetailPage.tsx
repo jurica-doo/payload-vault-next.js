@@ -1,6 +1,7 @@
 "use client";
 
 import { errorText } from "../../utils/dbErrors";
+import { SALUTATION_LABEL, type Salutation } from "../../domain/emailTemplate";
 import { DetailLayout, RecordHeader } from "../../components/detailLayout/DetailLayout";
 import { ErrorBlock } from "../../components/errorBlock/ErrorBlock";
 import { LoadingState } from "../../components/loadingState/LoadingState";
@@ -112,6 +113,7 @@ const ProfileCard = ({ c, canWork }: { c: Customer; canWork: boolean }) => {
   const { archive } = useCustomerMutations();
   const { showBanner } = useBanner();
   const rows: [string, React.ReactNode][] = [
+    ["Anrede", c.salutation ? SALUTATION_LABEL[c.salutation as Salutation] : "–"],
     ["Rufname", c.preferred_name ?? "–"],
     ["Geburtsdatum", c.date_of_birth ? formatDate(c.date_of_birth) : "–"],
     ["Telefon", c.phone ? <a href={`tel:${c.phone}`}>{formatPhone(c.phone)}</a> : "–"],

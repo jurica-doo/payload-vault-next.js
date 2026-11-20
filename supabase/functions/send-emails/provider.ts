@@ -18,6 +18,11 @@ export type OutgoingEmail = {
   subject: string;
   text: string;
   html: string;
+  /**
+   * Extra headers the adapter must set, e.g. List-Unsubscribe and
+   * List-Unsubscribe-Post (RFC 8058) so mail clients show "Abmelden".
+   */
+  headers: Record<string, string>;
 };
 
 export type EmailProvider = {

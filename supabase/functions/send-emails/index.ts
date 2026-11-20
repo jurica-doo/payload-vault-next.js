@@ -40,7 +40,21 @@ function safeEqual(a: string, b: string) {
 const json = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
-type Claimed = { id: string; idempotency_key: string; to: string; subject: string; text: string; html: string };
+type Claimed = { id: string; idempotency_key: string; to: string; subject: string; text: string; html: string; unsubscribe_url: string | null };
+
+/**
+ * List-Unsubscribe headers (RFC 2369 / RFC 8058). The footer link opens the
+ * app page; the one-click POST goes straight to the email-unsubscribe
+ * function with the same token and purpose.
+ */
+function unsubscribeHeaders(pageUrl: string | null): Record<string, string> {
+  if (!pageUrl) return {};
+  const query = new URL(pageUrl).search;
+  return {
+    "List-Unsubscribe": `<${SUPABASE_URL}/functions/v1/email-unsubscribe${query}>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+  };
+}
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") return json(405, { error: "method_not_allowed" });
@@ -67,7 +81,10 @@ Deno.serve(async (req) => {
   for (const mail of (data ?? []) as Claimed[]) {
     try {
       const { messageId } = await provider.send(
-        { id: mail.id, idempotencyKey: mail.idempotency_key, to: mail.to, subject: mail.subject, text: mail.text, html: mail.html },
+        {
+          id: mail.id, idempotencyKey: mail.idempotency_key, to: mail.to, subject: mail.subject, text: mail.text, html: mail.html,
+          headers: unsubscribeHeaders(mail.unsubscribe_url),
+        },
         FROM,
       );
       await report({ p_id: mail.id, p_ok: true, p_provider_message_id: messageId });

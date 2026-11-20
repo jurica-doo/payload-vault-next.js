@@ -18,6 +18,11 @@ import { Select } from "../../components/select/Select";
 import { Form } from "../../components/form/Form";
 
 const card = cardClass;
+/** Short badge texts for the per-purpose table (the header names a global objection already). */
+const SHORT_REASON: Record<string, string> = {
+  opt_out: "Widerspruch", no_address: "keine Kontaktdaten", no_birth_date: "Geburtsdatum fehlt",
+  no_legal_basis: "keine Rechtsgrundlage", withdrawn: "widerrufen", customer_inactive: "Kunde inaktiv",
+};
 const SOURCE_OPTIONS = Object.entries(SOURCE_LABEL).filter(([k]) => k !== "lead" && k !== "import").map(([value, label]) => ({ value, label }));
 
 /**
@@ -72,26 +77,24 @@ export const ConsentCard = ({ customer, mode }: { customer: Customer; mode: Cons
         <h2 className="text-base font-semibold">Einwilligungen & Kommunikation</h2>
         {optedOut && <StatusBadge status="x" map={{ x: { label: "Widerspruch: keine Kontaktaufnahme", tone: "error" } }} />}
       </div>
-      <table className="w-full text-left text-sm">
-        <thead><tr className="text-xs text-color-text-subtle"><th>Zweck</th><th>Stand</th><th>Kontakt</th></tr></thead>
-        <tbody>
-          {Object.entries(PURPOSE_LABEL).map(([purpose, label]) => {
-            const last = state.get(purpose);
-            const check = mayContact(customer, state, purpose);
-            return (
-              <tr key={purpose} className="border-t border-color-border-light">
-                <td className="py-1 pr-3 [hyphens:manual]">{label}</td>
-                <td className="py-1 pr-3 text-xs">
-                  {last ? (last.action === "granted" ? `${BASIS_LABEL[last.legal_basis ?? ""]} seit ${formatDate(last.effective_at.slice(0, 10))}` : `widerrufen am ${formatDate(last.effective_at.slice(0, 10))}`) : "–"}
-                </td>
-                <td className="py-1">
-                  <StatusBadge status={check.allowed ? "y" : "n"} map={{ y: { label: "erlaubt", tone: "success" }, n: { label: REASON_LABEL[check.reason] ?? check.reason, tone: "neutral" } }} />
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      {/* A stacked list instead of a table: fits the narrow side column and phones. */}
+      <ul className="flex flex-col divide-y divide-color-border-light text-sm" aria-label="Einwilligungen je Zweck">
+        {Object.entries(PURPOSE_LABEL).map(([purpose, label]) => {
+          const last = state.get(purpose);
+          const check = mayContact(customer, state, purpose);
+          return (
+            <li key={purpose} className="flex flex-col gap-0.5 py-2 first:pt-0">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium">{label}</span>
+                <StatusBadge status={check.allowed ? "y" : "n"} map={{ y: { label: "erlaubt", tone: "success" }, n: { label: SHORT_REASON[check.reason] ?? REASON_LABEL[check.reason] ?? check.reason, tone: "neutral" } }} />
+              </div>
+              <span className="text-xs text-color-text-subtle">
+                {last ? (last.action === "granted" ? `${BASIS_LABEL[last.legal_basis ?? ""]} seit ${formatDate(last.effective_at.slice(0, 10))}` : `widerrufen am ${formatDate(last.effective_at.slice(0, 10))}${last.source === "unsubscribe_link" ? " (Abmeldelink)" : ""}`) : "nichts erfasst"}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
 
       {mode !== "read" && (
         <>

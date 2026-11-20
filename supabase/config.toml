@@ -226,9 +226,23 @@ otp_expiry = 3600
 # sender_name = "Admin"
 
 # Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# German account e-mails (the app is German only). In production the same
+# subjects and HTML go into Dashboard → Authentication → Email Templates.
+[auth.email.template.invite]
+subject = "Ihr Zugang zum Profina Payload Vault"
+content_path = "./supabase/templates/invite.html"
+
+[auth.email.template.recovery]
+subject = "Passwort zurücksetzen – Profina Payload Vault"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.email_change]
+subject = "Neue E-Mail-Adresse bestätigen – Profina Payload Vault"
+content_path = "./supabase/templates/email_change.html"
+
+[auth.email.template.confirmation]
+subject = "E-Mail-Adresse bestätigen – Profina Payload Vault"
+content_path = "./supabase/templates/confirmation.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
@@ -415,3 +429,11 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/email-events/deno.json"
 entrypoint = "./functions/email-events/index.ts"
+
+# Public: the unsubscribe link in client e-mails (no login). It acts only on a
+# random per-customer token, only via POST, and is rate limited per IP.
+[functions.email-unsubscribe]
+enabled = true
+verify_jwt = false
+import_map = "./functions/email-unsubscribe/deno.json"
+entrypoint = "./functions/email-unsubscribe/index.ts"

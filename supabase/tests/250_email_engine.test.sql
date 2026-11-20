@@ -52,6 +52,8 @@ SELECT is((SELECT count(*) FROM public.email_send_log)::int, 0, '…and nothing 
 SELECT tests.authenticate_as(:'comp', 'aal2');
 SELECT throws_ok($$SELECT public.rpc_set_email_enabled(true, 'Gate E bestanden und geprüft')$$, '42501', 'forbidden', 'compliance cannot switch sending on');
 SELECT tests.authenticate_as(:'admin', 'aal2');
+-- Sending needs the sender's mandatory details first (migration 20261101180000, test 340).
+SELECT public.rpc_set_email_sender('{"company":"Profina Deutschland GmbH","address":"Castroper Straße 270–280, 44791 Bochum","register":"Amtsgericht Bochum HRB 0000","management":"Erika Muster","contact_email":"kontakt@profina.example","app_url":"https://app.profina.example"}', 'Absenderangaben laut Impressum');
 SELECT public.rpc_set_email_enabled(true, 'Gate E bestanden und geprüft');
 SELECT public.rpc_set_email_window('00:00', '23:59', '{1,2,3,4,5,6,7}', 500, 'Test: ganztägig senden');
 

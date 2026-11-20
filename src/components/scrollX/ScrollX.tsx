@@ -101,14 +101,15 @@ export const ScrollX = ({ children, label, className = "" }: ScrollXProps) => {
   const fade = "pointer-events-none absolute inset-y-0 w-8 from-color-bg-card to-transparent transition-opacity duration-200";
 
   return (
-    <div className={className}>
+    // min-w-0/max-w-full: inside a flex or grid parent the wide content must scroll here, not widen the page.
+    <div className={`min-w-0 max-w-full ${className}`}>
       <div className="relative">
         <div
           ref={ref}
           role={m.overflow ? "region" : undefined}
           aria-label={m.overflow ? label : undefined}
           tabIndex={m.overflow ? 0 : undefined}
-          className={`overflow-x-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-color-primary ${
+          className={`relative overflow-x-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-color-primary ${
             m.overflow ? "scrollbar-none" : ""
           }`}
         >

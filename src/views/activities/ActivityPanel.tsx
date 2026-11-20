@@ -222,7 +222,7 @@ const ActivityForm = ({ filter }: { filter: ActivityFilter }) => {
         showBanner("Aktivität nicht erfasst", errorText(err), "error");
       }
     }}>
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Select
           label="Art"
           value={type}

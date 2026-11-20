@@ -22,7 +22,7 @@ import {
   type MyDashboard,
   type TeamDashboard,
 } from "../../hooks/useDashboard/useDashboard";
-import { formatDate, formatPoints, safeRatio, toDecimal } from "../../utils/format";
+import { formatDate, formatPercent, formatPoints, safeRatio, toDecimal } from "../../utils/format";
 import { goalStatus } from "../goals/GoalsPage";
 import { useCoaching } from "../../hooks/useCoaching/useCoaching";
 import { historicalAverage, projectCareer, projectMonthEnd } from "../../domain/forecast";
@@ -144,6 +144,16 @@ const MySection = ({ d }: { d: MyDashboard }) => {
             <>
               <ProgressMeter label={`${levelShort(c.level)} → ${levelShort(c.target)}`} achieved={c.eligible} required={c.required} expected={c.expected_now ?? undefined} />
               <ProgressMeter label="KV-Punkte" achieved={c.eligible_kv} required={c.kv_required} unit="KV-P" />
+              {c.own_required != null && c.personal_points != null && (
+                <ProgressMeter label="davon eigene Produktion" achieved={c.personal_points} required={c.own_required} />
+              )}
+              {c.retention?.ratio != null && (
+                <p className={`text-xs ${c.retention.ok ? "text-color-text-subtle" : "text-color-error-text"}`}>
+                  Nachhaltigkeitsquote {formatPercent(c.retention.ratio, 1)}
+                  {c.retention.required != null && ` (mindestens ${formatPercent(c.retention.required)})`}
+                </p>
+              )}
+              {c.is_ready && <p className="text-xs font-semibold text-color-success-text">Alle Bedingungen erfüllt – Beförderung wartet auf Freigabe.</p>}
               {careerFc && (
                 <p className="text-xs">
                   <span className="mr-1 rounded-full border border-color-secondary/40 px-2 text-color-secondary">Schätzung</span>

@@ -12,7 +12,8 @@ import {
 } from "../lib/api.mts";
 import { sql } from "../lib/db.mts";
 import { readState } from "../lib/state.mts";
-import { login, loginAs, sidebarLabels, stepUp } from "./helpers";
+import { freshTotp } from "../lib/totp.mts";
+import { loginAs, sidebarLabels, stepUp } from "./helpers";
 import { apiSession } from "./sessions";
 
 const VAULT = ["Übersicht", "Einnahmen", "Steuerrelevante Ausgaben", "Statistiken", "Analysen"];
@@ -46,13 +47,29 @@ test.describe("Anmeldung und 2FA über die Oberfläche", () => {
     await expect(page).toHaveURL(/\/vertrieb\/produktion$/);
   });
 
-  test("2FA-Seite: falscher Code abgelehnt, richtiger Code bestätigt die Sitzung", async ({ page }) => {
-    await login(page, "admin@test.com");
-    await page.goto("/profil/sicherheit");
+  test("2FA direkt nach dem Passwort: falscher Code abgelehnt, richtiger Code bestätigt die Sitzung", async ({ page }) => {
+    await page.goto("/login?from=%2Fadmin%2Fmitarbeiter");
+    await page.getByLabel("E-Mail").fill("admin@test.com");
+    await page.getByLabel("Passwort", { exact: true }).fill("123456");
+    await page.getByRole("button", { name: "Anmelden" }).click();
     const field = page.getByLabel("Code aus der Authenticator-App");
+    await expect(field).toBeVisible();
     await field.fill("12345");
     await field.press("Enter");
     await expect(page.getByText("Bitte den 6-stelligen Code aus der App eingeben.")).toBeVisible();
+    await field.fill(await freshTotp(readState().totp["admin@test.com"].secret));
+    await field.press("Enter");
+    await expect(page).toHaveURL(/\/admin\/mitarbeiter$/);
+    await expect(page.getByRole("button", { name: "Mitarbeitende anlegen" })).toBeEnabled();
+  });
+
+  test("2FA später bestätigen: weiter mit eingeschränkten Rechten, Bestätigung auf der Sicherheitsseite", async ({ page }) => {
+    await page.goto("/login");
+    await page.getByLabel("E-Mail").fill("admin@test.com");
+    await page.getByLabel("Passwort", { exact: true }).fill("123456");
+    await page.getByRole("button", { name: "Anmelden" }).click();
+    await page.getByRole("button", { name: /Später bestätigen/ }).click();
+    await expect(page).not.toHaveURL(/\/login/);
     await stepUp(page, "admin@test.com");
     await page.goto("/admin/mitarbeiter");
     await expect(page.getByRole("button", { name: "Mitarbeitende anlegen" })).toBeEnabled();

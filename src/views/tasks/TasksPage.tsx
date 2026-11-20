@@ -28,6 +28,12 @@ import { useStructure } from "../../hooks/useStructure/useStructure";
 import { CLOSED_TASK_DAYS, useTasks, type Task } from "../../hooks/useTasks/useTasks";
 import { PRIORITY_LABEL, PRIORITY_OPTIONS } from "../../domain/leads";
 import { berlinLocalToUtcIso, berlinToday, formatDate } from "../../utils/format";
+
+const berlinDay = (iso: string) => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin" }).format(new Date(iso));
+const berlinTime = (iso: string) => new Intl.DateTimeFormat("de-DE", { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+
+/** Due date in Berlin time; today with the hour, so "überfällig" on the same day makes sense. */
+export const dueLabel = (iso: string) => (berlinDay(iso) === berlinToday() ? `heute ${berlinTime(iso)}` : formatDate(berlinDay(iso)));
 import { Form } from "../../components/form/Form";
 
 export const TASK_TYPE_LABEL: Record<string, string> = {
@@ -115,7 +121,7 @@ export const TasksPage = () => {
         <span className={`text-sm ${closed ? "line-through text-color-text-subtle" : "text-color-text-main"}`}>{t.title}</span>
         <span className="block text-xs text-color-text-subtle">
           {TASK_TYPE_LABEL[t.type] ?? t.type}
-          {t.due_at && ` · fällig ${formatDate(t.due_at.slice(0, 10))}`}
+          {t.due_at && ` · fällig ${dueLabel(t.due_at)}`}
           {system && !closed && " · schließt sich automatisch"}
           {t.completion_note && ` · ${t.completion_note}`}
         </span>

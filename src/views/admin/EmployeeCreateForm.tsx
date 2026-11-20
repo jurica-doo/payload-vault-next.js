@@ -1,6 +1,7 @@
 "use client";
 
 import { Select } from "../../components/select/Select";
+import { LEVEL_CODES, LEVEL_NAMES, levelShort } from "../../domain/rules";
 import { errorText } from "../../utils/dbErrors";
 import { ModalActions } from "../../components/modal/ModalActions";
 import { useState } from "react";
@@ -31,10 +32,12 @@ export const EmployeeCreateForm = ({
   onSubmit,
   onCancel,
 }: {
-  onSubmit: (input: NewEmployee) => Promise<void>;
+  onSubmit: (input: NewEmployee, levelCode: string) => Promise<void>;
   onCancel: () => void;
 }) => {
   const [values, setValues] = useState<EmployeeFormInput>(EMPTY);
+  // Starting level, set together with the account so the career page works from day one.
+  const [levelCode, setLevelCode] = useState("FA");
   const [errors, setErrors] = useState<Errors>({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -56,7 +59,7 @@ export const EmployeeCreateForm = ({
     }
     setIsLoading(true);
     try {
-      await onSubmit(parsed.data);
+      await onSubmit(parsed.data, levelCode);
     } catch (e) {
       setErrors({ form: errorText(e) });
     } finally {
@@ -86,6 +89,13 @@ export const EmployeeCreateForm = ({
         value={values.employmentType}
         onChange={set("employmentType")}
         options={[{ value: "full_time", label: "Vollzeit" }, { value: "part_time", label: "Teilzeit" }]}
+        fullWidth
+      />
+      <Select
+        label="Einstiegsstufe"
+        value={levelCode}
+        onChange={setLevelCode}
+        options={LEVEL_CODES.filter((c) => c !== "VDP" && c !== "GM").map((c) => ({ value: c, label: `${levelShort(c)} – ${LEVEL_NAMES[c]}` }))}
         fullWidth
       />
 

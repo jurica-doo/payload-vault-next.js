@@ -71,6 +71,9 @@ const MESSAGES: Record<string, string> = {
   producer_without_level: "Für die Person ist keine Karrierestufe hinterlegt.",
   level_without_rate: "Für die Karrierestufe gibt es zum Policierungsdatum keinen Provisionssatz im Regelwerk.",
   policy_date_in_future: "Das Policierungsdatum darf nicht in der Zukunft liegen.",
+  sender_details_missing: "Bitte zuerst die Absenderangaben (Firma, Anschrift, Register, Geschäftsführung, Kontakt, App-Adresse) vollständig hinterlegen.",
+  invalid_url: "Bitte eine vollständige Adresse mit https:// angeben.",
+  invalid_link: "Dieser Abmeldelink ist ungültig oder nicht mehr gültig.",
   policy_before_production: "Das Policierungsdatum darf nicht vor dem Produktionsdatum liegen.",
   level_not_in_rules: "Diese Stufe gibt es im Regelwerk zum gewählten Datum nicht.",
 
@@ -233,10 +236,27 @@ const STORAGE_DUPLICATE = "Eine Datei mit diesem Namen existiert bereits.";
  * internals). Everything else is mapped before it is shown.
  */
 export class UserFacingError extends Error {
-  constructor(message: string) {
+  /** SQLSTATE / PostgREST / auth code of the underlying error, when known. */
+  readonly code: string;
+  constructor(message: string, code = "") {
     super(message);
     this.name = "UserFacingError";
+    this.code = code;
   }
+}
+
+/** Codes worth a retry: lock/serialization conflicts, timeouts, connection trouble. */
+const TRANSIENT_CODES = new Set(["40001", "40P01", "57014", "PGRST000", "PGRST001", "PGRST002", "PGRST003", "53300", "08006"]);
+
+/**
+ * Whether a failed query may succeed on a second try. Permission, validation
+ * and "not found" errors never do, so they are shown at once instead of after
+ * several seconds of retries; network errors (no code) and transient server
+ * errors are retried.
+ */
+export function isRetryableError(error: unknown): boolean {
+  if (error instanceof UserFacingError) return error.code === "" || TRANSIENT_CODES.has(error.code);
+  return true;
 }
 
 type ErrorLike =
@@ -315,7 +335,8 @@ export function dbErrorMessage(error: unknown): string {
 
 /** Throws an Error whose message is already user-facing German text. */
 export function throwDbError(error: unknown): never {
-  throw new UserFacingError(dbErrorMessage(error));
+  const code = typeof error === "object" && error !== null && "code" in error ? str((error as { code?: unknown }).code) : "";
+  throw new UserFacingError(dbErrorMessage(error), code);
 }
 
 /**

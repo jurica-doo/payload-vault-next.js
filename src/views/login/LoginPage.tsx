@@ -14,22 +14,43 @@ import { loginSchema } from "../../validation/LoginValidation";
 import { AuthLayout } from "../../components/auth/AuthLayout";
 import { safeInternalPath } from "../../utils/safeRedirect";
 import { Form } from "../../components/form/Form";
+import { useQueryClient } from "@tanstack/react-query";
+
+const CODE = /^\d{6}$/;
 
 export const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Accounts with an authenticator confirm the second factor right after the
+  // password (the session is aal1 until then; admin/finance writes need aal2).
+  const [checking, setChecking] = useState(false);
+  const [factorId, setFactorId] = useState<string | null>(null);
+  const [code, setCode] = useState("");
 
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (user) {
+    if (user && !checking && !factorId) {
       router.replace(safeInternalPath(searchParams.get("from")));
     }
-  }, [user, router, searchParams]);
+  }, [user, checking, factorId, router, searchParams]);
+
+  const verifyCode = async () => {
+    const trimmed = code.replace(/\s/g, "");
+    if (!CODE.test(trimmed)) return setError("Bitte den 6-stelligen Code aus der App eingeben.");
+    setError(null);
+    setLoading(true);
+    const { error: verifyError } = await supabase.auth.mfa.challengeAndVerify({ factorId: factorId!, code: trimmed });
+    setLoading(false);
+    if (verifyError) return setError(authErrorMessage(verifyError, "mfa_code"));
+    await queryClient.invalidateQueries({ queryKey: ["myContext"] });
+    setFactorId(null);
+  };
 
   const handleLogin = async () => {
     setError(null);
@@ -44,6 +65,7 @@ export const LoginPage = () => {
     }
 
     setLoading(true);
+    setChecking(true);
 
     const { error } = await supabase.auth.signInWithPassword({
       email: result.data.email,
@@ -52,12 +74,48 @@ export const LoginPage = () => {
 
     if (error) {
       setError(authErrorMessage(error, "login"));
+    } else {
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aal?.currentLevel === "aal1" && aal.nextLevel === "aal2") {
+        const { data: factors } = await supabase.auth.mfa.listFactors();
+        const totp = factors?.totp.find((f) => f.status === "verified");
+        if (totp) setFactorId(totp.id);
+      }
     }
 
+    setChecking(false);
     setLoading(false);
   };
 
   return (
+    factorId ? (
+      <AuthLayout
+        title="Zwei-Faktor-Anmeldung"
+        description="Bitte geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein."
+        footer={
+          <button type="button" className="ui-link-button text-sm" onClick={() => setFactorId(null)}>
+            Später bestätigen – Verwaltungs- und Finanzfunktionen bleiben bis dahin gesperrt
+          </button>
+        }
+      >
+        {error && (
+          <div className="mb-5 animate-slide-down">
+            <Banner bannerType="error" title="Code nicht bestätigt" description={error} />
+          </div>
+        )}
+        <Form className="flex flex-col gap-5" onSubmit={(e) => { e.preventDefault(); return verifyCode(); }}>
+          <InputField
+            label="Code aus der Authenticator-App"
+            placeholder="123456"
+            name="one-time-code"
+            autoComplete="one-time-code"
+            value={code}
+            onChange={(val) => setCode(val)}
+          />
+          <Button type="submit" text="Bestätigen" isLoading={loading} size="large" fullWidth className="mt-1" />
+        </Form>
+      </AuthLayout>
+    ) : (
     <AuthLayout
       title="Willkommen zurück"
       description="Melden Sie sich mit Ihrer Profina-E-Mail-Adresse an."
@@ -105,5 +163,6 @@ export const LoginPage = () => {
             <Button type="submit" text="Anmelden" isLoading={loading} size="large" fullWidth className="mt-1" />
           </Form>
     </AuthLayout>
+    )
   );
 };

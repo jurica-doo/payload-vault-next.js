@@ -3,7 +3,8 @@ import type { IconProps } from "./Icon.types";
 export const DeleteIcon = ({ size = 24, ...props }: IconProps) => (
   <svg
     fill="currentColor"
-    width="800px"
+    width={size}
+    height={size}
     viewBox="-3 -2 24 24"
     xmlns="http://www.w3.org/2000/svg"
     preserveAspectRatio="xMinYMin"

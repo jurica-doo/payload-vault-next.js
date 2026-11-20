@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState, type ReactNode } from "react";
+import { isRetryableError } from "@/utils/dbErrors";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthContext";
 import { YearProvider } from "@/context/YearContext";
@@ -18,7 +19,14 @@ import {
 } from "@/utils/theme";
 
 export function Providers({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  // Retry only what can succeed on a second try (network, timeouts); a refusal
+  // or validation error is shown at once instead of after ~7 s of retries.
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: { queries: { retry: (count, error) => count < 2 && isRetryableError(error) } },
+      }),
+  );
 
   useEffect(() => {
     applyTheme(getThemePreference());

@@ -50,9 +50,9 @@ export const DetailLayout = ({
 }) => (
   <div className="flex flex-col gap-5">
     {header}
-    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_24rem]">
+    <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_24rem]">
       <div className="order-2 flex min-w-0 flex-col gap-5 lg:order-1">{main}</div>
-      <aside className="order-1 flex flex-col gap-4 lg:sticky lg:top-20 lg:order-2">
+      <aside className="order-1 flex min-w-0 flex-col gap-4 lg:sticky lg:top-20 lg:order-2">
         {aside}
       </aside>
     </div>

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   dbErrorMessage,
+  isRetryableError,
   errorText,
   GENERIC_ERROR,
   NETWORK_ERROR,
@@ -144,5 +145,33 @@ describe("signed out", () => {
     expect(dbErrorMessage(denied)).toBe(SESSION_EXPIRED);
     expect(dbErrorMessage({ code: "PGRST301", message: "JWT expired" })).toBe(SESSION_EXPIRED);
     setSessionEnded(false);
+  });
+});
+
+describe("isRetryableError", () => {
+  const thrown = (error: unknown) => {
+    try {
+      throwDbError(error);
+    } catch (e) {
+      return e;
+    }
+  };
+
+  it("does not retry refusals and validation errors (shown at once)", () => {
+    expect(isRetryableError(thrown({ code: "42501", message: "forbidden" }))).toBe(false);
+    expect(isRetryableError(thrown({ code: "P0001", message: "invalid_status" }))).toBe(false);
+    expect(isRetryableError(thrown({ code: "22023", message: "invalid_phone" }))).toBe(false);
+    expect(isRetryableError(thrown({ code: "PGRST116", message: "no rows" }))).toBe(false);
+  });
+
+  it("retries network errors and transient server errors", () => {
+    expect(isRetryableError(thrown({ message: "Failed to fetch" }))).toBe(true);
+    expect(isRetryableError(thrown({ code: "40001", message: "could not serialize" }))).toBe(true);
+    expect(isRetryableError(thrown({ code: "57014", message: "canceling statement" }))).toBe(true);
+    expect(isRetryableError(new TypeError("network"))).toBe(true);
+  });
+
+  it("keeps the code on the thrown error", () => {
+    expect((thrown({ code: "42501", message: "forbidden" }) as UserFacingError).code).toBe("42501");
   });
 });

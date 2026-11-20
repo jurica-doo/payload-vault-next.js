@@ -212,6 +212,48 @@ Still open before go-live:
 - [ ] `public/profina_Marke.jpg` (340 KB) is not referenced anywhere: delete it or use it.
 - [ ] The login background slogan reads „BURNDED“ (typo in Profina's image): ask for a corrected asset.
 
+### 5.2 Live audit (2026-11-20): every role, desktop and 375 px, real clicks
+
+Crawled every page for adviser, leader, admin, finance, compliance, vault-only, deactivated and no-level accounts
+(284 page views: no page errors, no leaked raw values, all pages < 2 s in dev) and clicked the main journeys by hand
+(login, lead → appointment → customer, consent, tasks, goals, finance month, invite → first login, e-mail module).
+
+Fixed:
+- [x] **Client e-mails: legal footer + unsubscribe** (migration `20261101180000`): every mail (preview, test, live) ends
+  with the adviser's signature, the sender's mandatory company details and an unsubscribe link; public page `/abmelden`
+  + Edge Function `email-unsubscribe` (POST only, RFC 8058 one-click, rate limited) record a withdrawal for that purpose;
+  List-Unsubscribe headers. Sending can't be switched on without complete sender details („Absender & Pflichtangaben“
+  on Kommunikation).
+- [x] **Salutation**: customers have „Anrede“ (Frau/Herr/divers); merge fields `{{briefanrede}}` („Liebe Frau Kowalski“)
+  and `{{briefanrede_formell}}` („Sehr geehrte Frau Kowalski“), neutral „Guten Tag …“ otherwise.
+- [x] **German account e-mails** (invite, password reset, e-mail change, confirmation): `supabase/templates/*.html`.
+- [x] **2FA code right after the password** for accounts with an authenticator („Später bestätigen“ possible).
+- [x] **Silent 1.000-row cut-off** in employee list, level history, structure and leader ledger: loaded in pages
+  (`src/lib/selectAll.ts`).
+- [x] **Query retries**: permission/validation errors are shown at once instead of after ~7 s of retries.
+- [x] **Mobile**: record pages and every ScrollX table could scroll the whole page sideways (fixed in `DetailLayout` and
+  `ScrollX`); consent table is a stacked list.
+- [x] Cockpit career tile shows own business, retention rate and „alle Bedingungen erfüllt“.
+- [x] Lead → customer asks for confirmation; new employees get a starting level in the create form; after the invite
+  password the user goes straight into the app; tasks show „heute HH:MM“ and Berlin dates (were UTC dates);
+  „Zuschuss zurücknehmen“ only for a real subsidy; `rpc_create_task` defaults the owner to the caller; old lint
+  warnings fixed (search box stale callback, delete icon 800 px).
+
+Still open before go-live:
+- [ ] **Impressum and Datenschutzerklärung contain placeholders** („[First and last name]“, „[Phone number]“ …) and cite
+  § 5 TMG / § 55 RStV (now § 5 DDG / § 18 MStV). The privacy policy covers only the vault: add the CRM (clients, leads),
+  receipt AI (Google Gemini, third country), the e-mail provider and hosting (Vercel). Needs the operator's real data and
+  a check by Profina's privacy contact. For an insurance intermediary also § 34d GewO / Vermittlerregister details.
+- [ ] Enter the real sender details on Kommunikation (company, address, register court/number, management, contact
+  e-mail, app address) and copy the German auth e-mail templates into the production dashboard
+  (Authentication → Email Templates).
+- [ ] Save the lead SLA once at `/admin/leads` (removes the OD-19 notice) and replace the test template text
+  („Liebe/r {{rufname}}“) with `{{briefanrede}}`.
+- [ ] Recommendation: on phones, put contact details and „Aktivitäten“ first on record pages and fold rarely used forms
+  (reassign, phase) behind buttons; show a lead's upcoming appointments on the customer page after conversion.
+- [ ] No self-service to replace a lost authenticator: define the support process (admin resets the factor in the
+  Supabase dashboard).
+
 ## 6. Clean-up backlog [Dev]
 
 ### 6.1 UX pass (agreed: "UX later")

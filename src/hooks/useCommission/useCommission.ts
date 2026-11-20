@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
+import { selectAll } from "../../lib/selectAll";
 import { throwDbError } from "../../utils/dbErrors";
 import type { Tables } from "../../types/supabase";
 
@@ -53,14 +54,10 @@ export function useLedgerEntries(month: string, recipientId: string | null) {
     queryKey: ["ledger", month, recipientId],
     enabled: !!recipientId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_commission_ledger")
-        .select("*")
-        .eq("period_month", month)
-        .eq("recipient_id", recipientId!)
-        .order("seq");
-      if (error) throwDbError(error);
-      return (data ?? []) as LedgerEntry[];
+      // Paged: a leader with a large structure can have more than 1.000 bookings a month.
+      return (await selectAll((from, to) =>
+        supabase.from("v_commission_ledger").select("*").eq("period_month", month).eq("recipient_id", recipientId!).order("seq").range(from, to),
+      )) as LedgerEntry[];
     },
   });
 }

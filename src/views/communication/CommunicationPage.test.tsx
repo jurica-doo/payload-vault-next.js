@@ -19,8 +19,13 @@ vi.mock("../../hooks/permissions/usePermissions", () => ({
 vi.mock("../../context/AuthContext", () => ({ useAuth: () => ({ user: { id: "me" } }) }));
 vi.mock("../../context/banner/BannerContext", () => ({ useBanner: () => ({ showBanner: m.showBanner }) }));
 vi.mock("../../context/modal/ModalContext", () => ({ useModal: () => ({ openModal: m.openModal, closeModal: vi.fn() }) }));
+const senderState = vi.hoisted(() => ({
+  value: { company: "Profina Deutschland GmbH", address: "Castroper Straße 270–280, 44791 Bochum", register: "Amtsgericht Bochum HRB 1",
+    management: "Erika Muster", contact_email: "kontakt@profina.example", app_url: "https://app.profina.example", complete: true } as Record<string, unknown>,
+}));
 vi.mock("../../hooks/useEmail/useEmail", () => ({
   CUSTOMER_EMAIL_LIMIT: 50,
+  useEmailSender: () => ({ sender: { data: senderState.value }, save: mutation(vi.fn()) }),
   useEmailTemplates: () => ({
     data: { templates: [{ id: "t1", name: "Geburtstag", purpose: "birthday", allowed_bases: ["consent"], active_version_id: null, archived_at: null }], versions: [] },
     saveTemplate: mutation(vi.fn()), saveDraft: mutation(vi.fn()), submit: mutation(vi.fn()), decide: mutation(vi.fn()),
@@ -58,6 +63,25 @@ describe("CommunicationPage", () => {
     for (const name of ["Versand einschalten", "Fortsetzen", "Kampagne anlegen", "Sperren", "CSV importieren", "Vorlage anlegen"]) {
       expect(screen.getByRole("button", { name })).toBeDisabled();
     }
+  });
+
+  it("sending can only be switched on with complete sender details (footer, unsubscribe link)", () => {
+    m.hasMfa = true;
+    const complete = senderState.value;
+    senderState.value = { company: "Profina Deutschland GmbH", complete: false };
+    render(<CommunicationPage />);
+    expect(screen.getByRole("button", { name: "Versand einschalten" })).toBeDisabled();
+    expect(screen.getByText("unvollständig – Versand gesperrt")).toBeInTheDocument();
+    expect(screen.getByText(/Einschalten erst möglich, wenn die Absender- und Pflichtangaben/)).toBeInTheDocument();
+    senderState.value = complete;
+  });
+
+  it("the template preview ends with the footer and an unsubscribe link", () => {
+    m.hasMfa = true;
+    render(<CommunicationPage />);
+    expect(screen.getByText(/Ihr Ansprechpartner: Max Berater/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Hier abmelden" })).toHaveAttribute(
+      "href", "https://app.profina.example/abmelden?t=00000000-0000-0000-0000-000000000000&z=birthday_email");
   });
 
   it("P6-04 the send window uses time inputs and reports a bad order", () => {

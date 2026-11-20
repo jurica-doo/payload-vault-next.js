@@ -55,15 +55,15 @@ export const UpdatePasswordPage = () => {
         <AuthResult
           action={
             <Button
-              onClick={() => router.push("/login")}
-              text="Zur Anmeldung"
+              onClick={() => router.push("/")}
+              text="Weiter zur App"
               size="large"
               fullWidth
             />
           }
         >
-          Ihr Passwort wurde erfolgreich gespeichert. Sie können sich jetzt
-          anmelden.
+          Ihr Passwort ist gespeichert und Sie sind angemeldet. Künftig melden Sie sich mit Ihrer E-Mail-Adresse und
+          diesem Passwort an.
         </AuthResult>
       </AuthLayout>
     );

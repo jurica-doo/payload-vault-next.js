@@ -1,6 +1,7 @@
 "use client";
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { EmailSender } from "../../domain/emailTemplate";
 import { supabase } from "../../lib/supabase";
 import { throwDbError } from "../../utils/dbErrors";
 import type { Tables } from "../../types/supabase";
@@ -93,6 +94,17 @@ export function useSendLog(enabled: boolean, { status, page, pageSize }: Page & 
       return { rows: (data ?? []) as unknown as SendLogEntry[], total: count ?? 0 };
     },
   });
+}
+
+/** Sender's mandatory details for the mail footer (read: admin/compliance; write: admin with 2FA). */
+export function useEmailSender(enabled: boolean) {
+  const queryClient = useQueryClient();
+  const sender = useQuery({ queryKey: ["email-sender"], enabled, queryFn: async () => (await call("rpc_email_sender", {})) as unknown as EmailSender });
+  const save = useMutation({
+    mutationFn: (a: { value: Omit<EmailSender, "complete">; reason: string }) => call("rpc_set_email_sender", { p_value: a.value, p_reason: a.reason }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["email-sender"] }),
+  });
+  return { sender, save };
 }
 
 /** Kill switch, window, campaigns, suppressions and the send log (admin/compliance). */

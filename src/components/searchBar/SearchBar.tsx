@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useState } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { CloseIcon, SearchIcon } from "../icons";
 import { useTimeout } from "../../hooks/timeout/UseTimeout";
 
@@ -19,6 +19,13 @@ export const SearchBar = ({
 }: SearchBarProps) => {
   const [searchValue, setSearchValue] = useState(value ?? "");
   const timeout = useTimeout();
+  // Latest callback and timer without re-running the debounce when a parent re-renders.
+  const onChangeRef = useRef(onChange);
+  const timeoutRef = useRef(timeout);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+    timeoutRef.current = timeout;
+  });
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
@@ -33,13 +40,14 @@ export const SearchBar = ({
   }
 
   useEffect(() => {
+    const t = timeoutRef.current;
     if (debounceMs === 0) {
-      onChange(searchValue);
+      onChangeRef.current(searchValue);
       return;
     }
 
-    timeout.set(() => onChange(searchValue), debounceMs);
-    return () => timeout.clear();
+    t.set(() => onChangeRef.current(searchValue), debounceMs);
+    return () => t.clear();
   }, [searchValue, debounceMs]);
 
   const handleClear = () => {

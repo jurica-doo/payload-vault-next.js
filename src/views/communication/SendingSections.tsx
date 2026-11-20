@@ -22,7 +22,7 @@ import { useModal } from "../../context/modal/ModalContext";
 import { BASIS_LABEL } from "../../domain/consent";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { customerNo } from "../../hooks/useCustomers/useCustomers";
-import { useEmailOps, useEmailTemplates, useSendLog, useSuppressions, type Campaign, type SendLogEntry } from "../../hooks/useEmail/useEmail";
+import { useEmailOps, useEmailSender, useEmailTemplates, useSendLog, useSuppressions, type Campaign, type SendLogEntry } from "../../hooks/useEmail/useEmail";
 import { errorText } from "../../utils/dbErrors";
 import { berlinToday, formatDate, formatDateTime, formatNumber } from "../../utils/format";
 import { BLOCK_REASON, BLOCK_REASON_OPTIONS, SEND_STATUS, SUPPRESSION_REASON, card } from "./emailLabels";
@@ -41,6 +41,7 @@ const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 export const SwitchSection = () => {
   const { permissions } = usePermissions();
   const ops = useEmailOps(true);
+  const senderComplete = useEmailSender(true).sender.data?.complete === true;
   const { openModal, closeModal } = useModal();
   const { showBanner } = useBanner();
   const s = ops.status.data;
@@ -72,10 +73,13 @@ export const SwitchSection = () => {
           <Button text="Versand stoppen" variant="decline" isDisabled={!permissions.hasMfa}
             onClick={() => confirm("Versand stoppen", "Geplante Mails bleiben im Protokoll und werden nicht versendet.", (reason) => ops.setEnabled.mutateAsync({ enabled: false, reason }), "Versand gestoppt")} />
         ) : permissions.isAdmin && (
-          <Button text="Versand einschalten" variant="approve" isDisabled={!permissions.hasMfa}
+          <Button text="Versand einschalten" variant="approve" isDisabled={!permissions.hasMfa || !senderComplete}
             onClick={() => confirm("Versand einschalten", "Ab jetzt werden geplante Mails im Versandfenster verschickt. Nur nach bestandenem Gate E.", (reason) => ops.setEnabled.mutateAsync({ enabled: true, reason }), "Versand eingeschaltet")} />
         )}
       </div>
+      {!s.enabled && permissions.isAdmin && !senderComplete && (
+        <p className="text-sm text-color-text-secondary">Einschalten erst möglich, wenn die Absender- und Pflichtangaben unten vollständig sind.</p>
+      )}
       <Form className="flex flex-col gap-3 border-t border-color-border-light pt-3"
         onSubmit={() => confirm("Versandfenster ändern", "Gilt für alle künftigen Versände (Uhrzeit Europe/Berlin).",
           async (reason) => { await ops.setWindow.mutateAsync({ start: form.start, end: form.end, days: form.days, dailyLimit: limit, reason }); setW(null); }, "Versandfenster gespeichert")}>

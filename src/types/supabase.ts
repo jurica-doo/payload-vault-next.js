@@ -1148,6 +1148,7 @@ export type Database = {
           customer_no: number
           date_of_birth: string | null
           email: string | null
+          email_token: string
           erased_at: string | null
           external_id: string | null
           first_name: string | null
@@ -1162,6 +1163,7 @@ export type Database = {
           postal_code: string | null
           preferred_channel: string
           preferred_name: string | null
+          salutation: string | null
           search_name: string | null
           source_system: string | null
           status: string
@@ -1177,6 +1179,7 @@ export type Database = {
           customer_no?: never
           date_of_birth?: string | null
           email?: string | null
+          email_token?: string
           erased_at?: string | null
           external_id?: string | null
           first_name?: string | null
@@ -1191,6 +1194,7 @@ export type Database = {
           postal_code?: string | null
           preferred_channel?: string
           preferred_name?: string | null
+          salutation?: string | null
           search_name?: string | null
           source_system?: string | null
           status?: string
@@ -1206,6 +1210,7 @@ export type Database = {
           customer_no?: never
           date_of_birth?: string | null
           email?: string | null
+          email_token?: string
           erased_at?: string | null
           external_id?: string | null
           first_name?: string | null
@@ -1220,6 +1225,7 @@ export type Database = {
           postal_code?: string | null
           preferred_channel?: string
           preferred_name?: string | null
+          salutation?: string | null
           search_name?: string | null
           source_system?: string | null
           status?: string
@@ -3759,6 +3765,7 @@ export type Database = {
         Args: { p_id: string; p_reason: string }
         Returns: undefined
       }
+      rpc_email_sender: { Args: never; Returns: Json }
       rpc_email_status: { Args: never; Returns: Json }
       rpc_erase_subject: { Args: { p_request_id: string }; Returns: undefined }
       rpc_export_subject_data: { Args: { p_request_id: string }; Returns: Json }
@@ -4038,6 +4045,10 @@ export type Database = {
         Args: { p_enabled: boolean; p_reason: string }
         Returns: undefined
       }
+      rpc_set_email_sender: {
+        Args: { p_reason: string; p_value: Json }
+        Returns: undefined
+      }
       rpc_set_email_window: {
         Args: {
           p_daily_limit: number
@@ -4162,6 +4173,10 @@ export type Database = {
         Returns: undefined
       }
       rpc_team_signals: { Args: never; Returns: Json }
+      rpc_unsubscribe_email: {
+        Args: { p_purpose: string; p_token: string }
+        Returns: Json
+      }
       rpc_update_conversion_draft: {
         Args: {
           p_ae_per_point: number

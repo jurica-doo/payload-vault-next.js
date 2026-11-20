@@ -59,18 +59,30 @@ export const EmployeesAdminPage = () => {
       children: (
         <EmployeeCreateForm
           onCancel={closeModal}
-          onSubmit={async (input) => {
+          onSubmit={async (input, levelCode) => {
             const result = await createEmployee.mutateAsync(input);
             closeModal();
+            // Levels take effect up to today (level_in_future): a future start gets its level on the start day.
+            const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin" }).format(new Date());
+            let levelNote = "";
+            if (input.startDate <= today) {
+              try {
+                await setLevel.mutateAsync({ employeeId: result.employee_id, levelCode, effectiveFrom: input.startDate, reason: "Einstiegsstufe bei Eintritt" });
+              } catch (e) {
+                levelNote = ` Einstiegsstufe nicht gesetzt: ${errorText(e)}`;
+              }
+            } else {
+              levelNote = ` Die Einstiegsstufe tragen Sie ab dem Startdatum (${formatDate(input.startDate)}) über „Stufe“ ein.`;
+            }
             if (result.inviteError) {
-              showBanner("Angelegt, Einladung fehlgeschlagen", result.inviteError, "error");
+              showBanner("Angelegt, Einladung fehlgeschlagen", result.inviteError + levelNote, "error");
             } else {
               showBanner(
                 "Angelegt",
-                result.needs_invite
+                (result.needs_invite
                   ? `Einladung an ${input.email} versendet.`
-                  : "Bestehendes Konto verknüpft – keine Einladung nötig.",
-                "success",
+                  : "Bestehendes Konto verknüpft – keine Einladung nötig.") + levelNote,
+                levelNote.includes("nicht gesetzt") ? "warning" : "success",
               );
             }
           }}

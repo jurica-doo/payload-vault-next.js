@@ -8,7 +8,7 @@ import { phoneSearchFragment } from "../../domain/normalize";
 
 export type Customer = Tables<"customers">;
 export type CustomerInput = Partial<{
-  first_name: string; last_name: string; company: string; preferred_name: string; date_of_birth: string | null;
+  salutation: string | null; first_name: string; last_name: string; company: string; preferred_name: string; date_of_birth: string | null;
   phone: string | null; email: string | null; street: string; postal_code: string; city: string;
   preferred_channel: string; status: string; next_follow_up_at: string | null; notes: string;
 }>;

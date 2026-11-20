@@ -19,6 +19,7 @@ export const ROUTE_PATTERNS = [
   "/einnahmen/kategorie/[slug]",
   "/einnahmen/kategorie/[slug]/[subSlug]",
   "/impressum",
+  "/abmelden",
   "/login",
   "/offline",
   "/passwort-zurucksetzen",

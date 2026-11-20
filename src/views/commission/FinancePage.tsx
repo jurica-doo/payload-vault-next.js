@@ -212,7 +212,7 @@ export const FinancePage = () => {
             { id: "subsidy", header: "Zuschuss", align: "right", cell: (r) => (r.subsidy === null ? "–" : <MoneyValue value={r.subsidy} />) },
             {
               id: "actions", header: "", align: "right",
-              cell: (r) => r.subsidy === null ? null : (
+              cell: (r) => r.subsidy === null || Number(r.subsidy) === 0 ? null : (
                 // The row itself opens the bookings; the button must not bubble into that.
                 <span onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                   <Button text="Zuschuss zurücknehmen" size="small" variant="ghost" isDisabled={!canWrite} onClick={() => revoke(r)} />

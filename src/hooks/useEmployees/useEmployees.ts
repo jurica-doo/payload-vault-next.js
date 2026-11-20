@@ -3,6 +3,7 @@
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
+import { selectAll } from "../../lib/selectAll";
 import { dbErrorMessage, throwDbError, UserFacingError } from "../../utils/dbErrors";
 import type { Tables } from "../../types/supabase";
 
@@ -49,24 +50,23 @@ export function useEmployees() {
   const query = useQuery<EmployeeWithRoles[]>({
     queryKey: employeesKey,
     queryFn: async () => {
-      const [employees, roles, invites, levels] = await Promise.all([
-        supabase.from("employees").select("*").order("last_name").order("first_name"),
-        supabase.from("user_roles").select("user_id, role").is("revoked_at", null),
-        supabase
-          .from("employee_invites")
-          .select("employee_id, expires_at")
-          .is("accepted_at", null)
-          .is("revoked_at", null),
-        supabase
-          .from("career_level_history")
-          .select("employee_id, level_code, effective_from, created_at")
-          .order("effective_from", { ascending: false })
-          .order("created_at", { ascending: false }),
+      // Paged: each list can pass the API's 1.000-row limit (silently cut off otherwise).
+      const [employeeRows, roleRows, inviteRows, levelRows] = await Promise.all([
+        selectAll((from, to) => supabase.from("employees").select("*").order("last_name").order("first_name").order("id").range(from, to)),
+        selectAll((from, to) => supabase.from("user_roles").select("user_id, role").is("revoked_at", null).order("user_id").order("role").range(from, to)),
+        selectAll((from, to) =>
+          supabase.from("employee_invites").select("employee_id, expires_at").is("accepted_at", null).is("revoked_at", null)
+            .order("employee_id").order("expires_at").range(from, to),
+        ),
+        selectAll((from, to) =>
+          supabase.from("career_level_history").select("employee_id, level_code, effective_from, created_at")
+            .order("effective_from", { ascending: false }).order("created_at", { ascending: false }).order("id").range(from, to),
+        ),
       ]);
-      if (employees.error) throwDbError(employees.error);
-      if (roles.error) throwDbError(roles.error);
-      if (invites.error) throwDbError(invites.error);
-      if (levels.error) throwDbError(levels.error);
+      const employees = { data: employeeRows };
+      const roles = { data: roleRows };
+      const invites = { data: inviteRows };
+      const levels = { data: levelRows };
 
       // Current level = latest entry effective today or earlier (Berlin date).
       const today = new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Berlin" }).format(new Date());

@@ -3,6 +3,7 @@
 import { MfaRequiredNotice } from "../../components/mfa/MfaRequiredNotice";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { TemplatesSection } from "./TemplatesSection";
+import { SenderSection } from "./SenderSection";
 import { CampaignsSection, SendLogSection, SuppressionsSection, SwitchSection } from "./SendingSections";
 
 /** Customer communication (§10.2): templates, campaigns, suppressions, send log. Admin/compliance. */
@@ -13,6 +14,7 @@ export const CommunicationPage = () => {
     <div className="flex flex-col gap-4">
       {!permissions.hasMfa && <MfaRequiredNotice />}
       <SwitchSection />
+      <SenderSection />
       <TemplatesSection />
       <CampaignsSection />
       <SuppressionsSection />

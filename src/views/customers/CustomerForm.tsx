@@ -1,6 +1,7 @@
 "use client";
 
 import { errorText } from "../../utils/dbErrors";
+import { SALUTATION_LABEL } from "../../domain/emailTemplate";
 import { useState } from "react";
 import { Button } from "../../components/button/Button";
 import { DateInput, TextArea } from "../../components/formFields/FormFields";
@@ -35,6 +36,7 @@ export const CustomerForm = ({ customer, onDone }: { customer?: Customer; onDone
   const { create, update } = useCustomerMutations();
   const { showBanner } = useBanner();
   const [f, setF] = useState({
+    salutation: customer?.salutation ?? "",
     first_name: customer?.first_name ?? "", last_name: customer?.last_name ?? "", company: customer?.company ?? "",
     preferred_name: customer?.preferred_name ?? "", date_of_birth: customer?.date_of_birth ?? "",
     phone: customer?.phone ?? "", email: customer?.email ?? "", street: customer?.street ?? "",
@@ -60,7 +62,7 @@ export const CustomerForm = ({ customer, onDone }: { customer?: Customer; onDone
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!valid) return;
-    const data: CustomerInput = { ...f, phone, email, date_of_birth: f.date_of_birth || null };
+    const data: CustomerInput = { ...f, phone, email, date_of_birth: f.date_of_birth || null, salutation: f.salutation || null };
     try {
       if (customer) {
         await update.mutateAsync({ id: customer.id, data });
@@ -81,10 +83,12 @@ export const CustomerForm = ({ customer, onDone }: { customer?: Customer; onDone
   return (
     <Form className="flex flex-col gap-3 pt-2" onSubmit={submit}>
       <div className="grid gap-3 sm:grid-cols-3">
+        <Select label="Anrede" value={f.salutation} onChange={set("salutation")}
+          options={[{ value: "", label: "– bitte wählen –" }, ...Object.entries(SALUTATION_LABEL).map(([value, label]) => ({ value, label }))]} />
         <InputField label="Vorname" placeholder="Erika" value={f.first_name} onChange={set("first_name")} />
         <InputField label="Nachname" placeholder="Musterfrau" value={f.last_name} onChange={set("last_name")} />
         <InputField label="Firma" placeholder="optional" value={f.company} onChange={set("company")} />
-        <InputField label="Anrede-/Rufname" placeholder="für Briefe und E-Mails" value={f.preferred_name} onChange={set("preferred_name")} />
+        <InputField label="Rufname" placeholder="falls anders als der Vorname" value={f.preferred_name} onChange={set("preferred_name")} />
         <DateInput label="Geburtsdatum (nur wenn nötig)" value={f.date_of_birth} onChange={set("date_of_birth")} max={berlinToday()} />
         <Select label="Status" value={f.status} onChange={set("status")}
           options={Object.entries(CUSTOMER_STATUS_LABEL).map(([value, label]) => ({ value, label }))} />
