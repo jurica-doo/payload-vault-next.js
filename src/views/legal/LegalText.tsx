@@ -34,7 +34,7 @@ export const Section = ({ title, children }: { title: string; children: ReactNod
 /** A value of the operator data, or a visible marker while it is still missing. */
 export const V = ({ k }: { k: keyof LegalEntity }) => {
   const value = LEGAL[k];
-  if (value !== null) return <>{value}</>;
+  if (value != null) return <>{value}</>;
   return (
     <span className="rounded-sm bg-color-bg-warning-subtle px-1 text-color-warning-text" data-legal-open={k}>
       [noch offen: {LEGAL_FIELD_LABEL[k]}]
@@ -44,7 +44,9 @@ export const V = ({ k }: { k: keyof LegalEntity }) => {
 
 export const Address = () => (
   <p>
-    <V k="company" />
+    <V k="operator" />
+    <br />
+    <V k="trade" />
     <br />
     <V k="street" />
     <br />

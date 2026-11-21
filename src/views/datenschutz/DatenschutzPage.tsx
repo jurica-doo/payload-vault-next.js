@@ -5,7 +5,7 @@ const H = ({ children }: { children: React.ReactNode }) => <h3 className="mt-2 f
 
 /**
  * Datenschutzerklärung (Art. 13 GDPR) for the people who use the app:
- * Profina employees and sales partners. Clients and leads whose data is kept in
+ * the sales partners in Bazilije Vuletić's structure (Profina). Clients and leads whose data is kept in
  * the sales part are informed by Profina separately (Art. 14); section 6 lists
  * the processing for transparency. Operator data: src/data/legalEntity.ts.
  */
@@ -18,14 +18,20 @@ export const DatenschutzPage = () => (
         <br />
         E-Mail: <V k="email" />
       </p>
+      {LEGAL.dataProtectionOfficer !== undefined && (
+        <p>
+          Datenschutzbeauftragte/r: <V k="dataProtectionOfficer" />
+        </p>
+      )}
       <p>
-        Datenschutzbeauftragte/r: <V k="dataProtectionOfficer" />
+        {LEGAL.operator} betreibt die Anwendung als Versicherungsvertreter in Vertretung der {LEGAL.principal},{" "}
+        {LEGAL.principalAddress}.
       </p>
     </Section>
 
     <Section title="2. Worum es geht">
       <p>
-        Der Profina Payload Vault ist eine interne Anwendung für Mitarbeitende und Vertriebspartner der {LEGAL.company}. Sie
+        Der Profina Payload Vault ist eine interne Anwendung für Mitarbeitende und Vertriebspartner im Vertrieb von {LEGAL.operator} ({LEGAL.principal}). Sie
         besteht aus zwei Teilen: dem persönlichen Tresor (eigene Abrechnungen, steuerrelevante Belege, Auswertungen) und dem
         Vertriebssystem (Produktion, Karriere, Provisionen, Leads, Kundinnen und Kunden, Aufgaben). Zugang erhält nur, wer von
         der Verwaltung eingeladen wurde.
@@ -40,9 +46,10 @@ export const DatenschutzPage = () => (
       </p>
       <H>Vercel (Auslieferung der Anwendung)</H>
       <p>
-        Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, USA, stellt die Webanwendung bereit. Dabei werden technisch
-        notwendige Verbindungsdaten verarbeitet (IP-Adresse, Zeitpunkt, aufgerufene Seite, Browserangaben), um die Seiten
-        auszuliefern und Angriffe abzuwehren. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.
+        Vercel Inc., 440 N Barranca Ave #4133, Covina, CA 91723, USA, stellt die Webanwendung bereit; Serveranfragen werden
+        in der Region Frankfurt am Main verarbeitet, statische Inhalte über das Vercel-CDN ausgeliefert. Dabei werden
+        technisch notwendige Verbindungsdaten verarbeitet (IP-Adresse, Zeitpunkt, aufgerufene Seite, Browserangaben), um die
+        Seiten auszuliefern und Angriffe abzuwehren. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO.
       </p>
       <H>Supabase (Datenbank, Anmeldung, Dateien, Serverfunktionen)</H>
       <p>
@@ -51,7 +58,7 @@ export const DatenschutzPage = () => (
       </p>
       <H>Resend (E-Mail-Versand)</H>
       <p>
-        Resend Inc., 2261 Market Street #5039, San Francisco, CA 94114, USA, versendet die E-Mails der Anwendung: Einladungen,
+        Resend (Plus Five Five, Inc.), 2261 Market Street #5039, San Francisco, CA 94114, USA, versendet die E-Mails der Anwendung: Einladungen,
         Passwort-Links und – nur wenn freigeschaltet – E-Mails an Kundinnen und Kunden. Dabei werden Empfängeradresse, Inhalt
         und Zustellstatus verarbeitet. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Konto) bzw. die Grundlage der jeweiligen
         Kunden-E-Mail (siehe Abschnitt 7).
@@ -61,8 +68,8 @@ export const DatenschutzPage = () => (
         Wenn Sie im Tresor einen Beleg hochladen und die automatische Erkennung nutzen, wird das Bild bzw. die PDF über eine
         Serverfunktion an die Gemini-API von Google übermittelt (Google LLC, 1600 Amphitheatre Parkway, Mountain View, CA
         94043, USA, bzw. Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland). Zurück kommen Betrag, Datum
-        und Kategorie, die Sie prüfen und ändern können. Die Datei wird dafür nur verarbeitet, nicht von Google zu eigenen
-        Zwecken verwendet. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (von Ihnen ausgelöste Funktion).
+        und Kategorie, die Sie prüfen und ändern können. Wir nutzen einen kostenpflichtigen API-Zugang; die Datei wird dafür nur
+        verarbeitet und nicht von Google zu eigenen Zwecken (etwa zum Training) verwendet. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (von Ihnen ausgelöste Funktion).
       </p>
     </Section>
 
@@ -92,7 +99,7 @@ export const DatenschutzPage = () => (
         Rechtsgrundlagen: Art. 6 Abs. 1 lit. b DSGVO (Anbahnung und Durchführung von Verträgen), Art. 6 Abs. 1 lit. c DSGVO
         (Dokumentations- und Aufbewahrungspflichten, z. B. § 61 VVG, HGB, AO) und Art. 6 Abs. 1 lit. a DSGVO (Einwilligungen,
         etwa für Geburtstagsgrüße). Zugriff haben nur die betreuende Person, deren Führungskräfte sowie Verwaltung und
-        Datenschutz im erforderlichen Umfang. Die Betroffenen werden von Profina gesondert nach Art. 14 DSGVO informiert.
+        Datenschutz im erforderlichen Umfang. Die Betroffenen werden von der betreuenden Person gesondert nach Art. 14 DSGVO informiert.
       </p>
     </Section>
 

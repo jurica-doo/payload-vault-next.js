@@ -6,9 +6,9 @@ BEGIN;
 SELECT plan(13);
 
 -- ---------- sender details ----------
-SELECT is((SELECT value ->> 'company' FROM public.app_settings WHERE key = 'email_sender'), 'Profina Deutschland GmbH', 'company prefilled');
-SELECT ok(NOT app_private.email_sender_complete((SELECT value FROM public.app_settings WHERE key = 'email_sender')),
-  'still incomplete: sending stays blocked until register, management, contact and app address are entered');
+SELECT ok((SELECT value ->> 'company' FROM public.app_settings WHERE key = 'email_sender') LIKE 'Bazilije Vuletić%', 'operator prefilled (20261101210000)');
+SELECT ok(app_private.email_sender_complete((SELECT value FROM public.app_settings WHERE key = 'email_sender')),
+  'complete for a sole trader: no register court or management needed');
 
 -- ---------- template drafts ----------
 SELECT is((SELECT count(*) FROM public.email_templates t JOIN public.email_template_versions v ON v.template_id = t.id

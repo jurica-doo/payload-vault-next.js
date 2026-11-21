@@ -74,7 +74,7 @@ SELECT throws_ok($$UPDATE public.customer_consents SET evidence = NULL$$, '42501
 
 -- ---------- retention ----------
 SELECT tests.authenticate_as(:'comp', 'aal2');
-SELECT ok((public.rpc_retention_candidates() -> 'customers') = 'null'::jsonb, 'no retention period configured (OD-16) → no candidates');
+SELECT is((public.rpc_retention_candidates() ->> 'customer_years')::int, 10, 'default retention: customers 10 years (OD-16 default)');
 
 SELECT * FROM finish();
 ROLLBACK;

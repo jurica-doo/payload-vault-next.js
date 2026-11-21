@@ -42,6 +42,7 @@ SELECT tests.authenticate_as(:'admin', 'aal1');
 SELECT throws_ok($$SELECT public.rpc_set_email_sender('{"company":"X GmbH"}', 'Absenderangaben laut Impressum')$$, '42501', 'mfa_required',
   'with 2FA');
 SELECT tests.authenticate_as(:'admin', 'aal2');
+SELECT public.rpc_set_email_sender('{}', 'Absenderangaben zurücksetzen für den Test');
 SELECT throws_ok($$SELECT public.rpc_set_email_enabled(true, 'Gate E bestanden und geprüft')$$, 'P0001', 'sender_details_missing',
   'sending cannot start without sender details');
 SELECT throws_ok($$SELECT public.rpc_set_email_sender('{"contact_email":"kein-at"}', 'Absenderangaben laut Impressum')$$, '22023', 'invalid_email',

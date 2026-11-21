@@ -10,7 +10,10 @@
 // rendered. This function only hands them to the provider and reports back.
 //
 // Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, EMAIL_CRON_SECRET,
-// EMAIL_PROVIDER (OD-11; "dryrun" for staging), EMAIL_FROM.
+// EMAIL_PROVIDER (OD-11; "dryrun" for staging), EMAIL_FROM (fallback sender,
+// e.g. noreply@…), EMAIL_SENDER_DOMAIN (optional, e.g. profina-vuletic.de:
+// client mails then go out as "Adviser Name <tag@domain>" with Reply-To =
+// the adviser's e-mail; tag = local part of that e-mail).
 // Without a provider the function exits before claiming anything, so queued
 // mail simply waits (and expires after its occasion day).
 // ============================================================
@@ -21,6 +24,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const CRON_SECRET = Deno.env.get("EMAIL_CRON_SECRET") ?? "";
 const FROM = Deno.env.get("EMAIL_FROM") ?? "";
+const SENDER_DOMAIN = (Deno.env.get("EMAIL_SENDER_DOMAIN") ?? "").trim().toLowerCase();
 const BATCH = 50;
 
 const service = createClient(SUPABASE_URL, SERVICE_KEY, {
@@ -40,7 +44,22 @@ function safeEqual(a: string, b: string) {
 const json = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 
-type Claimed = { id: string; idempotency_key: string; to: string; subject: string; text: string; html: string; unsubscribe_url: string | null };
+type Claimed = {
+  id: string; idempotency_key: string; to: string; subject: string; text: string; html: string; unsubscribe_url: string | null;
+  sender_name: string | null; sender_tag: string | null; reply_to: string | null;
+};
+
+/**
+ * Personal sender for a client mail: "Name <tag@EMAIL_SENDER_DOMAIN>". The
+ * tag is already reduced to [a-z0-9._-] by the database; the display name is
+ * quoted and stripped of characters that could break the header.
+ */
+export function senderFor(mail: Pick<Claimed, "sender_name" | "sender_tag">, domain: string, fallback: string): string {
+  if (!domain || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(domain) || !mail.sender_tag || !/^[a-z0-9._-]+$/.test(mail.sender_tag)) return fallback;
+  const name = (mail.sender_name ?? "").replace(/["\\\r\n<>]/g, "").trim();
+  const address = `${mail.sender_tag}@${domain}`;
+  return name ? `"${name}" <${address}>` : address;
+}
 
 /**
  * List-Unsubscribe headers (RFC 2369 / RFC 8058). The footer link opens the
@@ -83,9 +102,9 @@ Deno.serve(async (req) => {
       const { messageId } = await provider.send(
         {
           id: mail.id, idempotencyKey: mail.idempotency_key, to: mail.to, subject: mail.subject, text: mail.text, html: mail.html,
-          headers: unsubscribeHeaders(mail.unsubscribe_url),
+          headers: unsubscribeHeaders(mail.unsubscribe_url), replyTo: mail.reply_to,
         },
-        FROM,
+        senderFor(mail, SENDER_DOMAIN, FROM),
       );
       await report({ p_id: mail.id, p_ok: true, p_provider_message_id: messageId });
       sent++;

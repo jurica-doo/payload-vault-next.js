@@ -1,15 +1,18 @@
 import { LegalPage, Section, Address, V } from "../legal/LegalText";
+import { LEGAL } from "../../data/legalEntity";
 
 /**
- * Impressum (§ 5 DDG, § 18 MStV) with the information an insurance
- * intermediary must give (§ 15 VersVermV). Operator data: src/data/legalEntity.ts.
+ * Impressum (§ 5 DDG, § 18 MStV) with the information a bound insurance
+ * agent must give (§ 11a GewO, § 15 VersVermV). Operator data:
+ * src/data/legalEntity.ts (taken from the Impressum of profina-vuletic.de).
  */
 export const ImpressumPage = () => (
   <LegalPage title="Impressum">
     <Section title="Angaben gemäß § 5 DDG">
       <Address />
       <p>
-        Vertreten durch die Geschäftsführung: <V k="management" />
+        Diese Anwendung wird von {LEGAL.operator} in Vertretung der {LEGAL.principal}, {LEGAL.principalAddress},
+        betrieben.
       </p>
     </Section>
 
@@ -21,39 +24,30 @@ export const ImpressumPage = () => (
       </p>
     </Section>
 
-    <Section title="Registereintrag">
+    <Section title="Umsatzsteuer">
       <p>
-        Registergericht: <V k="registerCourt" />
-        <br />
-        Registernummer: <V k="registerNumber" />
+        <V k="vat" />
       </p>
     </Section>
 
-    <Section title="Umsatzsteuer-Identifikationsnummer">
+    <Section title="Angaben zur Versicherungsvermittlung (§ 11a GewO)">
       <p>
-        Umsatzsteuer-Identifikationsnummer gemäß § 27a Umsatzsteuergesetz: <V k="vatId" />
-      </p>
-    </Section>
-
-    <Section title="Angaben zur Versicherungsvermittlung">
-      <p>
-        Status: <V k="intermediaryStatus" />
+        Tätigkeit: <V k="intermediaryStatus" />
         <br />
-        Erlaubnis- und Registrierungsbehörde: <V k="permittingAuthority" />
+        Registrierungsnummer: <V k="registerNumberIntermediary" />
         <br />
-        Registrierungsnummer im Vermittlerregister: <V k="registerNumberIntermediary" />
+        Registerstelle: <V k="registerAuthority" />
       </p>
       <p>
         Die Eintragung kann im Vermittlerregister überprüft werden: Deutsche Industrie- und Handelskammer (DIHK),
         Breite Straße 29, 10178 Berlin, www.vermittlerregister.info.
       </p>
       <p>
-        Berufsrechtliche Regelungen: § 34d Gewerbeordnung, §§ 59–68 Versicherungsvertragsgesetz (VVG),
-        Versicherungsvermittlungsverordnung (VersVermV); abrufbar unter www.gesetze-im-internet.de.
+        Haftungsübernehmendes Versicherungsunternehmen: <V k="liableInsurer" />
       </p>
       <p>
-        Beteiligungen an oder von Versicherungsunternehmen (mindestens 10 % der Stimmrechte oder des Kapitals):{" "}
-        <V k="holdings" />
+        Berufsrechtliche Regelungen: § 34d Gewerbeordnung, §§ 59–68 Versicherungsvertragsgesetz (VVG),
+        Versicherungsvermittlungsverordnung (VersVermV); abrufbar unter www.gesetze-im-internet.de.
       </p>
     </Section>
 
@@ -65,6 +59,11 @@ export const ImpressumPage = () => (
         Versicherungsombudsmann e.V., Postfach 08 06 32, 10006 Berlin, www.versicherungsombudsmann.de
         <br />
         Ombudsmann Private Kranken- und Pflegeversicherung, Postfach 06 02 22, 10052 Berlin, www.pkv-ombudsmann.de
+      </p>
+      <p>
+        Wir nehmen an Streitbeilegungsverfahren vor diesen Schlichtungsstellen teil. Zur Teilnahme an
+        Streitbeilegungsverfahren vor anderen Verbraucherschlichtungsstellen (§ 36 VSBG) sind wir weder verpflichtet noch
+        bereit.
       </p>
     </Section>
 

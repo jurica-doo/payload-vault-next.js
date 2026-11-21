@@ -2,7 +2,7 @@
 -- r1/p6/email-engine
 -- ============================================================
 BEGIN;
-SELECT plan(27);
+SELECT plan(29);
 
 SELECT tests.create_user('admin@test.local', true) AS admin \gset
 SELECT tests.grant_role(:'admin', 'admin');
@@ -83,6 +83,8 @@ SELECT tests.authenticate_as_service_role();
 SELECT public.rpc_claim_email_sends(10) AS batch \gset
 SELECT is(jsonb_array_length(:'batch'::jsonb), 1, 'one mail goes out');
 SELECT is(:'batch'::jsonb -> 0 ->> 'subject', 'Alles Gute, Fritz!', '…rendered with the pinned version');
+SELECT is(:'batch'::jsonb -> 0 ->> 'sender_tag', 'fa', 'sent from the adviser''s own tag (20261101210000)');
+SELECT is(:'batch'::jsonb -> 0 ->> 'reply_to', 'fa@test.local', 'replies go to the adviser');
 SELECT is((SELECT suppression_reason FROM public.email_send_log WHERE customer_id = :'c_ok'), 'withdrawn',
   'consent withdrawn after planning → suppressed at send time');
 SELECT public.rpc_report_email_result((:'batch'::jsonb -> 0 ->> 'id')::uuid, true, 'msg-1');

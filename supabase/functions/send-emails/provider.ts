@@ -24,6 +24,8 @@ export type OutgoingEmail = {
    * List-Unsubscribe-Post (RFC 8058) so mail clients show "Abmelden".
    */
   headers: Record<string, string>;
+  /** The adviser's own address, so replies reach them (client mails). */
+  replyTo?: string | null;
 };
 
 export type EmailProvider = {
@@ -37,8 +39,9 @@ const dryrun: EmailProvider = {
 };
 
 /**
- * Resend (chosen provider, OD-11). Secrets: RESEND_API_KEY; EMAIL_FROM must use
- * a domain verified in Resend (SPF/DKIM), e.g. "Profina <kunden@pro-fina.de>".
+ * Resend (chosen provider, OD-11). Secrets: RESEND_API_KEY; EMAIL_FROM and
+ * EMAIL_SENDER_DOMAIN must use a domain verified in Resend (SPF/DKIM), e.g.
+ * "Profina Vuletić <noreply@profina-vuletic.de>" and "profina-vuletic.de".
  * The send-log id is passed as Idempotency-Key, so a retried claim never sends
  * twice. Only the HTTP status goes into errors, never the message content.
  */
@@ -50,7 +53,10 @@ const resend: EmailProvider = {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json", "Idempotency-Key": mail.idempotencyKey },
-      body: JSON.stringify({ from, to: [mail.to], subject: mail.subject, html: mail.html, text: mail.text, headers: mail.headers }),
+      body: JSON.stringify({
+        from, to: [mail.to], subject: mail.subject, html: mail.html, text: mail.text, headers: mail.headers,
+        ...(mail.replyTo ? { reply_to: mail.replyTo } : {}),
+      }),
     });
     if (!res.ok) throw Object.assign(new Error(`http_${res.status}`), { name: `http_${res.status}` });
     const body = (await res.json()) as { id?: string };

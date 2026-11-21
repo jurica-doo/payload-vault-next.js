@@ -17,16 +17,17 @@ import { card } from "./emailLabels";
 
 type Field = Exclude<keyof EmailSender, "complete">;
 const FIELDS: { key: Field; label: string; placeholder: string }[] = [
-  { key: "company", label: "Firma (mit Rechtsform)", placeholder: "Profina Deutschland GmbH" },
-  { key: "address", label: "Anschrift", placeholder: "Castroper Straße 270–280, 44791 Bochum" },
-  { key: "register", label: "Registergericht und -nummer", placeholder: "Amtsgericht Bochum, HRB 12345" },
-  { key: "management", label: "Geschäftsführung", placeholder: "Vor- und Nachname(n)" },
-  { key: "contact_email", label: "Kontakt-E-Mail", placeholder: "kontakt@pro-fina.de" },
-  { key: "app_url", label: "Adresse der App (für den Abmeldelink)", placeholder: "https://app.pro-fina.de" },
+  { key: "company", label: "Absender (Name bzw. Firma mit Rechtsform)", placeholder: "Bazilije Vuletić, Versicherungsvermittlung" },
+  { key: "address", label: "Anschrift", placeholder: "Kölner Str. 152, 58509 Lüdenscheid" },
+  { key: "register", label: "Register (Handels- bzw. Vermittlerregister)", placeholder: "Vermittlerregister D-XXXX-XXXXX-XX" },
+  { key: "management", label: "Geschäftsführung (nur bei Gesellschaften)", placeholder: "Vor- und Nachname(n)" },
+  { key: "contact_email", label: "Kontakt-E-Mail", placeholder: "kontakt@profina-vuletic.de" },
+  { key: "app_url", label: "Adresse der App (für den Abmeldelink)", placeholder: "https://payload-vault.profina-vuletic.de" },
 ];
 
 /**
- * Mandatory details of the sender (business e-mail of a GmbH) shown in the
+ * Mandatory details of the sender (business e-mail; for a sole trader name,
+ * address and contact, for a company also register and management) shown in the
  * footer of every client mail, next to the adviser's signature and the
  * unsubscribe link. Sending can only be switched on once they are complete.
  */

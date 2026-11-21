@@ -11,7 +11,8 @@ describe("legal pages", () => {
       const text = container.textContent ?? "";
       expect(text).not.toMatch(/\[(First|Street|Postal|Phone|Email|VAT)[^\]]*\]/);
       expect(text).not.toMatch(/\bTMG\b|\bRStV\b/);
-      expect(text).toContain("Profina Deutschland GmbH");
+      expect(text).toContain("Bazilije Vuletić");
+      expect(text).toContain("in Vertretung der Profina Deutschland GmbH");
     });
   }
 

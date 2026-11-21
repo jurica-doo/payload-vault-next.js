@@ -89,10 +89,10 @@ Every one of these is implemented with a **provisional** rule, marked in the cod
 | OD-13 | Who may see customers | Adviser + managers; admin and compliance read all; finance none | RLS helper `can_see_customer` | ⏳ |
 | OD-14 | **Contract portal**: which system, API/export/webhook? | Manual links; service-role intake ready | Small adapter Edge Function | ⏳ |
 | OD-15 | Promotions automatic or approved? | Approved by an admin from the "ready" queue | Promotion workflow | ✅ final: automatic check, admin approval, VD+/GM appointed — built |
-| OD-16 | **Retention periods** per data class | Nothing deleted automatically; report only | `app_settings.retention` | ⏳ |
+| OD-16 | **Retention periods** per data class | Default 2026-11-21: customers 10 years after the relationship, leads 2 years after closing; report only | `app_settings.retention` | ◐ default |
 | OD-17 | May leaders see their team's commission amounts? | Off | `app_settings` switch | ⏳ |
 | OD-18 | Remuneration for Strom/Gas/Kfz | Out of scope; 0 P / 0 AE | Conversion rules | ◐ Kfz/RS create EP; commission per EP for them to confirm |
-| OD-19 | Lead first-contact SLA (hours, working day, region) | 8 business hours, Mon–Fri 09–17, nationwide holidays, from receipt | `/admin/leads` (no code) | ⏳ |
+| OD-19 | Lead first-contact SLA (hours, working day, region) | Default 2026-11-21: 8 business hours, Mon–Fri 09–17, NRW holidays (DE-NW), from receipt | `/admin/leads` (no code) | ◐ default |
 
 Design choices that weren't asked in the spec, but should be confirmed:
 - [ ] Lead SLA counts from **receipt**, not from assignment (a lead waiting in the pool can be overdue when it's assigned).
@@ -189,7 +189,7 @@ What the tests already prove (pgTAP), and what a reviewer should look at:
 - [ ] **Edge Functions:** JWT check (invite), shared secrets compared in constant time (email), no message content in logs.
 - [ ] **CSP:** unchanged (nonce-based); no new external origins in the browser. Email and the portal only talk server-side.
 - [ ] **Data subject requests:** one-month deadline visible; erasure keeps business records. The legal basis for keeping them is to be confirmed by Profina.
-- [ ] **Retention (OD-16)** decided and entered.
+- [x] **Retention (OD-16)** default entered (10 / 2 years, migration `20261101210000`); Profina may change it.
 - [ ] Penetration/review notes recorded, and the findings fixed in the clean-up branch.
 
 ---
@@ -245,14 +245,16 @@ Schlichtungsstellen), processors Vercel/Supabase/Resend/Gemini; Resend adapter +
 prefilled; three German template drafts with `{{briefanrede}}`; „2FA zurücksetzen“ for admins; record pages work-first on
 phones with call/e-mail buttons (hidden after an objection); the lead's open appointments on the customer page.
 
-Still open before go-live (operator data and service setup, see GO_LIVE.md):
-- [ ] Fill the operator data in `src/data/legalEntity.ts` (Geschäftsführung, Kontakt, Register, USt-IdNr.,
-  Vermittlerregister, IHK, Beteiligungen, § 18 MStV, Datenschutzbeauftragte/r, Region) and have Profina's privacy
-  contact check both legal texts.
-- [ ] Complete the sender details on Kommunikation (register, management, contact e-mail, app address; company and
-  address are prefilled), copy the German auth e-mail templates and the Resend SMTP settings into the production
-  dashboard (GO_LIVE.md §1).
-- [ ] Review and approve the three German template drafts (four-eyes); save the lead SLA once (OD-19 values).
+Done 2026-11-21 (operator answers): operator Bazilije Vuletić (gebundener Vertreter, Lüdenscheid, in Vertretung der
+Profina Deutschland GmbH) in `legalEntity.ts` from profina-vuletic.de; sender details prefilled and complete (a sole
+trader needs no register/management); client mails from „Name <tag@profina-vuletic.de>“ with Reply-To to the adviser
+(`EMAIL_SENDER_DOMAIN`); region Frankfurt (`vercel.json` fra1); default lead SLA with NRW holidays and default retention
+(migration `20261101210000`, pgTAP `360`).
+
+Still open before go-live (service setup, see GO_LIVE.md):
+- [x] Operator data in `src/data/legalEntity.ts`; have Profina's privacy contact check both legal texts once.
+- [ ] Copy the German auth e-mail templates and the Resend SMTP settings into the production dashboard (GO_LIVE.md §1).
+- [ ] Review and approve the three German template drafts (four-eyes).
 - [ ] Set up Resend (domain, webhook, DPA) and the Edge Function secrets (GO_LIVE.md §2–3).
 - [x] Phones: work area first on record pages, call/e-mail buttons; the lead's open appointments on the customer page.
 - [x] Lost authenticator: „2FA zurücksetzen“ in Mitarbeitende (another admin, with reason, logged).
