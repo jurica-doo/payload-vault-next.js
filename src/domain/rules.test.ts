@@ -45,7 +45,8 @@ describe("rules — Karriereplan Stand 01.11.2026", () => {
     expect(rules2026.conversion?.divisorUnit).toBe("ae");
     expect(parseRules(SEEDED_RULES_PAYLOAD).conversion?.divisorUnit).toBe("points");
     expect(rules2026.levels?.rows.filter((l) => l.appointedOnly).map((l) => l.code)).toEqual(["VDP", "GM"]);
-    expect(rules2026.conversion?.rows.filter((r) => !r.paysCommission).map((r) => r.categoryCode)).toEqual(["RS", "KFZ"]);
+    expect(rules2026.conversion?.rows.filter((r) => !r.paysCommission && r.formulaKind !== "none").map((r) => r.categoryCode)).toEqual(["KFZ"]);
+    expect(rules2026.conversion?.rows.filter((r) => !r.countsForCareer).map((r) => r.categoryCode)).toEqual(["KFZ"]);
   });
 
   it("never targets an appointed level", () => {

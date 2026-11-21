@@ -80,7 +80,7 @@ export const PRODUCTION: ProductionFixture[] = [
   { key: "paula-lv-35", producer: "punkte@test.com", category: "LV", premium: 100, period: "monthly", termYears: 35, reference: "LV 100 € × 35 J. (§14.1)", status: "eligible", expected: { points: "10.4996", ae: "293.9900", kv: "0.0000" } },
   { key: "paula-kv-700", producer: "punkte@test.com", category: "KV", premium: 700, period: "monthly", reference: "KV 700 € (§14.1)", status: "eligible", expected: { points: "25.0000", ae: "700.0000", kv: "25.0000" } },
   { key: "paula-sach-1000", producer: "punkte@test.com", category: "SACH", premium: 1000, period: "annual", netOrGross: "net", reference: "Sach 1.000 € netto (§14.1)", status: "eligible", expected: { points: "4.9950", ae: "139.8600", kv: "0.0000" } },
-  { key: "paula-kfz", producer: "punkte@test.com", category: "KFZ", premium: 450, period: "annual", netOrGross: "net", reference: "Kfz 450 € netto (÷ 35,71 → 12,60 AE)", status: "eligible", expected: { points: "0.4500", ae: "12.6000", kv: "0.0000" } },
+  { key: "paula-kfz", producer: "punkte@test.com", category: "KFZ", premium: 450, period: "annual", netOrGross: "net", reference: "Kfz 450 € netto (derzeit keine Punkte)", status: "eligible", expected: { points: "0.0000", ae: "0.0000", kv: "0.0000" } },
   { key: "paula-lv-40", producer: "punkte@test.com", category: "LV", premium: 100, period: "monthly", termYears: 40, reference: "LV 40 J. (keine Begrenzung, OD-06)", status: "eligible", expected: { points: "11.9996", ae: "335.9900", kv: "0.0000" } },
   { key: "paula-kv-333", producer: "punkte@test.com", category: "KV", premium: 333.33, period: "monthly", reference: "KV 333,33 € (Rundung)", status: "eligible", expected: { points: "11.9046", ae: "333.3300", kv: "11.9046" } },
   { key: "paula-kv-cancelled", producer: "punkte@test.com", category: "KV", premium: 280, period: "monthly", reference: "KV storniert", status: "cancelled", expected: { points: "0.0000", ae: "0.0000", kv: "0.0000" } },
@@ -109,7 +109,7 @@ export const PRODUCTION: ProductionFixture[] = [
  * (AE = premium ÷ 7,15, points = AE ÷ 28).
  */
 export const EXPECTED_CAREER: Record<string, { target: Level; points: string; kv: string; ready: boolean; note: string }> = {
-  "punkte@test.com": { target: "FB", points: "75.3484", kv: "36.9046", ready: false, note: "24,6516 P fehlen" },
+  "punkte@test.com": { target: "FB", points: "74.8984", kv: "36.9046", ready: false, note: "25,1016 P fehlen" },
   "fa@test.com": { target: "FB", points: "100.0000", kv: "7.0000", ready: false, note: "§14.4: Punkte erreicht, 3 KV-P fehlen" },
   "fb.a@test.com": { target: "TL", points: "800.0000", kv: "80.0000", ready: true, note: "weit über 300 P" },
   "fb.b@test.com": { target: "TL", points: "300.0000", kv: "40.0000", ready: true, note: "genau an der Schwelle 300 P" },

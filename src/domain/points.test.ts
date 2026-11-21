@@ -65,7 +65,7 @@ describe("points engine — Karriereplan Stand 01.11.2026 (AE first)", () => {
     ["GC-POINTS-102", golden2026("LV", 100, "monthly", null, 40), "11.9996|335.99|0.0000"],
     ["GC-POINTS-103", golden2026("KV", 700, "monthly", null, null), "25.0000|700.00|25.0000"],
     ["GC-POINTS-104", golden2026("SACH", 1000, "annual", "net", null), "4.9950|139.86|0.0000"],
-    ["GC-POINTS-105", golden2026("KFZ", 1000, "annual", "net", null), "1.0000|28.00|0.0000"],
+    ["GC-POINTS-105", golden2026("KFZ", 1000, "annual", "net", null), "0.0000|0.00|0.0000"],
     ["GC-POINTS-106", golden2026("RS", 500, "annual", "net", null), "2.4975|69.93|0.0000"],
     ["GC-POINTS-107", golden2026("STROM", 80, "monthly", null, null), "0.0000|0.00|0.0000"],
     ["GC-POINTS-108", golden2026("KFZ", 1000, "annual", "gross", null), "error:net_premium_required"],
@@ -83,14 +83,13 @@ describe("points engine — Karriereplan Stand 01.11.2026 (AE first)", () => {
     expect(r.ok && r.formula).toBe("100 × 12 × 40 ÷ 142.86 = 335.99 AE; 335.99 AE ÷ 28");
   });
 
-  it("marks Kfz and Rechtsschutz as lines without commission per point", () => {
+  it("Rechtsschutz pays commission per point; Kfz creates no points for now (Profina 2026-11-21)", () => {
     const input = { premium: 1000, period: "annual", netOrGross: "net", termYears: null, productionDate: "2026-11-15" } as const;
-    for (const category of ["KFZ", "RS"]) {
-      const r = calculatePoints(rules2026, { ...input, category });
-      expect(r.ok && r.paysCommission).toBe(false);
-    }
-    const sach = calculatePoints(rules2026, { ...input, category: "SACH" });
-    expect(sach.ok && sach.paysCommission).toBe(true);
+    const rs = calculatePoints(rules2026, { ...input, category: "RS" });
+    expect(rs.ok && rs.paysCommission && rs.countsForCareer).toBe(true);
+    const kfz = calculatePoints(rules2026, { ...input, category: "KFZ" });
+    expect(kfz.ok && kfz.countsForCareer).toBe(false);
+    expect(kfz.ok && kfz.formula).toBe("derzeit keine Punkte für diese Sparte");
   });
 });
 

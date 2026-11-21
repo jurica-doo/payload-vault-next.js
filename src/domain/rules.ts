@@ -60,8 +60,10 @@ export type ConversionRule = {
   maxTermYears: number | null;
   requiredPremiumPeriod: "monthly" | "annual" | null;
   requiredNetGross: "net" | "gross" | null;
-  /** false: points/AE for the career, but no commission per point (Kfz, Rechtsschutz from 2026-11). */
+  /** false: the points count for the career but book no commission per point. */
   paysCommission: boolean;
+  /** false: the line creates no points at all (Kfz from 2026-11, Profina 2026-11-21). */
+  countsForCareer: boolean;
 };
 
 export type RulesSnapshot = {
@@ -132,6 +134,7 @@ export function parseRules(payload: unknown): RulesSnapshot {
             requiredPremiumPeriod: (r.required_premium_period ?? null) as ConversionRule["requiredPremiumPeriod"],
             requiredNetGross: (r.required_net_gross ?? null) as ConversionRule["requiredNetGross"],
             paysCommission: r.pays_commission !== false,
+            countsForCareer: r.counts_for_career !== false,
           })),
         }
       : null,

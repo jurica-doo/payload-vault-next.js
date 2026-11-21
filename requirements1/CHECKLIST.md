@@ -75,7 +75,7 @@ Every one of these is implemented with a **provisional** rule, marked in the cod
 | ID | Question | Built provisionally as | What changes after the answer | Status (Profina, 2026-11-20) |
 |---|---|---|---|
 | OD-01 | Career period boundaries and timezone | `[start, end)`, Europe/Berlin | Golden cases GC-PERIOD | ✅ final: personal year, then calendar years counted from 1 Jan — built |
-| OD-02 | Transition period; carry-over of surplus points | Separate transition period; no carry-over | Period generator + simulator | ✅ final: no rolling window, no confirmation year — built |
+| OD-02 | Transition period; carry-over of surplus points | Separate transition period; no carry-over | Period generator + simulator | ✅ final: no rolling window; confirmation year 80 % (2026-11-21) — built |
 | OD-03 | Does KV count in the total? KV check before or after the cap? | KV counts; checked after the cap, proportionally | `compute_qualification` + TS mirror | ✅ final: 10 % KV, strongest structure ≤ half the KV need — built |
 | OD-04 | What is "one structure"; from which level does the 50 % cap apply | Each direct report's subtree; cap when the target is OL or above | Same | ✅ final: 50 % on the strongest structure, own business FB 30 / TL 60 — built |
 | OD-05 | Full differential rate matrix and attribution | Rate-compression walk (reproduces all §5.3 examples) | `rate_pairs` table / `commission_split` | ✅ final: € per EP per level unchanged (VD+/GM set by management) — built |
@@ -91,7 +91,7 @@ Every one of these is implemented with a **provisional** rule, marked in the cod
 | OD-15 | Promotions automatic or approved? | Approved by an admin from the "ready" queue | Promotion workflow | ✅ final: automatic check, admin approval, VD+/GM appointed — built |
 | OD-16 | **Retention periods** per data class | Default 2026-11-21: customers 10 years after the relationship, leads 2 years after closing; report only | `app_settings.retention` | ◐ default |
 | OD-17 | May leaders see their team's commission amounts? | Off | `app_settings` switch | ⏳ |
-| OD-18 | Remuneration for Strom/Gas/Kfz | Out of scope; 0 P / 0 AE | Conversion rules | ◐ Kfz/RS create EP; commission per EP for them to confirm |
+| OD-18 | Remuneration for Strom/Gas/Kfz | Out of scope; 0 P / 0 AE | Conversion rules | ◐ RS: points + commission; Kfz: none for now (switchable); Strom/Gas open |
 | OD-19 | Lead first-contact SLA (hours, working day, region) | Default 2026-11-21: 8 business hours, Mon–Fri 09–17, NRW holidays (DE-NW), from receipt | `/admin/leads` (no code) | ◐ default |
 
 Design choices that weren't asked in the spec, but should be confirmed:
@@ -109,7 +109,7 @@ Design choices that weren't asked in the spec, but should be confirmed:
 
 | Gate | Condition | Status | What's left |
 |---|---|---|---|
-| A | Profina signs off the rules (OD-01…08, 12, 15) | ✅ | Final answers 2026-11-20, built ([OD_ANSWERS_2026-11.md](OD_ANSWERS_2026-11.md) §0). Small follow-ups: Kfz/RS commission per EP, VD+/GM rates |
+| A | Profina signs off the rules (OD-01…08, 12, 15) | ✅ | Final answers 2026-11-20, built ([OD_ANSWERS_2026-11.md](OD_ANSWERS_2026-11.md) §0). Last decisions 2026-11-21 built (Kfz/RS, own contracts, VD+/GM, confirmation year) |
 | B | Calculation tests green in both engines (points, AE, periods, KV, cap, reserve, differential) | ✅ | Re-run after each OD change |
 | C | ≥ 10 real anonymised cases reconciled with Profina's manual calculation | ⏳ | Staging + real cases; compare statements line by line |
 | D | RLS and audit test suite green + **external access review** before live customer data | ⏳ tests ✅ | Profina's privacy contact reviews section 5 |
@@ -250,6 +250,10 @@ Profina Deutschland GmbH) in `legalEntity.ts` from profina-vuletic.de; sender de
 trader needs no register/management); client mails from „Name <tag@profina-vuletic.de>“ with Reply-To to the adviser
 (`EMAIL_SENDER_DOMAIN`); region Frankfurt (`vercel.json` fra1); default lead SLA with NRW holidays and default retention
 (migration `20261101210000`, pgTAP `360`).
+
+Done 2026-11-21 (Profina's last decisions): Rechtsschutz with commission per point, Kfz without points and commission
+(switchable per line in the rules), own contracts count for the career, VD+/GM at the VD rate, confirmation year with
+80 % and a management decision after a missed year (migration `20261101220000`, pgTAP `370`).
 
 Still open before go-live (service setup, see GO_LIVE.md):
 - [x] Operator data in `src/data/legalEntity.ts`; have Profina's privacy contact check both legal texts once.

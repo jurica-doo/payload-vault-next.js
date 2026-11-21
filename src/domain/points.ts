@@ -49,6 +49,8 @@ export type PointsResult =
       ruleVersionId: string;
       /** false: the line counts for the career but books no commission per point. */
       paysCommission: boolean;
+      /** false: the line creates no points (switched off in the rules version). */
+      countsForCareer: boolean;
     }
   | { ok: false; error: PointsError };
 
@@ -75,7 +77,11 @@ export function calculatePoints(rules: RulesSnapshot, input: PointsInput): Point
   let termCapped = false;
   let formula: string;
 
-  switch (rule.formulaKind) {
+  switch (rule.countsForCareer ? rule.formulaKind : "off") {
+    case "off":
+      basis = null;
+      formula = "derzeit keine Punkte für diese Sparte";
+      break;
     case "lv_monthly_term": {
       const term = toDecimal(input.termYears);
       if (term === null || term.lte(0)) return fail("term_required");
@@ -127,5 +133,6 @@ export function calculatePoints(rules: RulesSnapshot, input: PointsInput): Point
     formula,
     ruleVersionId: conversion.versionId,
     paysCommission: rule.paysCommission,
+    countsForCareer: rule.countsForCareer,
   };
 }

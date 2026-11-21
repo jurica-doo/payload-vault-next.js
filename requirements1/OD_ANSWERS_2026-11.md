@@ -19,7 +19,7 @@ GC-CAREER-007…012).
 | Topic | Final answer | Built |
 |---|---|---|
 | Commission rates (OD-05) | **€ per EP per level stays**: FA 28, FB 56, TL 70, OL 92, DL 112, RL 132, VD 144 €. VD+ and GM: set by the management. The product rates of Anlage 1 stay as they are (no % per line in the system). | Unchanged rate-compression engine (differential = rate difference). OD-05 notices removed. VD+/GM carry VD's 144 € until the management enters their rate in a levels draft at `/admin/regeln`. |
-| Career periods (OD-01, OD-02) | **Personal year** of 12 months from the start date, then **calendar years**. Example: start 01.11.2026 → personal year to 01.11.2027 → from then the points from **01.01.2027** count → on 01.01.2028 a new year starts and 2027 no longer counts. **No rolling 12-month window.** | `app_private.period_count_from`: the period after the personal year counts from 1 January of that year. Restart after a promotion unchanged. The confirmation year (80 %) from Anlage 2 is **not** adopted (not in the final list). |
+| Career periods (OD-01, OD-02) | **Personal year** of 12 months from the start date, then **calendar years**. Example: start 01.11.2026 → personal year to 01.11.2027 → from then the points from **01.01.2027** count → on 01.01.2028 a new year starts and 2027 no longer counts. **No rolling 12-month window.** | `app_private.period_count_from`: the period after the personal year counts from 1 January of that year. Restart after a promotion unchanged. The confirmation year (80 %) was added on 2026-11-21 (see below). |
 | Contract types | Tippgeber- and Handelsvertretervertrag follow the **same rules**. | One implementation for both. |
 | Cancellation liability, reserve, clawback (OD-10) | 5 years unless a product or company says otherwise; reserve at least 10 % of advanced commission; clawback possible on cancellation, premium reduction, non-payment. | `product_categories.cancellation_liability_months` (default 60): a cancellation after it reverses nothing. Within it: full reversal (as before). Reserve 10 % of every amount; release stays a finance action. |
 | Own contracts | No commission when the agent is policyholder or insured person. | `production_records.own_contract`, set at „Abrechnung bestätigen“; EP still count for the career (not excluded). |
@@ -28,13 +28,20 @@ GC-CAREER-007…012).
 | Promotion rules (OD-03, OD-04, OD-15) | Thresholds FB 100 (30 own), TL 300 (60 own), OL 750, DL 1.500, RL 4.000, VD 9.000; VD+/GM by appointment; 1 EP = 28 AE; only net settled AE; cancellations deducted; own + structure; strongest structure at most 50 %; at least 10 % KV; retention rate at least 90 %; automatic check, manual appointment of VD+/GM. | `own_min_points` (FB 30, TL 60), `min_retention_ratio` 0.90; 50 % clause on the **strongest** structure only (points, and half of the KV requirement as in A2 §3d); Nachhaltigkeitsquote = net ÷ (net + cancelled) of the counted business. Qualification is checked automatically; promotion stays an admin approval from the "ready" queue; VD+/GM through "Stufe setzen". |
 | Subsidies (OD-09) | Stay as they are (existing rules and separate agreements). | Unchanged. |
 
-Still open after the final answers:
-- Kfz and Rechtsschutz create EP since 01.11.2026 but **book no commission per EP** (Anlage 1 pays them only as
-  recurring commission). Confirm with Profina whether EP × level rate should apply to them too (one switch per line:
-  `conversion_rules.pays_commission`).
-- Own contracts: confirm that their EP count for the career.
-- VD+ and GM: the management enters their rate in the rules.
-- OD-11, OD-13, OD-14, OD-16, OD-17, OD-19 (not part of these answers).
+### Last decisions (Profina, 2026-11-21)
+
+Built in migration `20261101220000_profina_last_decisions.sql` (pgTAP `370`, golden GC-CONFIRM-001…009,
+GC-POINTS-105 changed).
+
+| Topic | Decision | Built |
+|---|---|---|
+| Rechtsschutz | Career points **and** commission per point. | `conversion_rules.pays_commission = true` for RS (2026-11-01 version corrected in place). |
+| Kfz | **No** career points and **no** commission per point for now; may come later, keep it configurable. | New switch `conversion_rules.counts_for_career` (false → 0 points, formula „derzeit keine Punkte“); `pays_commission` needs it (CHECK). Both switches per line in a conversion draft at `/admin/regeln` (`rpc_update_conversion_flags_draft`). |
+| Own contracts | Count for the career. | Already so (`own_contract` only blocks commission). |
+| VD+ / GM | VD commission rate until the management sets one. | Already so (144 €/EP); no longer provisional. |
+| Confirmation year (A2) | After a promotion at least **80 %** of the new level's points in the confirmation year; otherwise the management may demote. Not for VD+ / GM. | Window = the 12 full calendar months after the promotion month; points = own + whole structure, net of cancellations, no 50 % clause (as A2). `app_private.confirmation_status`; card on the career page; „Bestätigungsjahr“ list in Verwaltung → Beförderungen with „Beibehalten“ / „Zurückstufen“ after a missed year (reason, 2FA, audited, person notified); review task `confirmation_review` for the admins; a demotion goes back one step from the day of the decision (`career_level_history.source = 'demotion'`), commission from the next month. |
+
+Still open: OD-11, OD-13, OD-14, OD-16, OD-17, OD-19 (defaults for OD-16/OD-19 set 2026-11-21, see GO_LIVE.md).
 
 ## 1. Verdicts
 

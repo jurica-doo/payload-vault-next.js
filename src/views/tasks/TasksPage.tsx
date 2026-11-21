@@ -49,6 +49,7 @@ export const TASK_TYPE_LABEL: Record<string, string> = {
   customer_service: "Kundenservice",
   customer_follow_up: "Kunde nachfassen",
   subsidy_review: "Zuschuss",
+  confirmation_review: "Bestätigungsjahr",
 };
 
 const LINK_FOR: Record<string, (id: string) => string> = {

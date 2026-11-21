@@ -93,6 +93,16 @@ export function useRuleAdmin() {
       }),
     onSuccess: invalidate,
   });
+  const updateConversionFlags = useMutation({
+    mutationFn: (a: { versionId: string; categoryCode: string; countsForCareer: boolean; paysCommission: boolean }) =>
+      rpc("rpc_update_conversion_flags_draft", {
+        p_version_id: a.versionId,
+        p_category_code: a.categoryCode,
+        p_counts_for_career: a.countsForCareer,
+        p_pays_commission: a.paysCommission,
+      }),
+    onSuccess: invalidate,
+  });
   const publish = useMutation({
     mutationFn: (a: { versionId: string; reason: string }) =>
       rpc("rpc_publish_rule_version", { p_version_id: a.versionId, p_reason: a.reason }),
@@ -103,5 +113,5 @@ export function useRuleAdmin() {
     onSuccess: invalidate,
   });
 
-  return { ...query, createDraft, updateLevel, updateRequirements, updateConversion, publish, deleteDraft };
+  return { ...query, createDraft, updateLevel, updateRequirements, updateConversion, updateConversionFlags, publish, deleteDraft };
 }

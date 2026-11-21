@@ -2,7 +2,7 @@
 -- Rules "Stand 01.11.2026" (migration 20261101140000)
 -- Profina Karriereplan (Anlage 2) + Provisionssätze (Anlage 1):
 -- AE-first conversion, Kfz/Rechtsschutz, no LV cap, cap from FB on,
--- VD+/GM appointed only, Kfz/RS without commission per point.
+-- VD+/GM appointed only; Kfz without points, Rechtsschutz with commission (2026-11-21).
 -- Golden IDs are shared with src/domain/points.test.ts.
 -- ============================================================
 BEGIN;
@@ -38,8 +38,8 @@ SELECT is(pg_temp.golden('KV', 700, 'monthly', NULL, NULL), '25.0000|700.00|25.0
   'GC-POINTS-103 KV 700 €/month ÷ 1,00 = 700 AE → 25 P, tagged KV');
 SELECT is(pg_temp.golden('SACH', 1000, 'annual', 'net', NULL), '4.9950|139.86|0.0000',
   'GC-POINTS-104 Sach 1.000 € ÷ 7,15 = 139,86 AE → 4,995 P');
-SELECT is(pg_temp.golden('KFZ', 1000, 'annual', 'net', NULL), '1.0000|28.00|0.0000',
-  'GC-POINTS-105 Kfz 1.000 € ÷ 35,71 = 28,00 AE → 1 P');
+SELECT is(pg_temp.golden('KFZ', 1000, 'annual', 'net', NULL), '0.0000|0.00|0.0000',
+  'GC-POINTS-105 Kfz: currently no points (Profina 2026-11-21, switchable)');
 SELECT is(pg_temp.golden('RS', 500, 'annual', 'net', NULL), '2.4975|69.93|0.0000',
   'GC-POINTS-106 Rechtsschutz 500 € ÷ 7,15 = 69,93 AE → 2,4975 P');
 SELECT is(pg_temp.golden('STROM', 80, 'monthly', NULL, NULL), '0.0000|0.00|0.0000',
@@ -109,12 +109,12 @@ SELECT pg_temp.produce(:'e_fa', 'RS', 500, 'annual', 'net', '2026-11-10') AS p_r
 SELECT pg_temp.produce(:'e_fa', 'SACH', 1000, 'annual', 'net', '2026-11-10') AS p_sach \gset
 SELECT tests.clear_authentication();
 
-SELECT is((SELECT points FROM public.point_calculations WHERE production_id = :'p_kfz'), 1.0000::numeric,
-  'Kfz creates points for the career');
+SELECT is((SELECT points FROM public.point_calculations WHERE production_id = :'p_kfz'), 0.0000::numeric,
+  'Kfz creates no career points for now');
 SELECT is((SELECT count(*) FROM public.commission_ledger WHERE production_id = :'p_kfz')::int, 0,
   'Kfz books no commission per point');
-SELECT is((SELECT count(*) FROM public.commission_ledger WHERE production_id = :'p_rs')::int, 0,
-  'Rechtsschutz books no commission per point');
+SELECT is((SELECT sum(gross_amount) FROM public.commission_ledger WHERE production_id = :'p_rs'), 359.65::numeric,
+  'Rechtsschutz books commission per point (2,4975 P: 69,93 + 104,90 + 184,82, each rounded)');
 SELECT is((SELECT count(*) FROM public.exception_queue
             WHERE entity_type = 'public.point_calculations'
               AND entity_id IN (SELECT id::text FROM public.point_calculations WHERE production_id IN (:'p_kfz', :'p_rs')))::int, 0,

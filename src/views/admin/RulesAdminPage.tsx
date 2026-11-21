@@ -229,7 +229,7 @@ const ConversionTable = ({ rows, aePerPoint, aeFirst }: { rows: ConversionRow[];
         <thead>
           <tr className="border-b border-color-border-light">
             <th className={th}>Sparte</th><th className={th}>Grundlage</th><th className={th}>{divisorLabel(aeFirst)}</th>
-            <th className={th}>Max. Laufzeit</th><th className={th}>Provision je Punkt</th>
+            <th className={th}>Max. Laufzeit</th><th className={th}>Karrierepunkte</th><th className={th}>Provision je Punkt</th>
           </tr>
         </thead>
         <tbody>
@@ -239,6 +239,7 @@ const ConversionTable = ({ rows, aePerPoint, aeFirst }: { rows: ConversionRow[];
               <td className={td}>{FORMULA_TEXT[r.formula_kind]}</td>
               <td className={td}>{r.divisor === null ? "–" : formatPoints(r.divisor, 2)}</td>
               <td className={td}>{r.max_term_years ? `${r.max_term_years} Jahre` : "–"}</td>
+              <td className={td}>{r.formula_kind === "none" ? "–" : r.counts_for_career ? "ja" : "derzeit nein"}</td>
               <td className={td}>{r.formula_kind === "none" ? "–" : r.pays_commission ? "ja" : "nein"}</td>
             </tr>
           ))}
@@ -330,7 +331,7 @@ const ConversionDraftEditor = ({
   activeAe: number | null;
   canWrite: boolean;
 }) => {
-  const { updateConversion } = useRuleAdmin();
+  const { updateConversion, updateConversionFlags } = useRuleAdmin();
   const { showBanner } = useBanner();
   const [edits, setEdits] = useState<Record<string, { divisor?: string; term?: string }>>({});
   const [ae, setAe] = useState(toInput(draft.ae_per_point));
@@ -347,6 +348,14 @@ const ConversionDraftEditor = ({
         aePerPoint: fromInput(ae),
       });
       setEdits((e) => ({ ...e, [r.category_code]: {} }));
+    } catch (e) {
+      showBanner("Nicht gespeichert", errorText(e), "error");
+    }
+  };
+
+  const saveFlags = async (r: ConversionRow, countsForCareer: boolean, paysCommission: boolean) => {
+    try {
+      await updateConversionFlags.mutateAsync({ versionId: draft.id, categoryCode: r.category_code, countsForCareer, paysCommission });
     } catch (e) {
       showBanner("Nicht gespeichert", errorText(e), "error");
     }
@@ -371,10 +380,33 @@ const ConversionDraftEditor = ({
               </div>
             )}
             <Button text="Speichern" size="small" variant="secondary" onClick={() => save(r)} isDisabled={!canWrite} />
+            <div className={`col-span-full flex flex-wrap gap-4 text-sm ${mark(changed(r.counts_for_career, a?.counts_for_career) || changed(r.pays_commission, a?.pays_commission))}`}>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={r.counts_for_career}
+                  disabled={!canWrite || updateConversionFlags.isPending}
+                  onChange={(e) => saveFlags(r, e.target.checked, e.target.checked && r.pays_commission)}
+                />
+                Karrierepunkte
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={r.pays_commission}
+                  disabled={!canWrite || !r.counts_for_career || updateConversionFlags.isPending}
+                  onChange={(e) => saveFlags(r, r.counts_for_career, e.target.checked)}
+                />
+                Provision je Punkt
+              </label>
+            </div>
           </fieldset>
         );
       })}
-      <p className="text-xs text-color-text-subtle">Sparten ohne Punkte (Strom, Gas) sind bis zur Entscheidung OD-18 nicht änderbar.</p>
+      <p className="text-xs text-color-text-subtle">
+        „Karrierepunkte“ aus: die Sparte erzeugt keine Punkte (z. B. Kfz derzeit). „Provision je Punkt“ setzt Karrierepunkte
+        voraus. Sparten ohne Formel (Strom, Gas) sind bis zur Entscheidung OD-18 nicht änderbar.
+      </p>
     </div>
   );
 };

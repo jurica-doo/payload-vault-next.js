@@ -173,7 +173,11 @@ export const ProductionForm = ({
                 Für Produktion vor dem 01.11.2026 wird die Laufzeit in der Formel auf 35 Jahre begrenzt.
               </Notice>
             )}
-            {!preview.paysCommission && (
+            {!preview.countsForCareer ? (
+              <Notice compact>
+                Für diese Sparte gibt es derzeit weder Karrierepunkte noch eine Provision je Punkt.
+              </Notice>
+            ) : !preview.paysCommission && (
               <Notice compact>
                 Diese Sparte zählt für die Karriere. Eine Abschlussprovision je Punkt wird dafür nicht gebucht.
               </Notice>

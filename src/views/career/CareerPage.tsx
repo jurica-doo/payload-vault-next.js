@@ -11,7 +11,8 @@ import { StatusBadge } from "../../components/statusBadge/StatusBadge";
 import { PointsValue } from "../../components/values/Values";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { useStructure } from "../../hooks/useStructure/useStructure";
-import { useCareerProgress, type CareerProgress } from "../../hooks/useCareer/useCareer";
+import { useCareerConfirmation, useCareerProgress, type CareerProgress } from "../../hooks/useCareer/useCareer";
+import { ConfirmationCard } from "./ConfirmationCard";
 import { PERIOD_LABELS } from "../../domain/careerPeriods";
 import { levelName, levelShort } from "../../domain/rules";
 import { formatDate, formatPercent, formatPoints } from "../../utils/format";
@@ -38,6 +39,7 @@ export const CareerPage = () => {
   const { data: structure } = useStructure();
   const [selected, setSelected] = useState<string | null>(null);
   const { data, isLoading, error } = useCareerProgress(selected);
+  const { data: confirmation } = useCareerConfirmation(selected);
 
   const people = structure
     ? [...structure.byId.values()].map((r) => ({
@@ -57,6 +59,8 @@ export const CareerPage = () => {
           />
         </div>
       )}
+
+      {confirmation && <ConfirmationCard confirmation={confirmation} />}
 
       {isLoading ? (
         <LoadingState label="Fortschritt wird berechnet…" />

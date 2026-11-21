@@ -10,6 +10,7 @@ import { useBanner } from "../../context/banner/BannerContext";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
 import { usePromotionQueue, type QueueEntry } from "../../hooks/useCareer/useCareer";
 import { levelShort } from "../../domain/rules";
+import { ConfirmationQueue } from "./ConfirmationQueue";
 
 /**
  * Promotion queue (OD-15: promotions are approved, not automatic). The
@@ -50,33 +51,36 @@ export const PromotionsAdminPage = () => {
     });
 
   return (
-    <DataTable
-      rows={data}
-      getRowId={(q) => q.employee_id}
-      caption="Qualifizierte Mitarbeitende"
-      isLoading={isLoading}
-      error={error ? errorText(error) : null}
-      emptyMessage="Derzeit ist niemand qualifiziert."
-      columns={[
-        { id: "name", header: "Name", cell: (q) => `${q.name} (${q.employee_no})`, sortValue: (q) => q.name },
-        { id: "step", header: "Stufe", cell: (q) => `${levelShort(q.level)} → ${levelShort(q.target)}` },
-        { id: "points", header: "Punkte", align: "right", cell: (q) => <><PointsValue value={q.eligible} /> / {Number(q.required)}</> },
-        { id: "kv", header: "KV", align: "right", cell: (q) => <><PointsValue value={q.eligible_kv} isKv /> / {Number(q.kv_required)}</> },
-        {
-          id: "action",
-          header: "",
-          align: "right",
-          cell: (q) => (
-            <button
-              type="button"
-              onClick={() => openApprove(q)}
-              className="cursor-pointer rounded-radius-sm px-2 py-1 text-xs font-semibold text-color-text-accent hover:bg-color-primary/15"
-            >
-              Freigeben
-            </button>
-          ),
-        },
-      ]}
-    />
+    <div className="flex flex-col gap-8">
+      <DataTable
+        rows={data}
+        getRowId={(q) => q.employee_id}
+        caption="Qualifizierte Mitarbeitende"
+        isLoading={isLoading}
+        error={error ? errorText(error) : null}
+        emptyMessage="Derzeit ist niemand qualifiziert."
+        columns={[
+          { id: "name", header: "Name", cell: (q) => `${q.name} (${q.employee_no})`, sortValue: (q) => q.name },
+          { id: "step", header: "Stufe", cell: (q) => `${levelShort(q.level)} → ${levelShort(q.target)}` },
+          { id: "points", header: "Punkte", align: "right", cell: (q) => <><PointsValue value={q.eligible} /> / {Number(q.required)}</> },
+          { id: "kv", header: "KV", align: "right", cell: (q) => <><PointsValue value={q.eligible_kv} isKv /> / {Number(q.kv_required)}</> },
+          {
+            id: "action",
+            header: "",
+            align: "right",
+            cell: (q) => (
+              <button
+                type="button"
+                onClick={() => openApprove(q)}
+                className="cursor-pointer rounded-radius-sm px-2 py-1 text-xs font-semibold text-color-text-accent hover:bg-color-primary/15"
+              >
+                Freigeben
+              </button>
+            ),
+          },
+        ]}
+      />
+      <ConfirmationQueue />
+    </div>
   );
 };

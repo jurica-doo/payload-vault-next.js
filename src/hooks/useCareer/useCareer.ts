@@ -88,3 +88,66 @@ export function usePromotionQueue(enabled: boolean) {
   });
   return { ...query, approve };
 }
+
+/** Shape of rpc_career_confirmation (migration 20261101220000); null = no confirmation year. */
+export type Confirmation = {
+  status: "pending" | "running" | "met" | "missed" | "kept" | "demoted";
+  employee_id: string;
+  promotion_id: string;
+  level: string;
+  previous_level: string | null;
+  promoted_on: string;
+  /** First and last day of the confirmation year. */
+  start: string;
+  end: string;
+  required: string;
+  threshold: string;
+  achieved: string;
+  personal: string | null;
+  structure: string | null;
+  missing: string;
+  decision: "kept" | "demoted" | null;
+  decided_at: string | null;
+  demoted_to: string | null;
+};
+export type ConfirmationEntry = Confirmation & { name: string; employee_no: string };
+
+export function useCareerConfirmation(employeeId: string | null) {
+  return useQuery({
+    queryKey: ["careerConfirmation", employeeId ?? "me"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("rpc_career_confirmation", employeeId ? { p_employee_id: employeeId } : {});
+      if (error) throwDbError(error);
+      return (data ?? null) as unknown as Confirmation | null;
+    },
+  });
+}
+
+/** Admin: everyone in a confirmation year; decide after a missed year. */
+export function useConfirmationQueue(enabled: boolean) {
+  const queryClient = useQueryClient();
+  const query = useQuery({
+    queryKey: ["confirmationQueue"],
+    enabled,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("rpc_confirmation_queue");
+      if (error) throwDbError(error);
+      return (data ?? []) as unknown as ConfirmationEntry[];
+    },
+  });
+  const decide = useMutation({
+    mutationFn: async (a: { employeeId: string; demote: boolean; reason: string }) => {
+      const { data, error } = await supabase.rpc("rpc_decide_confirmation", {
+        p_employee_id: a.employeeId, p_demote: a.demote, p_reason: a.reason,
+      });
+      if (error) throwDbError(error);
+      return data as "kept" | "demoted";
+    },
+    onSuccess: () => {
+      for (const key of ["confirmationQueue", "careerConfirmation", "careerProgress", "promotionQueue", "employees", "tasks"]) {
+        queryClient.invalidateQueries({ queryKey: [key] });
+      }
+    },
+  });
+  return { ...query, decide };
+}

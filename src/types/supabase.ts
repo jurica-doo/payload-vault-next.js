@@ -197,6 +197,67 @@ export type Database = {
         }
         Relationships: []
       }
+      career_confirmations: {
+        Row: {
+          achieved: number
+          decided_at: string
+          decided_by: string | null
+          decision: string
+          demoted_to: string | null
+          employee_id: string
+          id: string
+          promotion_id: string
+          reason: string
+          required: number
+        }
+        Insert: {
+          achieved: number
+          decided_at?: string
+          decided_by?: string | null
+          decision: string
+          demoted_to?: string | null
+          employee_id: string
+          id?: string
+          promotion_id: string
+          reason: string
+          required: number
+        }
+        Update: {
+          achieved?: number
+          decided_at?: string
+          decided_by?: string | null
+          decision?: string
+          demoted_to?: string | null
+          employee_id?: string
+          id?: string
+          promotion_id?: string
+          reason?: string
+          required?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "career_confirmations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "career_confirmations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_hierarchy"
+            referencedColumns: ["employee_id"]
+          },
+          {
+            foreignKeyName: "career_confirmations_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: true
+            referencedRelation: "career_level_history"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       career_level_history: {
         Row: {
           approved_by: string | null
@@ -828,6 +889,7 @@ export type Database = {
       conversion_rules: {
         Row: {
           category_code: string
+          counts_for_career: boolean
           divisor: number | null
           formula_kind: string
           id: string
@@ -839,6 +901,7 @@ export type Database = {
         }
         Insert: {
           category_code: string
+          counts_for_career?: boolean
           divisor?: number | null
           formula_kind: string
           id?: string
@@ -850,6 +913,7 @@ export type Database = {
         }
         Update: {
           category_code?: string
+          counts_for_career?: boolean
           divisor?: number | null
           formula_kind?: string
           id?: string
@@ -3674,6 +3738,10 @@ export type Database = {
           manager_id: string
         }[]
       }
+      rpc_career_confirmation: {
+        Args: { p_employee_id?: string }
+        Returns: Json
+      }
       rpc_career_progress: { Args: { p_employee_id?: string }; Returns: Json }
       rpc_claim_email_sends: { Args: { p_limit?: number }; Returns: Json }
       rpc_close_privacy_request: {
@@ -3684,6 +3752,7 @@ export type Database = {
         Args: { p_batch_id: string }
         Returns: number
       }
+      rpc_confirmation_queue: { Args: never; Returns: Json[] }
       rpc_consent_report: { Args: never; Returns: Json }
       rpc_convert_lead: {
         Args: { p_confirm_duplicates?: boolean; p_lead_id: string }
@@ -3749,6 +3818,10 @@ export type Database = {
       rpc_dashboard_admin: { Args: never; Returns: Json }
       rpc_dashboard_me: { Args: { p_month?: string }; Returns: Json }
       rpc_dashboard_team: { Args: { p_month?: string }; Returns: Json }
+      rpc_decide_confirmation: {
+        Args: { p_demote: boolean; p_employee_id: string; p_reason: string }
+        Returns: string
+      }
       rpc_decide_template_version: {
         Args: { p_approve: boolean; p_note?: string; p_version_id: string }
         Returns: undefined
@@ -4187,6 +4260,15 @@ export type Database = {
           p_category_code: string
           p_divisor: number
           p_max_term_years: number
+          p_version_id: string
+        }
+        Returns: undefined
+      }
+      rpc_update_conversion_flags_draft: {
+        Args: {
+          p_category_code: string
+          p_counts_for_career: boolean
+          p_pays_commission: boolean
           p_version_id: string
         }
         Returns: undefined

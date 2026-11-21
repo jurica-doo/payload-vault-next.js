@@ -68,7 +68,7 @@ test.describe("Ledger (§5.3, §6.1, §14.2)", () => {
     expect(entries.reduce((s, e) => s + Number(e.gross), 0)).toBe(112 * 93);
   });
 
-  test("Kfz erzeugt AE, aber keine Provision (Stand 01.11.2026)", () => {
+  test("Kfz erzeugt derzeit weder Punkte noch Provision (Profina 21.11.2026)", () => {
     const n = sql(`select count(*) from public.commission_ledger l join public.production_records pr on pr.id = l.production_id
                     where pr.category_code = 'KFZ'`);
     expect(n).toBe("0");

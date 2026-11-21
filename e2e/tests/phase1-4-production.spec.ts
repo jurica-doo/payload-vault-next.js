@@ -25,7 +25,7 @@ test.describe("Paula: jede Punkteregel aus §3 / §14.1", () => {
     await expect(rowWith(page, /(?<![\d.])1\.000,00/)).toContainText("5,00"); // Sach 1.000 € netto → 139,86 AE → 4,995 P
     await expect(rowWith(page, "333,33")).toContainText("11,90"); // KV 333,33 € → 11,9046 P
     await expect(rowWith(page, "KFZ")).toContainText("Abgerechnet");
-    await expect(rowWith(page, "KFZ")).toContainText("0,45"); // Kfz 450 € netto → 12,60 AE → 0,45 P
+    await expect(rowWith(page, "KFZ")).toContainText("0,00"); // Kfz: derzeit keine Punkte (Profina 2026-11-21)
     await expect(rowWith(page, /(?<![\d.])280,00/)).toContainText("Storniert");
     await expect(rowWith(page, "STROM")).toContainText("Eingereicht");
     await expect(rowWith(page, "GAS")).toContainText("Entwurf");

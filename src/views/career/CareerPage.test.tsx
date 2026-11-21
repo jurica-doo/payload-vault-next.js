@@ -1,9 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const state = vi.hoisted(() => ({ progress: null as unknown }));
+const state = vi.hoisted(() => ({ progress: null as unknown, confirmation: null as unknown }));
 vi.mock("../../hooks/useCareer/useCareer", () => ({
   useCareerProgress: () => ({ data: state.progress, isLoading: false, error: null }),
+  useCareerConfirmation: () => ({ data: state.confirmation }),
 }));
 vi.mock("../../hooks/useStructure/useStructure", () => ({ useStructure: () => ({ data: undefined }) }));
 vi.mock("../../hooks/permissions/usePermissions", () => ({
@@ -104,5 +105,19 @@ describe("CareerPage", () => {
     state.progress = { status: "top_level", level: "VD" };
     render(<CareerPage />);
     expect(screen.getByText(/Höchste Stufe erreicht \(Vertriebsdirektor\)/)).toBeInTheDocument();
+  });
+
+  it("shows the confirmation year after a promotion (80 % rule)", () => {
+    state.progress = tlTowardsOl;
+    state.confirmation = {
+      status: "running", employee_id: "e1", promotion_id: "h1", level: "TL", previous_level: "FB", promoted_on: "2026-11-05",
+      start: "2026-12-01", end: "2027-11-30", required: "240", threshold: "300", achieved: "120", personal: "60", structure: "60",
+      missing: "120", decision: null, decided_at: null, demoted_to: null,
+    };
+    render(<CareerPage />);
+    expect(screen.getByRole("region", { name: "Bestätigungsjahr" })).toBeTruthy();
+    expect(screen.getByText(/gezählt vom 01\.12\.2026 bis 30\.11\.2027/)).toBeTruthy();
+    expect(screen.getByText("läuft")).toBeTruthy();
+    state.confirmation = null;
   });
 });
