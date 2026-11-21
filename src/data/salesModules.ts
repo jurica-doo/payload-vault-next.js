@@ -48,7 +48,9 @@ export const SALES_MODULES: SalesModule[] = [
     key: "production",
     label: "Produktion",
     href: "/vertrieb/produktion",
-    audience: ["employee"],
+    // Admins and finance confirm settlements ("Abrechnung bestätigen"), also
+    // without an employee record of their own.
+    audience: ["employee", "admin", "finance"],
     phase: 1,
     description: "Verträge erfassen und importieren, Punkte und AE nachvollziehen.",
   },

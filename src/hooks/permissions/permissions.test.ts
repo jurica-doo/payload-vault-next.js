@@ -72,15 +72,23 @@ describe("module visibility", () => {
     expect(canSeeModule(derivePermissions(ctx({ descendant_count: 1 })), team)).toBe(true);
   });
 
+  it("shows Produktion to admins and finance without an employee row (they confirm settlements)", () => {
+    const production = SALES_MODULES.find((m) => m.key === "production")!;
+    const flags = { feature_flags: { sales: true, production: true } };
+    expect(canSeeModule(derivePermissions(ctx({ ...flags, employee: null, roles: ["admin"] })), production)).toBe(true);
+    expect(canSeeModule(derivePermissions(ctx({ ...flags, employee: null, roles: ["finance"] })), production)).toBe(true);
+    expect(canSeeModule(derivePermissions(ctx({ ...flags, employee: null, roles: [] })), production)).toBe(false);
+  });
+
   it("shows admin only to admins, even without an employee row", () => {
     const admin = SALES_MODULES.find((m) => m.key === "admin")!;
     expect(canSeeModule(derivePermissions(ctx()), admin)).toBe(false);
     expect(canSeeModule(derivePermissions(ctx({ employee: null, roles: ["admin"] })), admin)).toBe(true);
   });
 
-  it("lets finance without an employee row see commissions only", () => {
+  it("lets finance without an employee row see Produktion (settlements) and Provisionen only", () => {
     const p = derivePermissions(ctx({ employee: null, roles: ["finance"] }));
-    expect(visibleModules(p).map((m) => m.key)).toEqual(["commission"]);
+    expect(visibleModules(p).map((m) => m.key)).toEqual(["production", "commission"]);
   });
 });
 
