@@ -14,6 +14,17 @@ import { TrendChart } from "../../components/charts/TrendChart";
 import { EmptyState } from "../../components/emptyState/EmptyState";
 import { AeValue, MoneyValue, PointsValue } from "../../components/values/Values";
 import { usePermissions } from "../../hooks/permissions/usePermissions";
+import { SALES_MODULES, type SalesModule } from "../../data/salesModules";
+import { canSeeModule } from "../../hooks/permissions/permissions";
+
+/** True when the person can open that module (flag on and audience met). */
+const useModuleOpen = () => {
+  const { permissions } = usePermissions();
+  return (key: SalesModule["key"]) => {
+    const m = SALES_MODULES.find((x) => x.key === key);
+    return m ? canSeeModule(permissions, m) : false;
+  };
+};
 import {
   useAdminDashboard,
   useMyDashboard,
@@ -99,7 +110,11 @@ const MyActivities = ({ d }: { d: MyDashboard }) => {
 };
 
 const MySection = ({ d }: { d: MyDashboard }) => {
-  const target = d.goal?.targets.points;
+  // Tiles and links of switched-off modules stay hidden (found 2026-11-21:
+  // commission shown and "Ziel festlegen" linked while both were off).
+  const open = useModuleOpen();
+  const goalsOn = open("goals");
+  const target = goalsOn ? d.goal?.targets.points : undefined;
   const c = d.career;
   // Estimates only (§7.5): shown with their method, never used for results.
   const monthEnd = projectMonthEnd(d.production.points, d.month, d.as_of);
@@ -116,11 +131,13 @@ const MySection = ({ d }: { d: MyDashboard }) => {
           label="Punkte (anrechenbar)"
           value={<PointsValue value={d.production.points} />}
           delta={target !== undefined ? { ratio: delta(d.production.points, target), comparedTo: `ggü. Ziel ${formatPoints(target, 0)} P` } : undefined}
-          hint={target === undefined ? "Kein Monatsziel hinterlegt" : undefined}
+          hint={goalsOn && target === undefined ? "Kein Monatsziel hinterlegt" : undefined}
         />
         <KpiTile label="KV-Punkte" value={<PointsValue value={d.production.kv_points} isKv />} />
         <KpiTile label="AE" value={<AeValue value={d.production.ae} />} hint={`Jahr: ${formatPoints(d.year.points)} P`} />
-        <KpiTile label="Provision nach Reserve" value={<MoneyValue value={d.commission.net} />} hint="In diesem Monat gebucht" />
+        {open("commission") && (
+          <KpiTile label="Provision nach Reserve" value={<MoneyValue value={d.commission.net} />} hint="In diesem Monat gebucht" />
+        )}
       </div>
 
       <MyActivities d={d} />
@@ -185,9 +202,9 @@ const MySection = ({ d }: { d: MyDashboard }) => {
       </div>
 
       <ul className="flex flex-col gap-1 text-sm">
-        {d.todo.goal_missing && <li>• Für diesen Monat ist noch kein Ziel angelegt. <Link href="/vertrieb/ziele">Ziel festlegen</Link></li>}
+        {goalsOn && d.todo.goal_missing && <li>• Für diesen Monat ist noch kein Ziel angelegt. <Link href="/vertrieb/ziele">Ziel festlegen</Link></li>}
         {d.todo.drafts > 0 && <li>• {d.todo.drafts} Produktions-Entwürfe noch nicht eingereicht. <Link href="/vertrieb/produktion">Öffnen</Link></li>}
-        {d.todo.goals_to_review > 0 && <li>• {d.todo.goals_to_review} Ziele aus Ihrer Struktur warten auf Freigabe. <Link href="/vertrieb/ziele">Prüfen</Link></li>}
+        {goalsOn && d.todo.goals_to_review > 0 && <li>• {d.todo.goals_to_review} Ziele aus Ihrer Struktur warten auf Freigabe. <Link href="/vertrieb/ziele">Prüfen</Link></li>}
       </ul>
     </section>
   );

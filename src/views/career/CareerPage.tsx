@@ -166,7 +166,9 @@ const ProgressView = ({ progress }: { progress: CareerProgress }) => {
                   <td className="py-2 pr-3 hyphens-none">
                     Struktur {s.name}
                     {(s.cap_applied || s.kv_cap_applied) && (
-                      <span className="ml-2 rounded-full border border-color-secondary/40 px-2 text-xs text-color-secondary">begrenzt</span>
+                      <span className="ml-2 rounded-full border border-color-secondary/40 px-2 text-xs text-color-secondary">
+                        {s.cap_applied ? "begrenzt" : "KV begrenzt"}
+                      </span>
                     )}
                   </td>
                   <td className="py-2 pr-3 text-right"><PointsValue value={s.gross} /></td>

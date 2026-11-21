@@ -16,6 +16,15 @@ const renderForm = (onSubmit = vi.fn().mockResolvedValue(undefined)) => {
 };
 
 describe("ProductionForm", () => {
+  it("preselects the admin's own person when the admin is also an employee", () => {
+    const employees = [
+      { id: "e1", first_name: "Bruno", last_name: "Boss", employee_no: "P00001", status: "active" },
+      { id: "e2", first_name: "Anna", last_name: "Alpha", employee_no: "P00002", status: "active" },
+    ];
+    render(<ProductionForm producerId={null} defaultProducerId="e1" employees={employees} onSubmit={vi.fn()} onCancel={() => {}} />);
+    expect(screen.getByRole("combobox", { name: /Person/ })).toHaveTextContent("Boss, Bruno");
+  });
+
   it("previews LV points live (GC-POINTS-001 inputs)", () => {
     renderForm();
     fireEvent.change(screen.getByLabelText(/Beitrag/), { target: { value: "100,00" } });

@@ -28,17 +28,20 @@ const berlinToday = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/B
  */
 export const ProductionForm = ({
   producerId,
+  defaultProducerId,
   employees,
   onSubmit,
   onCancel,
 }: {
-  /** Fixed producer (own entry); omit to let an admin pick. */
+  /** Fixed producer (own entry); null lets an admin pick. */
   producerId: string | null;
+  /** Preselected person when an admin picks (an admin who is also an employee: themselves). */
+  defaultProducerId?: string | null;
   employees: PickableEmployee[];
   onSubmit: (input: ProductionInput, submitNow: boolean) => Promise<void>;
   onCancel: () => void;
 }) => {
-  const [producer, setProducer] = useState<string | null | undefined>(producerId ?? undefined);
+  const [producer, setProducer] = useState<string | null | undefined>(producerId ?? defaultProducerId ?? undefined);
   const [category, setCategory] = useState("LV");
   const [premium, setPremium] = useState("");
   const [period, setPeriod] = useState<ProductionInput["premiumPeriod"]>("monthly");

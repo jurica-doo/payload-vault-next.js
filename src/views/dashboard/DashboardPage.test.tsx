@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({
-  perms: { employeeId: "me", isLeader: false, isAdmin: false, isFinance: false },
+  perms: { employeeId: "me", isEmployee: true, isLeader: false, isAdmin: false, isFinance: false, flags: { sales: true, production: true, career: true, team: true, commission: true, goals: true, leads: true, tasks: true, customers: true, admin: true } } as Record<string, unknown>,
 }));
 
 const me = {
@@ -50,7 +50,7 @@ const { DashboardPage } = await import("./DashboardPage");
 
 describe("DashboardPage", () => {
   beforeEach(() => {
-    state.perms = { employeeId: "me", isLeader: false, isAdmin: false, isFinance: false };
+    state.perms = { employeeId: "me", isEmployee: true, isLeader: false, isAdmin: false, isFinance: false, flags: { sales: true, production: true, career: true, team: true, commission: true, goals: true, leads: true, tasks: true, customers: true, admin: true } };
   });
 
   it("shows month KPIs against the goal", () => {
@@ -83,6 +83,14 @@ describe("DashboardPage", () => {
     render(<DashboardPage />);
     expect(screen.getByText(/2 Produktions-Entwürfe/)).toBeInTheDocument();
     expect(screen.queryByText(/kein Ziel angelegt/)).not.toBeInTheDocument();
+  });
+
+  it("hides commission and goal hints while those modules are switched off (as on production)", () => {
+    state.perms = { ...state.perms, flags: { ...(state.perms.flags as object), commission: false, goals: false } };
+    render(<DashboardPage />);
+    expect(screen.queryByText("Provision nach Reserve")).not.toBeInTheDocument();
+    expect(screen.queryByText("Kein Monatsziel hinterlegt")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Ziel festlegen" })).not.toBeInTheDocument();
   });
 
   it("shows trend prompts with their numbers to leaders", () => {

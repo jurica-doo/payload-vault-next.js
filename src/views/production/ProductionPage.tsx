@@ -73,6 +73,7 @@ export const ProductionPage = () => {
         <ProductionForm
           // Admins enter for anyone; everyone else for themselves.
           producerId={permissions.isAdmin && permissions.hasMfa ? null : (permissions.employeeId ?? null)}
+          defaultProducerId={permissions.employeeId ?? null}
           employees={pickable}
           onCancel={closeModal}
           onSubmit={async (input, submitNow) => {
@@ -227,7 +228,7 @@ export const ProductionPage = () => {
                   {r.status === "draft" && canEdit && (
                     <button type="button" className={action} onClick={() => run(() => submit.mutateAsync(r.id!), "Eingereicht.")}>Einreichen</button>
                   )}
-                  {r.status === "submitted" && isApprover && (
+                  {r.status === "submitted" && isApprover && r.producer_id !== permissions.employeeId && (
                     <button type="button" className={action} onClick={() => openSettlement(r)}>Abrechnung bestätigen</button>
                   )}
                   <ActionMenu

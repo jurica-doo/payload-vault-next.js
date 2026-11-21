@@ -74,6 +74,7 @@ const MESSAGES: Record<string, string> = {
   sender_details_missing: "Bitte zuerst die Absenderangaben (Firma, Anschrift, Register, Geschäftsführung, Kontakt, App-Adresse) vollständig hinterlegen.",
   invalid_url: "Bitte eine vollständige Adresse mit https:// angeben.",
   invalid_link: "Dieser Abmeldelink ist ungültig oder nicht mehr gültig.",
+  cannot_confirm_own: "Eigene Verträge bestätigt eine andere Person aus Verwaltung oder Finanzen.",
   commission_needs_points: "Provision je Punkt setzt Karrierepunkte voraus. Schalten Sie zuerst die Karrierepunkte ein.",
   confirmation_not_missed: "Eine Entscheidung ist erst möglich, wenn das Bestätigungsjahr verfehlt wurde.",
   no_previous_level: "Es gibt keine vorherige Stufe, auf die zurückgestuft werden kann.",
