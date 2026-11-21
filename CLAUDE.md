@@ -65,7 +65,7 @@ src/data/                 navigation.ts, salesModules.ts, pageMeta.ts, routes.ts
 src/utils/                dbErrors.ts, authErrors.ts, format.ts (German numbers/dates), theme.ts, csvExport.ts, safeRedirect.ts, taxReport/
 src/context/              AuthContext, ProtectedRoutes, banner/, modal/, YearContext, title/TitleContext, BulkSelectContext
 src/lib/                  supabase.ts (client), pdf/ (PDF text extraction)
-supabase/migrations/      67 migrations (timestamped, see §13); supabase/tests/ pgTAP (37 files); supabase/functions/ (5 edge functions); supabase/templates/ (German auth e-mails); supabase/seeds/local_dev.sql (dev seed)
+supabase/migrations/      68 migrations (timestamped, see §13); supabase/tests/ pgTAP (38 files); supabase/functions/ (5 edge functions); supabase/templates/ (German auth e-mails); supabase/seeds/local_dev.sql (dev seed)
 e2e/                      Playwright suite: fixtures/ (test data + expected numbers), fill/ (API fill per phase), lib/, tests/, README.md
 requirements1/            plan, CHECKLIST.md, phase docs (+ phase-N-*/verification/: review findings + click-by-click manual test guide)
 check.md                  local-only security notes (git-excluded) — don't commit
@@ -195,7 +195,7 @@ Patterns: toast titles name what failed ("Löschen fehlgeschlagen"), never just 
 ## 13. Working agreements (learned)
 - Plan big changes first; one commit per logical step; commit messages end with the `Co-Authored-By` line from the system reminder. Commit/push only when asked; branch before working on `main`.
 - **Two developers on `feat/requirements1` at the same time:** `git fetch` + `git pull --rebase` before starting and again before pushing; never force-push a shared branch; after pulling, run `supabase migration up` (and `npm ci` if `package-lock.json` changed). Ask before overwriting files the other person changed.
-- **Migration timestamps run ahead of the calendar** (latest file `20261101220000` was written on 2026-11-21). A new migration must sort after the newest file in `supabase/migrations/`, so pick the next free timestamp by hand (e.g. `20261031200000_<name>.sql`) — `supabase migration new` uses the current time and would sort *before* existing files, and on any database that already has the later ones `supabase migration up` / `db push` refuse it unless run with `--include-all`. If both developers add migrations in parallel, check after pulling that the names are unique and the order is still what you intended; never rename or edit a migration that is already pushed — add a new one.
+- **Migration timestamps run ahead of the calendar** (latest file `20261101230000` was written on 2026-11-21). A new migration must sort after the newest file in `supabase/migrations/`, so pick the next free timestamp by hand (e.g. `20261031200000_<name>.sql`) — `supabase migration new` uses the current time and would sort *before* existing files, and on any database that already has the later ones `supabase migration up` / `db push` refuse it unless run with `--include-all`. If both developers add migrations in parallel, check after pulling that the names are unique and the order is still what you intended; never rename or edit a migration that is already pushed — add a new one.
 - Build reusable components wherever a pattern repeats (the user asked explicitly).
 - After UI work: typecheck, tests, lint, build, then look at it in the browser (light + dark).
 - Keep German copy formal ("Sie"), specific ("what happened + what to do"), and consistent.
