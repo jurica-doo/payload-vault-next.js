@@ -5,12 +5,12 @@ entered in the app.
 
 **Operator (answered 2026-11-21):** Bazilije Vuletić, Kölner Str. 152, 58509 Lüdenscheid, gebundener
 Versicherungsvertreter (§ 34d Abs. 7 GewO, D-6FME-UFOB4-98), runs the app in Vertretung der Profina Deutschland GmbH
-and is the controller. App address **https://payload-vault.profina-vuletic.de**; region **Frankfurt** (Vercel `fra1`,
-Supabase `eu-central-1`); Gemini on a **paid** key; e-mail domain **profina-vuletic.de**.
+and is the controller. App address **https://payload-vault.profina-vuletic.de**; region: Vercel functions **Frankfurt** (`fra1`),
+Supabase **Ireland** (`eu-west-1`, existing project `mitvsxswoagzixcbrhia`); Gemini on a **paid** key; e-mail domain **profina-vuletic.de**.
 
 ## 1. Supabase (production project)
 
-1. Region: Frankfurt (`eu-central-1`), matching `dataRegion` in `src/data/legalEntity.ts`.
+1. Region: the production project is in Ireland (`eu-west-1`), matching `dataRegion` in `src/data/legalEntity.ts`.
 2. Apply all migrations in order (`supabase db push`), including `20261101170000` … `20261101200000`.
 3. Authentication → Sign In / Providers: „Allow new users to sign up“ **off**, Email provider **on**, TOTP MFA **on**.
 4. Authentication → URL Configuration: Site URL `https://payload-vault.profina-vuletic.de`; redirect URLs

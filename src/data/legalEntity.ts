@@ -58,7 +58,7 @@ export const LEGAL: LegalEntity = {
   registerAuthority: "Südwestfälische Industrie- und Handelskammer zu Hagen, Bahnhofstraße 18, 58095 Hagen",
   liableInsurer: "Barmenia Krankenversicherung AG",
   contentResponsible: "Bazilije Vuletić, Kölner Str. 152, 58509 Lüdenscheid",
-  dataRegion: "Frankfurt am Main, Deutschland (EU)",
+  dataRegion: "Irland (EU), Region eu-west-1",
   emailProvider: "Resend",
   asOf: "November 2026",
 };
